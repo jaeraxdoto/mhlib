@@ -1,0 +1,24 @@
+// mh_binstringchrom.C - binary string chromosome
+
+#include <fstream>
+#include "mh_binstringchrom.h"
+#include "mh_move.h"
+#include "mh_stringchrom_impl.h"
+#include "mh_util.h"
+
+// instantiate template
+template class stringChrom<bool>;
+
+void binStringChrom::write(ostream &ostr,int detailed) const
+{
+	for (int i=0;i<length;i++) 
+		ostr << (data[i]?1:0);
+	ostr << endl;
+}
+
+void binStringChrom::applyMove(const move &m)
+{
+	const bitflipMove &qm = dynamic_cast<const bitflipMove &>(m);
+	data[qm.r] = !data[qm.r];
+}
+

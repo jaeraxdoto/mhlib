@@ -1,0 +1,51 @@
+/*! 
+
+\mainpage MHlib 
+
+<center>
+A Generic Library for Metaheuristics
+</center>
+
+\section introduction Introduction
+
+This library is intended to be a problem-independent C++ library
+suitable for the development of efficient metaheuristics for 
+combinatorial optimization problems.
+
+The library is in development since 1999 at the Vienna University of Technology,
+Institute of Computer Graphics and Algorithms, Vienna, Austria.
+Formerly, it was called EAlib, as it originated from some classes for
+evolutionary algorithms.
+
+Mainly responsible for it is <em>Guenther Raidl</em> (raidl@ads.tuwien.ac.at),
+to whom also belongs the copyright. 
+Please report any problems to him. Thank you.
+
+<em>Daniel Wagner</em> (d.wagner@cti.ac.at) contributed some local search alike
+algorithms and an extensive example for the QAP and many minor changes or
+improvements.
+
+\section install Installing MHlib
+
+Unpack the .tgz or .zip file in a directory. Call "make all" in the MHlib-directory.
+
+MHlib has been tested with GNU g++ 3.3/3.4/4.0 under GNU/Linux and Cygwin, but it
+should be possible to easily adapt it for other platforms/compilers.
+
+\section starting Learning to use and extend MHlib
+
+To start learning MHlib, it is probably best to look at the
+simple exemplary main program in \link demo-onemax demo-onemax \endlink .
+It shows how to use parameters and the most important classes of the library on the
+simple ONEMAX and ONEPERM problem.
+
+A more complex example for the quadratic assignment problem is provided
+in the \link demo-qap demo-qap \endlink directory.
+
+Then, its probably best to look at the documentation of all the include 
+files\htmlonly (<A HREF="files.html">File List</A>) \endhtmlonly.
+Since many global parameters control the behavior of the library, you should
+also take a look at them\htmlonly (<A HREF="group__param.html">Global 
+parameters</A>) \endhtmlonly.
+
+*/

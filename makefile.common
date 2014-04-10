@@ -1,0 +1,22 @@
+# makefile for building the mh library
+# written by Guenther Raidl and Daniel Wagner
+
+CPP=g++
+DEFS=
+
+ifndef O4
+CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -g
+#CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -pg
+else
+CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -O4
+endif
+ifndef USEFPIC
+else
+CCFLAGS+=-fPIC # makes problems under cygwin
+endif
+
+.SUFFIXES: .o .C .d
+.C.o:
+	$(CPP) -c $(CCFLAGS) $<
+.C.d:
+	$(CPP) -MM $(CCFLAGS) -MF $@ $<

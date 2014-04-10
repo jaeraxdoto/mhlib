@@ -1,0 +1,47 @@
+/*! \file mh_feature.h
+  \brief An abstract GLS feature class.
+*/
+
+
+#ifndef MH_FEATURE_H
+#define MH_FEATURE_H
+
+#include "mh_solution.h"
+#include "mh_param.h"
+
+/** \ingroup param
+    Penalty influence tuning parameter for GLS. */
+extern double_param glsa;
+
+/** An abstract GLS feature class. */
+class feature
+{
+protected:
+	/// Parametergroup
+	string pgroup;
+	
+public:
+	/** The constructor. */
+	feature(const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	/** Virtual destructor.
+	        Needed if dynamic data structures are involved. */
+	virtual ~feature() {}
+ 	/** Function for getting the penalty.
+	        The penalty is computed with respect to a passed
+		chromosome. */
+	virtual double penalty(const mh_solution *c) = 0;
+	/** Function for getting the change in the penalty.
+	        The change in the objective function if a certain move
+		is applied is computed. */
+	virtual double delta_penalty(const mh_solution *c, const move *m) = 0;
+	/** Update penalty values.
+	        With respect to a given chromosome.	*/
+	virtual void updatePenalties(const mh_solution *c) = 0;
+	/** Reset penalties of all features to zero. */
+	virtual void resetPenalties() = 0;
+	/** Function to compute a tuned influence of penalties.
+	        The calculation is parametrized with the glsa parameter. */
+	virtual double tuneLambda(mh_solution *c) = 0;
+};
+
+#endif //MH_FEATURE_H
