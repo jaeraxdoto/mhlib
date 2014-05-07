@@ -8,6 +8,14 @@
 
 #include "mh_param.h"
 
+// if flag USE_EXCEPTIONS is given we throw
+// an exception instead of aborting the program
+#ifdef USE_EXCEPTIONS
+# define ERROR(msg) (throw msg)
+#else
+# define ERROR(msg) (abort())
+#endif
+
 /** Writes an error message and exits.
 	This function is used to present an error message together with up
 	to three optional string arguments on cerr end exit. It should be used

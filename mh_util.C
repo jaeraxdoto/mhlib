@@ -10,21 +10,30 @@
 void mherror(const char *msg, const char* par1, const char* par2, 
 	const char *par3)
 {
-	cerr << "\n" << msg;
+	stringstream ss;
+	ss << "\n" << msg;
 	if (par1) 
 	{
-		cerr << ": " << par1;
+		ss << ": " << par1;
+
 		if (par2)
 		{
-			cerr << ", " << par2;
+			ss << ", " << par2;
 			if (par3)
-				cerr << ", " << par3;
+				ss << ", " << par3;
 		}
 	}
 	else
-		cerr << "!";
-	cerr << endl;
-	abort();
+		ss << "!";
+	ss << endl;
+	cerr << ss.str();
+
+	// call ERROR(string) macro defined in mh_util.h
+	// in case USE_EXCEPTIONS is defined or given as compiler flag
+	// this macro will throw an exception with the given string parameter
+	// if this macro is not given the ERROR macro calls abort()
+	// as it is usual for the mherror function.
+	ERROR(ss.str());
 }
 
 double CPUtime()

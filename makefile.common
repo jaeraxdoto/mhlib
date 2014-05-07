@@ -15,6 +15,14 @@ else
 CCFLAGS+=-fPIC # makes problems under cygwin
 endif
 
+ifdef UE
+CCFLAGS += -DUSE_EXCEPTIONS
+endif
+
+ifdef ND
+CCFLAGS += -DNDEBUG
+endif
+
 .SUFFIXES: .o .C .d
 .C.o:
 	$(CPP) -c $(CCFLAGS) $<
