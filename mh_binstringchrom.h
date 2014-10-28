@@ -23,7 +23,7 @@ public:
 	void write(ostream &ostr,int detailed=0) const;
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
-	void applyMove(const move &m);
+	void applyMove(const nhmove &m);
 };
 
 #endif //MH_BINSTRINGCHROM_H

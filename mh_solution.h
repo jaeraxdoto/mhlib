@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include "mh_base.h"
-#include "mh_move.h"
+#include "mh_nhmove.h"
 #include "mh_param.h"
 
 /** \ingroup param
@@ -126,11 +126,11 @@ public:
 		is applied is computed.
 
 		Note: The default implementation does return 0.0 */
-	virtual double delta_obj(const move &m) { return 0.0; }
+	virtual double delta_obj(const nhmove &m) { return 0.0; }
 	/** Function to apply a certain move.
 	        The solution is changed according to the move, but
 		the objective value is not invalidated. */
-	virtual void applyMove(const move &m){ cerr << "BUG: applyMove() not implemented !" << endl;}; 
+	virtual void applyMove(const nhmove &m){ cerr << "BUG: applyMove() not implemented !" << endl;}; 
 	/** Initialization function.
 		The solution is initialized (usually randomly).
 		Must be overloaded accordingly.

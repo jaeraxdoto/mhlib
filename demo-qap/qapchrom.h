@@ -136,14 +136,14 @@ public:
 	
 		\param m The move to be evaluated.
 	*/
-	double delta_obj(const move &m);
+	double delta_obj(const nhmove &m);
 	
 	/** Function to apply a certain move.
 	    Note: This version only works if a swapMove is passed.
 	
 		\param m The move to be applied.
 	*/
-	void applyMove(const move &m);
+	void applyMove(const nhmove &m);
 	
 	/** Replace current chromosome with a better or even the best neighbour.
 		\param find_best If true, the best chromosome in the neighbourhood is searched,

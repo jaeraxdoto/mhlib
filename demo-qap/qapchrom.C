@@ -4,9 +4,10 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include "mh_move.h"
 #include "mh_util.h"
 #include "qapchrom.h"
+
+#include "../mh_nhmove.h"
 #include "qapfeature.h"
 #include "mh_tabusearch.h"
 
@@ -195,7 +196,7 @@ unsigned long int qapSol::hashvalue()
 	return h;
 }
 
-double qapSol::delta_obj(const move &m)
+double qapSol::delta_obj(const nhmove &m)
 {
 	double delta = 0.0;
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
@@ -225,7 +226,7 @@ double qapSol::delta_obj(const move &m)
 	return delta;
 }
 
-inline void qapSol::applyMove(const move &m)
+inline void qapSol::applyMove(const nhmove &m)
 {
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
 	swap(data[qm.r],data[qm.s]);

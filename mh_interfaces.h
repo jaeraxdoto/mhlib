@@ -9,7 +9,7 @@
 class mh_solution;
 class feature;
 class guidedLS;
-class move;
+class nhmove;
 
 
 /** An abstract interface class for algorithms which provide
@@ -50,7 +50,7 @@ public:
 	/** Function for getting the change in the objective function.
 	        The change in the augmented part of the objective function
 		if a certain move is applied is computed. */
-	virtual double delta_aobj(mh_solution *c, const move *m) = 0;
+	virtual double delta_aobj(mh_solution *c, const nhmove *m) = 0;
 };
 
 /** An interface class for subalgorithms of guided local search. */
@@ -71,7 +71,7 @@ public:
 	/** Function for getting the change in the objective function.
 	        The change in the augmented part of the objective function
 		if a certain move is applied is computed. */
-	double delta_aobj(mh_solution *c, const move *m);
+	double delta_aobj(mh_solution *c, const nhmove *m);
 };
 
 /** An abstract interface class for chromosmes which provide 

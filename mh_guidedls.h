@@ -55,7 +55,7 @@ public:
 	/** Function for getting the change in the objective function.
 	        The change in the augmented part of the objective function
 		if a certain move is applied is computed. */
-	virtual double delta_aobj(mh_solution *c, const move *m);
+	virtual double delta_aobj(mh_solution *c, const nhmove *m);
 };
 
 #endif //MH_GUIDEDLS_H

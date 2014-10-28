@@ -446,7 +446,7 @@ void permChrom::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
 
 #endif // notused
 
-void permChrom::applyMove(const move &m)
+void permChrom::applyMove(const nhmove &m)
 {
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
 	swap(data[qm.r],data[qm.s]);

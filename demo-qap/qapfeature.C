@@ -3,8 +3,9 @@
 
 #include <deque>
 #include <vector>
-#include "mh_move.h"
 #include "qapfeature.h"
+
+#include "../mh_nhmove.h"
 #include "mh_util.h"
 
 qapFeature::qapFeature(const pstring &pg) : feature(pg), qi(qapInstance::getInstance()), pv(qi->n*qi->n)
@@ -70,7 +71,7 @@ double qapFeature::penalty(const mh_solution *c)
 	return p;
 }
 
-double qapFeature::delta_penalty(const mh_solution *c, const move *m)
+double qapFeature::delta_penalty(const mh_solution *c, const nhmove *m)
 {
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 	const swapMove *qm = dynamic_cast<const swapMove*>(m);

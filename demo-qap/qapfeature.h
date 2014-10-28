@@ -42,7 +42,7 @@ public:
 		\param m The move to be evaluated.
 		\return The change of the penalty.
 	*/
-	virtual double delta_penalty(const mh_solution *c, const move *m);
+	virtual double delta_penalty(const mh_solution *c, const nhmove *m);
 	
 	/** Update penalty values.
 		With respect to a given chromosome.

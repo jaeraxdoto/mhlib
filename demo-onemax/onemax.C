@@ -51,7 +51,7 @@ public:
 		{ return new oneMaxChrom(*this); }
 	double objective();
 	void greedyConstruct();
-	double delta_obj(const move &m);
+	double delta_obj(const nhmove &m);
 };
 
 /// The actual objective function counts the number of genes set to 1.
@@ -72,7 +72,7 @@ void oneMaxChrom::greedyConstruct()
 		data[i] = 1;
 }
 
-double oneMaxChrom::delta_obj(const move &m)
+double oneMaxChrom::delta_obj(const nhmove &m)
 {
 	const bitflipMove &bfm = dynamic_cast<const bitflipMove &>(m);
 	return (data[bfm.r]?-1:1);

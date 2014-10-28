@@ -4,21 +4,21 @@
 	\todo possibly create a moveProvider
  */
 
-#ifndef MH_MOVE_H
-#define MH_MOVE_H
+#ifndef MH_NHMOVE_H
+#define MH_NHMOVE_H
 
-/** Abstract move class.
+/** Abstract nhmove class.
         A concrete class must be derived for a specific
 	move in a neighbourhood. */
-class move
+class nhmove
 {
 public:
-	virtual ~move() {}
+	virtual ~nhmove() {}
 };
 
 /** A swapMove class.
         This class represents a swap of two values. */
-class swapMove : public move
+class swapMove : public nhmove
 {
 public:
 	/// Index of first gene.
@@ -34,7 +34,7 @@ public:
 
 /** A bitflip move class.
         This class represents a single bitflip. */
-class bitflipMove : public move
+class bitflipMove : public nhmove
 {
 public:
 	/// Index of gene.
@@ -48,7 +48,7 @@ public:
 
 /** An exchange move class.
         This class represents an exchange of a value with an other. */
-template <class T> class xchgMove : public move
+template <class T> class xchgMove : public nhmove
 {
 public:
 	/// Index of gene.

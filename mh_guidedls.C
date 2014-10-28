@@ -77,7 +77,7 @@ double guidedLS::aobj(mh_solution *c)
 	return lambda * f->penalty(c);
 }
 
-double guidedLS::delta_aobj(mh_solution *c, const move *m)
+double guidedLS::delta_aobj(mh_solution *c, const nhmove *m)
 {
 	return lambda * f->delta_penalty(c,m);
 }

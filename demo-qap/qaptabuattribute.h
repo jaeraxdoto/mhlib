@@ -5,7 +5,7 @@
 #ifndef MH_QAPTABUATTRIBUTE_H
 #define MH_QAPTABUATTRIBUTE_H
 
-#include "mh_move.h"
+#include "mh_nhmove.h"
 #include "mh_tabuattribute.h"
 
 /** A simple specialized tabuAttribute class for the quadratic assignment. */

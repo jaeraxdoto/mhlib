@@ -2,10 +2,10 @@
 # written by Guenther Raidl and Daniel Wagner
 
 CPP=g++
-DEFS=
+DEFS=-std=c++11
 
 ifndef O4
-CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -g
+CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS)  -g
 #CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -pg
 else
 CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -O4

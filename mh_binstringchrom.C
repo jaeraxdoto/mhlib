@@ -2,7 +2,8 @@
 
 #include <fstream>
 #include "mh_binstringchrom.h"
-#include "mh_move.h"
+
+#include "mh_nhmove.h"
 #include "mh_stringchrom_impl.h"
 #include "mh_util.h"
 
@@ -16,7 +17,7 @@ void binStringChrom::write(ostream &ostr,int detailed) const
 	ostr << endl;
 }
 
-void binStringChrom::applyMove(const move &m)
+void binStringChrom::applyMove(const nhmove &m)
 {
 	const bitflipMove &qm = dynamic_cast<const bitflipMove &>(m);
 	data[qm.r] = !data[qm.r];

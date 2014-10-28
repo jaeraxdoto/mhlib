@@ -11,7 +11,7 @@ inline double glsSubAlgorithm::aobj(mh_solution *c)
 		return 0.0;
 }
 
-inline double glsSubAlgorithm::delta_aobj(mh_solution *c, const move *m)
+inline double glsSubAlgorithm::delta_aobj(mh_solution *c, const nhmove *m)
 {
 	if (gls!=NULL)
 		return gls->delta_aobj(c,m);

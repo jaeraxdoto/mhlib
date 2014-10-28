@@ -6,7 +6,8 @@
 #define MH_PERMCHROM_H
 
 #include <iostream>
-#include "mh_move.h"
+
+#include "mh_nhmove.h"
 #include "mh_stringchrom.h"
 
 /** \ingroup param
@@ -75,7 +76,7 @@ public:
 	void crossover(const mh_solution &parA,const mh_solution &parB);
 	/** Function to apply a certain move.
 	        This will only work with a swapMove. */
-	void applyMove(const move &m);
+	void applyMove(const nhmove &m);
 };
 
 #endif //MH_PERMCHROM_H
