@@ -26,7 +26,7 @@ void mherror(const char *msg, const char* par1, const char* par2,
 	else
 		ss << "!";
 	ss << endl;
-	cerr << ss.str();
+//	cerr << ss.str();
 
 	// call ERROR(string) macro defined in mh_util.h
 	// in case USE_EXCEPTIONS is defined or given as compiler flag

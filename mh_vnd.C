@@ -33,11 +33,14 @@ VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 
 	lmax = vndsol->get_lmax(pg);
 	l=1;
+
 	own_nborder=nbo?true:false;
+
 	if (own_nborder)	// create own static neighborhood order
 		nborder=new NBStructureOrder(lmax,vndorder(pg.s));
 	else
 		nborder=nbo;	// use provided neighborhood order object
+
 	tcgen.set(lmax, pg.s);
 	nSearch.assign(lmax+1,0);
 	nSearchSuccess.assign(lmax+1,0);

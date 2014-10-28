@@ -48,8 +48,9 @@ population::population(const mh_solution &c_template, const pstring &pg)
 	: pop_base(pg)
 {
 	chroms=new mh_solution *[nChroms];
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nChroms;i++) {
 		chroms[i]=c_template.createUninitialized();
+	}
 	initialize();
 	determineBest();
 }
@@ -71,8 +72,9 @@ void population::initialize()
 			chroms[i]->initialize(initcall++);
 		}
 		while (dupelim(pgroup)==2 && findDuplicate(chroms[i])!=-1);
-		if (phash)
+		if (phash) {
 			phash->add(chroms[i],i);
+		}
 	}
 	statValid=false;
 }

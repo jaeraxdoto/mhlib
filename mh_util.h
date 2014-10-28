@@ -13,7 +13,9 @@
 #ifdef USE_EXCEPTIONS
 # define ERROR(msg) (throw msg)
 #else
-# define ERROR(msg) (abort())
+# define ERROR(msg) \
+	std::cerr << msg << std::endl; \
+	abort();
 #endif
 
 /** Writes an error message and exits.

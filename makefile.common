@@ -10,10 +10,12 @@ CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS)  -g
 else
 CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS) -O4
 endif
+
 ifndef USEFPIC
 else
 CCFLAGS+=-fPIC # makes problems under cygwin
 endif
+# CCFLAGS+=-fPIC # makes problems under cygwin
 
 ifdef UE
 CCFLAGS += -DUSE_EXCEPTIONS
