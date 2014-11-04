@@ -59,7 +59,7 @@ void mh_solution::selectNeighbour()
 
 		default:
 			mherror("Invalid parameter for mvnbop()",
-				mvnbop.getStringValue(pgroup));
+				mvnbop.getStringValue(pgroup).c_str());
 			break;
 	}
 }

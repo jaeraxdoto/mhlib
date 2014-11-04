@@ -205,7 +205,7 @@ bool mh_advbase::terminate()
 			return maxi(pgroup)? getBestChrom()->obj()>=tobj(pgroup) :
 				getBestChrom()->obj()<=tobj(pgroup);
 		default:
-			mherror("Invalid tcond",tcond.getStringValue(pgroup));
+			mherror("Invalid tcond",tcond.getStringValue(pgroup).c_str());
 			return true;
 	}
 }
@@ -245,7 +245,7 @@ int mh_advbase::replaceIndex()
 		r=pop->worstIndex();
 		break;
 	default:
-		mherror("Wrong replacement strategy",repl.getStringValue(pgroup));
+		mherror("Wrong replacement strategy",repl.getStringValue(pgroup).c_str());
 		return 0;
 	}
 	return r;

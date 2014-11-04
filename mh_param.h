@@ -21,10 +21,6 @@
 	parametergroup can be passed to the constructor of a class to let the
 	created object use this parametergroup instead of the global parameter
 	values.
-
-	\todo allow spaces as parameter values
-	\todo rethink priority of values for parameter groups; meaning of set() and setDefault()
-	\todo human readable boolean parameters (e.g. true and false)
 */
 
 #ifndef MH_PARAM_H
@@ -104,9 +100,9 @@ public:
 	const char *getName() const
 		{ return name; }
 	/// Get parameter value as string.
-	virtual const char *getStringValue(const string &pgroup = "" ) const =0;
+	virtual string getStringValue(const string &pgroup = "" ) const =0;
 	/// Get default value as string.
-	virtual const char *getStringDefValue() const =0;
+	virtual string getStringDefValue() const =0;
 	/// Checks value with optionally privided validator.
 	void validate( const string pgroup = "" ) const;
 	/** Writes out a helping message for the parameter
@@ -268,13 +264,13 @@ public:
 		else {
 			qvals[pgroup] = newval; validate( pgroup ); } }
 	/// Determine string representation for value.
-	const char *getStringValue( const string &pgroup = "" ) const
+	string getStringValue( const string &pgroup = "" ) const
 		{ if ( pgroup == "" )
 			return getStringValue_impl(value);
 		else
 			return getStringValue_impl((*qvals.find(pgroup)).second); }
 	/// Determine string representation for default value.
-	const char *getStringDefValue() const
+	string getStringDefValue() const
 		{ return getStringValue_impl(defval); }
 	/// Read value from ostream.
 	void read(istream &is, const string pgroup = "")
@@ -305,7 +301,7 @@ private:
 	T defval;
 	// the additional qualified parameter values
 	hash_map<string,T,hashstring>  qvals;
-	const char *getStringValue_impl(const T &val) const;
+	string getStringValue_impl(const T &val) const;
 };
 
 //template<class T> T twice(T t);
@@ -415,18 +411,12 @@ template <class T> void unaryValidator<T>::printHelp(ostream &os)
 	}
 }
 
-template <class T> const char *gen_param<T>::getStringValue_impl(const T &val)
+template <class T> string gen_param<T>::getStringValue_impl(const T &val)
 	const
 {
-	string s;
 	ostringstream os("");
 	os << val;
-	s=os.str();
-	return s.c_str();
-	
-	// ostringstream os(buf,sizeof(buf));
-	// os << val << '\0';
-	// return os.str();
+	return os.str();
 }
 
 #endif //MH_PARAM_H

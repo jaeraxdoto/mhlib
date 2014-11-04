@@ -59,7 +59,7 @@ mh_advbase *create_mh(pop_base &p,int a, const pstring &pg)
 			break;
 		default:
 			mherror("Invalid parameter for mhalg()",
-				mhalg.getStringValue(pg.s));
+				mhalg.getStringValue(pg.s).c_str());
 			return NULL;
 	}
 	return ea;

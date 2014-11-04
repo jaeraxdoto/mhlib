@@ -178,7 +178,7 @@ void paramValidator::error(const param &par,const string pgroup) const
 		strcat(buf,par.getName());
 	}
 	strcat(buf,"=\"");
-	strcat(buf,par.getStringValue(pgroup));
+	strcat(buf,par.getStringValue(pgroup).c_str());
 	strcat(buf,"\"");
 	mherror("Invalid param",buf);
 }

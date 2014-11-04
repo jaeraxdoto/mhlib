@@ -1,7 +1,5 @@
 /*! \file mh_move.h 
 	\brief Classes related to neighbourhood moves.
-
-	\todo possibly create a moveProvider
  */
 
 #ifndef MH_NHMOVE_H
