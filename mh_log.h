@@ -7,8 +7,6 @@
 	controlled, flexible buffering mechanism. The generations for which
 	log information should be actually produced can also be controlled
 	via parameters.
-
-	\todo rework logging output for subalgorithms (e.g. prefix, ...)
  */
 	
 #ifndef MH_LOG_H
