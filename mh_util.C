@@ -7,19 +7,19 @@
 #include <sys/times.h>
 #include "mh_util.h"
 
-void mherror(const char *msg, const char* par1, const char* par2, 
-	const char *par3)
+void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
+		const std::string &par3)
 {
 	stringstream ss;
 	ss << "\n" << msg;
-	if (par1) 
+	if (!par1.empty())
 	{
 		ss << ": " << par1;
 
-		if (par2)
+		if (!par2.empty())
 		{
 			ss << ", " << par2;
-			if (par3)
+			if (!par3.empty())
 				ss << ", " << par3;
 		}
 	}
@@ -35,6 +35,7 @@ void mherror(const char *msg, const char* par1, const char* par2,
 	// as it is usual for the mherror function.
 	ERROR(ss.str());
 }
+
 
 double CPUtime()
 {

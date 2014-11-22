@@ -6,6 +6,7 @@
 #ifndef MH_UTIL_H
 #define MH_UTIL_H
 
+#include <string>
 #include "mh_param.h"
 
 // if flag USE_EXCEPTIONS is given we throw
@@ -22,8 +23,8 @@
 	This function is used to present an error message together with up
 	to three optional string arguments on cerr end exit. It should be used
 	in case of any abnormal program termination. */
-void mherror(const char *msg, const char* par1=0, const char* par2=0, 
-	const char *p3=0);
+void mherror(const std::string &msg, const std::string &par1 = "", const std::string &par2 = "",
+		const std::string &par3 = "");
 
 /** Return CPU time in seconds since the process was started.
 	The user CPU time is returned. */
