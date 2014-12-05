@@ -26,14 +26,8 @@ void mherror(const std::string &msg, const std::string &par1, const std::string 
 	else
 		ss << "!";
 	ss << endl;
-//	cerr << ss.str();
 
-	// call ERROR(string) macro defined in mh_util.h
-	// in case USE_EXCEPTIONS is defined or given as compiler flag
-	// this macro will throw an exception with the given string parameter
-	// if this macro is not given the ERROR macro calls abort()
-	// as it is usual for the mherror function.
-	ERROR(ss.str());
+	throw ss.str();
 }
 
 

@@ -126,13 +126,13 @@ int main(int argc, char *argv[])
 {
 	try 
 	{
+		// Probably set some parameters to new default values
+		//pmut.setDefault(2);
+		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
 		random_seed();
 
-		// Probably set some parameters to new default values
-		//pmut.setDefault(2);
-		
 		/* initialize out() stream for standard output and logstr object for logging
 		   according to set parameters. */
 		initOutAndLogstr();
@@ -170,10 +170,12 @@ int main(int argc, char *argv[])
 		// fdc.perform(p.bestChrom(),"");
 		// fdc.write(out,"fdc.tsv");
 	}
-	// catch all exceptions and call eaerror for them
+	// catch all exceptions and write error message
+	catch (std::string &s)
+	{ cerr << s << endl; return 1; }
 	catch (exception &e)
-	{ mherror("\nStandard exception occured",e.what()); }
+	{ cerr << "Standard exception occured" << e.what() << endl; return 1; }
 	catch (...)
-	{ mherror("\nUnknown exception occured"); }
+	{ cerr << "Unknown exception occured" << endl; return 1; }
 	return 0;
 }
