@@ -1,7 +1,13 @@
 # makefile for building the mh library
 # written by Guenther Raidl and Daniel Wagner
 
+# If USE_CPP is set use this compiler, otherwise standard g++
+ifdef USE_CPP
+CPP=$(USE_CPP)
+else
 CPP=g++
+endif
+
 DEFS=-std=c++11
 
 ifndef O4
@@ -16,10 +22,6 @@ else
 CCFLAGS+=-fPIC # makes problems under cygwin
 endif
 # CCFLAGS+=-fPIC # makes problems under cygwin
-
-ifdef UE
-CCFLAGS += -DUSE_EXCEPTIONS
-endif
 
 ifdef ND
 CCFLAGS += -DNDEBUG

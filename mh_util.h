@@ -16,8 +16,7 @@
 void mherror(const std::string &msg, const std::string &par1 = "", const std::string &par2 = "",
 		const std::string &par3 = "");
 
-/** Return CPU time in seconds since the process was started.
-	The user CPU time is returned. */
+/** Return CPU time in seconds since the process was started. */
 double CPUtime();
 
 #endif // MH_UTIL_H

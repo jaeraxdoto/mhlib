@@ -5,12 +5,19 @@
 #include <ctime>
 #include <cmath>
 #include <ext/hash_map>
-#include <unistd.h>
 #include <sstream>
 #include <sys/timeb.h>
 #include "mh_hash.h"
 #include "mh_random.h"
 #include "mh_util.h"
+
+#ifdef __WIN32__
+#include <process.h>
+#define GETPID _getpid
+#else
+#include <unistd.h>
+#define GETPID getpid
+#endif
 
 using namespace __gnu_cxx;
 
@@ -38,7 +45,7 @@ static long iy=0;
 static long iv[NTAB];
 static long idum=0;
 
-
+#include<iostream>
 
 void random_seed() 
 {
@@ -52,7 +59,8 @@ void random_seed()
 			unsigned long tim = time(NULL);
 			timeb tb;
 			ftime(&tb);
-			int pid=getpid();
+
+			int pid = GETPID();
 			tmp=tim*pid;
 			for(unsigned int i=0; i<32*sizeof(unsigned int); i++)
 				lseed += (tmp & (1 << i));
