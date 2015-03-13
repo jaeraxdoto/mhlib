@@ -17,12 +17,13 @@
 
 /** \ingroup param
 	Default-basename (without extension) for all output files.
-	If this name is '@' (which is the default) all output is
-	written to the standard output cout and no buffering takes place. */
+	If this name is "@" (which is the default) all output is
+	written to the standard output cout and no buffering takes place,
+	if this name is "NULL", all output is suppressed. */
 extern string_param oname;
 
 /** \ingroup param
-	Directory for all output files. */
+	Directory for all output files. If empty the current directory is used*/
 extern string_param odir;
 
 /** \ingroup param

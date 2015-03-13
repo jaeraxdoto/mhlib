@@ -6,7 +6,7 @@
 #include "mh_log.h"
 #include "mh_util.h"
 
-string_param oname("oname","base-name for all output files ('@':stdout)","@");
+string_param oname("oname","base-name for all output files ('@':stdout,'NULL':no output)","@");
 
 string_param odir("odir","directory for all output files","");
 
@@ -33,6 +33,14 @@ string_param nformat("nformat","format for writing double values","%f");
 outStream out("out","@","");
 logging logstr("log","@","");
 
+/* A stream buffer for omitting output. */
+class NullBuffer : public std::streambuf
+{
+public:
+  int overflow(int c) { return c; }
+};
+
+static NullBuffer null_buffer;
 
 void outStream::init(const string &fext, const string &fname, const string &fdir)
 {
@@ -41,6 +49,14 @@ void outStream::init(const string &fext, const string &fname, const string &fdir
 		// use cout as stream
 		isCoutFlag=true;
 		str=&cout;
+	}
+	else if (fname==string("NULL"))
+	{
+		// use NullBuffer
+		isCoutFlag=true;
+		str=new std::ostream(&null_buffer);
+		if (!(*str))
+			mherror("Cannot open NULL stream for writing");
 	}
 	else
 	{
