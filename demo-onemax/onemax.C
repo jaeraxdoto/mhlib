@@ -26,7 +26,7 @@
 // #include "mh_fdc.h"
 #include "mh_binstringchrom.h"
 #include "mh_permchrom.h"
-#include <thread>
+#include "mh_c11threads.h"
 
 
 
@@ -120,14 +120,18 @@ void onePermChrom::greedyConstruct()
 
 // Test for multithreading
 
+std::mutex mymutex;
+
 void mythread(int t)
 {
-	for (int i=1;i<700000;i++)
+	for (int i=1;i<70000;i++)
 	{
+    	mymutex.lock();
 		cout << t; cout.flush();
-		//sleep(1);
+		mymutex.unlock();
 	}
 }
+
 
 
 //------------------------------------------------------------------------
@@ -165,7 +169,7 @@ int main(int argc, char *argv[])
 
 
 		cout << "Available hardware threads: " << 
-			thread::hardware_concurrency() << endl;
+			thread::hardware_concurrency() << " " << endl;
 
 		std::thread t1(mythread,1);
 		std::thread t2(mythread,2);
@@ -173,7 +177,7 @@ int main(int argc, char *argv[])
 		t1.join();
 		t2.join();
 		t3.join();
-		cout << "Ende" << endl;
+		cout << endl << "Ende aller Threads" << endl;
 
 
 

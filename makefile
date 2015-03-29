@@ -22,7 +22,7 @@ $(SUBDIRS): $(LIB)
 	$(MAKE) -C $@
 
 $(LIB): $(OBJS)
-	ar -rv $(LIB) $(OBJS)
+	$(AR) -rsv $(LIB) $(OBJS)
 
 all: $(LIB) $(SUBDIRS)
 	for dir in ${SUBDIRS} ; do ( ${MAKE} -C $$dir all ) ; done

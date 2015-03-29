@@ -7,7 +7,7 @@ ifndef MHLIB
 endif
 
 include $(MHLIB)/makefile.common
-CCFLAGS += -pthread -L$(MHLIB) -I$(MHLIB)
+CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
 EXE=onemax
 
@@ -20,7 +20,7 @@ OBJS=$(SRCS:.C=.o)
 DEPS=$(SRCS:.C=.d)
 
 $(EXE): $(OBJS) $(MHLIB)/libmh.a
-	$(CPP) $(CCFLAGS) -o $(EXE) $(OBJS) -lmh
+	$(CPP) -static -static-libgcc -static-libstdc++ $(CCFLAGS) -o $(EXE) $(OBJS) -lmh
 
 all: $(EXE)
 
