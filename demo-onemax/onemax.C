@@ -120,15 +120,15 @@ void onePermChrom::greedyConstruct()
 
 // Test for multithreading
 
-std::mutex mymutex;
+//std::mutex mymutex;
 
 void mythread(int t)
 {
 	for (int i=1;i<70000;i++)
 	{
-    	mymutex.lock();
+    	//mymutex.lock();
 		cout << t; cout.flush();
-		mymutex.unlock();
+		//mymutex.unlock();
 	}
 }
 
@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 		t1.join();
 		t2.join();
 		t3.join();
+
 		cout << endl << "Ende aller Threads" << endl;
 
 

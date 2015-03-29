@@ -15,7 +15,7 @@ else
 AR=ar
 endif
 
-DEFS=-std=c++11 -pthread -static -static-libgcc -static-libstdc++
+DEFS=-std=c++11 -pthread # -static -static-libgcc -static-libstdc++
 
 ifndef O4
 CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS)  -g

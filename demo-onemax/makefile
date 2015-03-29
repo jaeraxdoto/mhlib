@@ -20,7 +20,7 @@ OBJS=$(SRCS:.C=.o)
 DEPS=$(SRCS:.C=.d)
 
 $(EXE): $(OBJS) $(MHLIB)/libmh.a
-	$(CPP) -static -static-libgcc -static-libstdc++ $(CCFLAGS) -o $(EXE) $(OBJS) -lmh
+	$(CPP) $(CCFLAGS) -o $(EXE) $(OBJS) -lmh
 
 all: $(EXE)
 
