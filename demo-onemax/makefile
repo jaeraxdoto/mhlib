@@ -7,7 +7,7 @@ ifndef MHLIB
 endif
 
 include $(MHLIB)/makefile.common
-CCFLAGS += -L$(MHLIB) -I$(MHLIB)
+CCFLAGS += -pthread -L$(MHLIB) -I$(MHLIB)
 
 EXE=onemax
 

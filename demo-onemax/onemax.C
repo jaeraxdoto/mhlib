@@ -26,6 +26,7 @@
 // #include "mh_fdc.h"
 #include "mh_binstringchrom.h"
 #include "mh_permchrom.h"
+#include <thread>
 
 
 
@@ -115,6 +116,20 @@ void onePermChrom::greedyConstruct()
 		data[i] = i;
 }
 
+
+
+// Test for multithreading
+
+void mythread(int t)
+{
+	for (int i=1;i<700000;i++)
+	{
+		cout << t; cout.flush();
+		//sleep(1);
+	}
+}
+
+
 //------------------------------------------------------------------------
 
 /** The example main function.
@@ -147,6 +162,20 @@ int main(int argc, char *argv[])
 			<< endl;
 		param::printAll(out());
 		out() << endl;
+
+
+		cout << "Available hardware threads: " << 
+			thread::hardware_concurrency() << endl;
+
+		std::thread t1(mythread,1);
+		std::thread t2(mythread,2);
+		std::thread t3(mythread,3);
+		t1.join();
+		t2.join();
+		t3.join();
+		cout << "Ende" << endl;
+
+
 
 		// generate a template chromosome of the problem specific class
 		onePermChrom tchrom;
