@@ -12,11 +12,11 @@
 	#include "mingw.thread.h"
 	#include <mutex>
 	#include "mingw.mutex.h"
-	#include "mingw.condition_variable.h"
+	// #include "mingw.condition_variable.h"
 #else
 	#include <thread>
 	#include <mutex>
-	#include <condition_variable>
+	// #include <condition_variable>
 #endif
 
 #endif // MH_C11THREADS_H
