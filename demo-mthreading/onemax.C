@@ -128,8 +128,11 @@ std::mutex mymutex;
 
 static void mythread(int t)
 {
-	for (int i=1;i<270000;i++)
+	for (int i=1;i<20;i++)
 	{
+		double a;
+		for (int j=1;j<3879999;j++)
+			a*=sin(a+0.33);
     	//mymutex.lock();
 		cout << t; cout.flush();
 		//mymutex.unlock();
@@ -143,17 +146,24 @@ static void testmultithreading()
 		cout << "Test multithreading, available hardware threads: " << 
 			thread::hardware_concurrency() << " " << endl;
 
-		std::thread t1(mythread,1);
-		std::thread t2(mythread,2);
-		std::thread t3(mythread,3);
-		t1.join();
-		t2.join();
-		t3.join();
-		cout << endl << "All threads finished" << endl << endl;
 		cerr << "Time: " << CPUtime() << endl;
+		cout << "Sequential execution:" << endl;
 		mythread(1);
 		mythread(2);
 		mythread(3);
+		mythread(4);
+		cout << endl << "Sequential execution finished" << endl;
+		cerr << "Time: " << CPUtime() << endl;
+		cout << "Parallel execution:" << endl;
+		std::thread t1(mythread,1);
+		std::thread t2(mythread,2);
+		std::thread t3(mythread,3);
+		std::thread t4(mythread,4);
+		t1.join();
+		t2.join();
+		t3.join();
+		t4.join();
+		cout << endl << "All threads finished" << endl << endl;
 		cerr << "Time: " << CPUtime() << endl;
 }
 
