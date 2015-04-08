@@ -128,7 +128,7 @@ std::mutex mymutex;
 
 static void mythread(int t)
 {
-	for (int i=1;i<70000;i++)
+	for (int i=1;i<270000;i++)
 	{
     	//mymutex.lock();
 		cout << t; cout.flush();
@@ -139,6 +139,7 @@ static void mythread(int t)
 
 static void testmultithreading()
 {
+		cerr << "Time: " << CPUtime() << endl;
 		cout << "Test multithreading, available hardware threads: " << 
 			thread::hardware_concurrency() << " " << endl;
 
@@ -148,8 +149,12 @@ static void testmultithreading()
 		t1.join();
 		t2.join();
 		t3.join();
-
 		cout << endl << "All threads finished" << endl << endl;
+		cerr << "Time: " << CPUtime() << endl;
+		mythread(1);
+		mythread(2);
+		mythread(3);
+		cerr << "Time: " << CPUtime() << endl;
 }
 
 
