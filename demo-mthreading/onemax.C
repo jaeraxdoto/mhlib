@@ -27,6 +27,8 @@
 #include "mh_binstringchrom.h"
 #include "mh_permchrom.h"
 
+#include "mh_c11threads.h"
+
 
 
 /** Problem specific parameters (the number of genes). */
@@ -115,6 +117,42 @@ void onePermChrom::greedyConstruct()
 		data[i] = i;
 }
 
+
+
+//--------- Test for multithreading ---------------------------------
+
+/** Problem specific parameters (the number of genes). */
+int_param mthreadtest("mthreadtest","test mutlithreading",false);
+
+std::mutex mymutex;
+
+static void mythread(int t)
+{
+	for (int i=1;i<70000;i++)
+	{
+    	//mymutex.lock();
+		cout << t; cout.flush();
+		//mymutex.unlock();
+	}
+}
+
+
+static void testmultithreading()
+{
+		cout << "Test multithreading, available hardware threads: " << 
+			thread::hardware_concurrency() << " " << endl;
+
+		std::thread t1(mythread,1);
+		std::thread t2(mythread,2);
+		std::thread t3(mythread,3);
+		t1.join();
+		t2.join();
+		t3.join();
+
+		cout << endl << "All threads finished" << endl << endl;
+}
+
+
 //------------------------------------------------------------------------
 
 /** The example main function.
@@ -147,6 +185,9 @@ int main(int argc, char *argv[])
 			<< endl;
 		param::printAll(out());
 		out() << endl;
+
+		if (mthreadtest()) 
+			testmultithreading();
 
 		// generate a template chromosome of the problem specific class
 		onePermChrom tchrom;
