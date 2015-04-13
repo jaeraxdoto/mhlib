@@ -13,6 +13,8 @@
     #define STDTHREAD_STRICT_NONRECURSIVE_LOCKS
 #endif
 
+#include "mh_util.h"
+
 namespace std
 {
 class recursive_mutex
