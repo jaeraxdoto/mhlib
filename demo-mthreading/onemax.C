@@ -1,5 +1,7 @@
 /*! \file onemax.C
 	\brief A template main program for the ONEMAX and ONEPERM problems.
+	Additionally performs a test of multithreading if parameter mthreadtest
+	ist set to 1.
 
 	Use this main program as a simple basis for writing your application.
 	\include onemax.C */

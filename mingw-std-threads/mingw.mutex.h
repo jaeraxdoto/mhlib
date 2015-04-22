@@ -13,8 +13,6 @@
     #define STDTHREAD_STRICT_NONRECURSIVE_LOCKS
 #endif
 
-#include "mh_util.h"
-
 namespace std
 {
 class recursive_mutex
@@ -134,13 +132,10 @@ public:
         DWORD ret = WaitForSingleObject(mHandle, INFINITE);
         if (ret != WAIT_OBJECT_0)
         {
-		mherror("mingw.mutex system error");
-		/* GR
             if (ret == WAIT_ABANDONED)
                 throw system_error(EOWNERDEAD, generic_category());
             else
                 throw system_error(EPROTO, generic_category());
-		*/
         }
     }
     void unlock()
@@ -155,11 +150,10 @@ public:
             return false;
         else if (ret == WAIT_OBJECT_0)
             return true;
-        else mherror("mingw.mutex system error");/* GR if (ret == WAIT_ABANDONED)
+        else if (ret == WAIT_ABANDONED)
             throw system_error(EOWNERDEAD, generic_category());
         else
             throw system_error(EPROTO, generic_category());
-			*/
     }
     template <class Rep, class Period>
     bool try_lock_for(const std::chrono::duration<Rep,Period>& dur)
@@ -171,10 +165,10 @@ public:
             return false;
         else if (ret == WAIT_OBJECT_0)
             return true;
-        else mherror("mingw.mutex system error"); /* GR if (ret == WAIT_ABANDONED)
+        else if (ret == WAIT_ABANDONED)
             throw system_error(EOWNERDEAD, generic_category());
         else
-            throw system_error(EPROTO, generic_category()); */
+            throw system_error(EPROTO, generic_category());
     }
     template <class Clock, class Duration>
     bool try_lock_until(const std::chrono::time_point<Clock,Duration>& timeout_time)
@@ -182,7 +176,6 @@ public:
         return try_lock_for(timeout_time - Clock::now());
     }
 };
-/*
 class timed_mutex: public _NonRecursiveMutex<recursive_timed_mutex>
 {
 protected:
@@ -211,7 +204,6 @@ public:
         return ret;
     }
 };
-*/
 // You can use the scoped locks and other helpers that are still provided by <mutex>
 // In that case, you must include <mutex> before inclusing this file, so that this
 // file will not try to redefine them

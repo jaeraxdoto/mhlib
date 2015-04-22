@@ -12,7 +12,7 @@ SRCS := $(wildcard *.C)
 OBJS=$(SRCS:.C=.o)
 DEPS=$(SRCS:.C=.d)
 
-SUBDIRS=demo-onemax demo-qap
+SUBDIRS=demo-*
 
 .PHONY: all clean doc $(SUBDIRS)
 
