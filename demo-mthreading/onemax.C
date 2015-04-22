@@ -15,14 +15,14 @@
 #include "mh_random.h"
 #include "mh_pop.h"
 #include "mh_advbase.h"
-#include "mh_island.h"
-#include "mh_genea.h"
-#include "mh_grasp.h"
-#include "mh_guidedls.h"
-#include "mh_localsearch.h"
-#include "mh_simanneal.h"
-#include "mh_ssea.h"
-#include "mh_tabusearch.h"
+// #include "mh_island.h"
+// #include "mh_genea.h"
+// #include "mh_grasp.h"
+// #include "mh_guidedls.h"
+// #include "mh_localsearch.h"
+// #include "mh_simanneal.h"
+// #include "mh_ssea.h"
+// #include "mh_tabusearch.h"
 #include "mh_log.h"
 #include "mh_interfaces.h"
 // #include "mh_fdc.h"
@@ -30,11 +30,15 @@
 #include "mh_permchrom.h"
 
 #include "mh_c11threads.h"
+#include "mh_vnsscheduler.h"
 
 
 
 /** Problem specific parameters (the number of genes). */
 int_param genes("genes","number of genes",20,1,10000);
+
+/** Number of VNS shaking neighborhoods. */
+int_param numnhs("numnhs","number of VNS neighborhoods",5,1,50);
 
 /** Name of file to save best chromosome. */
 string_param sfile("sfile","name of file to save solution to","");
@@ -44,7 +48,7 @@ string_param sfile("sfile","name of file to save solution to","");
 /** This is the chromosome class for the OneMax problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class oneMaxChrom : public binStringChrom, public gcProvider
+class oneMaxChrom : public binStringChrom  //, public gcProvider
 {
 public:
 	oneMaxChrom() : binStringChrom(genes())
@@ -54,7 +58,8 @@ public:
 	virtual mh_solution *clone() const
 		{ return new oneMaxChrom(*this); }
 	double objective();
-	void greedyConstruct();
+	static void construct(mh_solution* sol, int k=0);
+	static void shake(mh_solution* sol, int k);
 	double delta_obj(const nhmove &m);
 };
 
@@ -68,12 +73,21 @@ double oneMaxChrom::objective()
 	return sum;
 }
 
-/** The actual greedy construction heuristik.
-        This simply sets each gene of the chromosome to 1. */
-void oneMaxChrom::greedyConstruct()
+/** A simple construction heuristic that sets all positions to 0; k is ignored here. */
+void oneMaxChrom::construct(mh_solution *sol, int k)
 {
-	for (int i=0;i<length;i++) 
-		data[i] = 1;
+	oneMaxChrom *s=dynamic_cast<oneMaxChrom *>(sol);
+	for (int i=0;i<s->length;i++)
+		s->data[i] = 0;
+}
+
+void oneMaxChrom::shake(mh_solution *sol, int k)
+{
+	oneMaxChrom *s=dynamic_cast<oneMaxChrom *>(sol);
+	for (int i=0; i<k; i++) {
+		int p=random_int(s->length);
+		s->data[p]=!s->data[p];
+	}
 }
 
 double oneMaxChrom::delta_obj(const nhmove &m)
@@ -87,7 +101,7 @@ double oneMaxChrom::delta_obj(const nhmove &m)
 /** This is the chromosome class for the OnePerm problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class onePermChrom : public permChrom, public gcProvider
+class onePermChrom : public permChrom //, public gcProvider
 {
 public:
 	onePermChrom() : permChrom(genes())
@@ -97,7 +111,8 @@ public:
 	virtual mh_solution *clone() const
 		{ return new onePermChrom(*this); }
 	double objective();
-	void greedyConstruct();
+	static void construct(mh_solution *sol, int i=0);
+	static void shake(mh_solution *sol, int k);
 };
 
 /** The actual objective function counts the number of genes equal to the
@@ -111,15 +126,19 @@ double onePermChrom::objective()
 	return sum;
 }
 
-/** The actual greedy construction heuristik.
-        This simply sets each gene of the chromosome to its index. */
-void onePermChrom::greedyConstruct()
+/** A construction heuristic that initializes the solution with 1,2,...,length. */
+void onePermChrom::construct(mh_solution *sol, int i)
 {
-	for (int i=0;i<length;i++) 
-		data[i] = i;
+	onePermChrom *s=dynamic_cast<onePermChrom *>(sol);
+	for (int i=0;i<s->length;i++)
+		s->data[i] = i;
 }
 
-
+/** A neighborhood that currently just calls mutate. */
+void onePermChrom::shake(mh_solution *sol, int k)
+{
+	sol->mutate(k);
+}
 
 //--------- Test for multithreading ---------------------------------
 
@@ -171,6 +190,7 @@ static void testmultithreading()
 
 
 //------------------------------------------------------------------------
+#include <iostream>       // std::cout
 
 /** The example main function.
 	It should remain small. It contains only the creation 
@@ -207,16 +227,22 @@ int main(int argc, char *argv[])
 			testmultithreading();
 
 		// generate a template chromosome of the problem specific class
-		onePermChrom tchrom;
-		//oneMaxChrom tchrom;
+		//onePermChrom tchrom;
+		oneMaxChrom tchrom;
 
 		// generate a population of these chromosomes
 		population p(tchrom);
 		// p.write(out()); 	// write out initial population
-		// generate the EA
-		mh_advbase *alg;
-		alg=create_mh(p);
-		alg->run();		// run EA until termination cond.
+
+		// generate the Scheduler and add SchedulableMethods
+		VNSScheduler *alg;
+		alg=new VNSScheduler(p); // create_mh(p);
+		alg->addSchedulableMethod(new SchedulableMethod(string("greedy"),&oneMaxChrom::construct,false,true,0));
+		for (int i=1;i<numnhs();i++) {
+			// TODO add i in string name (to "shake")
+			alg->addSchedulableMethod(new SchedulableMethod("shake",&oneMaxChrom::shake,true,false,i));
+		}
+		alg->run();		// run Scheduler until termination cond.
 		
 		// p.write(out());	// write out final population
 		if (sfile()!="")
