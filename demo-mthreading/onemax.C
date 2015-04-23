@@ -58,6 +58,7 @@ public:
 	virtual mh_solution *clone() const
 		{ return new oneMaxChrom(*this); }
 	double objective();
+	//TODO: Momentan noch unsauber, sollten normale nicht-statische Member-Funktionen sein!
 	static void construct(mh_solution* sol, int k=0);
 	static void shake(mh_solution* sol, int k);
 	double delta_obj(const nhmove &m);

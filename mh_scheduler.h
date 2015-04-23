@@ -7,6 +7,7 @@
 #define MH_SCHEDULER_H
 
 #include <string>
+#include <functional>
 #include "mh_advbase.h"
 #include "mh_pop.h"
 #include "mh_c11threads.h"
@@ -29,6 +30,23 @@ public:
 	const string name;			///> The method's (unique) name (possibly including method_par).
 	const int method_par;		///> A method-specific integer parameter that might be used within the method.
 	void (* solmethod)(mh_solution *,int);	///> The actual method to be executed, realized as member function of mh_solution.
+	// TODO: besser und allgemeiner mit templates/function object anstatt solmethod lösen:
+	// Das Folgende ist noch unvollständig... u.a. fehlen die weiteren Parameter im Konstruktur
+	template<class Function, class... Args>
+	    explicit SchedulableMethod(Function&& f, Args&&... args)
+	    {
+	        typedef decltype(std::bind(f, args...)) Call;
+	        Call* call = new Call(std::bind(f, args...));
+	        methodfunc<Call>;
+	        // mHandle = (HANDLE)_beginthreadex(NULL, 0, methodfunc<Call>,(LPVOID)call);
+	    }
+    template <class Call>
+    static void methodfunc(mh_solution *sol)
+    {
+        std::unique_ptr<Call> upCall(static_cast<Call*>(sol));
+        (*upCall)();
+    }
+
 	const bool deterministic;	///> Indicates whether this is a deterministic method or not.
 	const bool improvement;		///> Indicates whether this is an improvement method that operates on an already existing solution.
 
