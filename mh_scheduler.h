@@ -30,13 +30,13 @@ extern int_param numthreads;
  */
 class SchedulableMethod {
 public:
-	const string name;			///> The method's (unique) name (possibly including method_par).
-	const bool improvement;		///> Indicates whether this is an improvement method that operates on an already existing solution.
-	const bool deterministic;	///> Indicates whether this is a deterministic method or not.
+	const string name;			///< The method's (unique) name (possibly including method_par).
+	const bool improvement;		///< Indicates whether this is an improvement method that operates on an already existing solution.
+	const bool deterministic;	///< Indicates whether this is a deterministic method or not.
 
-	int idx;				///> Index in methodPool of Scheduler.
-	unsigned int weight;	///> The weight currently assigned to this method.
-	unsigned int score;		///> Accumulated score that has been assigned to this method.
+	int idx;				///< Index in methodPool of Scheduler.
+	unsigned int weight;	///< The weight currently assigned to this method.
+	unsigned int score;		///< Accumulated score that has been assigned to this method.
 
 	/**
 	 * Constructs a new SchedulableMethod from a MethodType function object using the
@@ -66,8 +66,8 @@ public:
  *  for the neighborhood size, randomization factor etc. */
 template<class SpecSol> class SolMemberSchedulableMethod : public SchedulableMethod {
 public:
-	void (SpecSol::* pmeth)(int);		///> Member function pointer to a void(int) function
-	const int par;						///> Integer paramter passed to the method
+	void (SpecSol::* pmeth)(int);		///< Member function pointer to a void(int) function
+	const int par;						///< Integer paramter passed to the method
 
 	/** Constructor initializing data. */
 	SolMemberSchedulableMethod(const std::string &_name, void (SpecSol::* _pmeth)(int),
