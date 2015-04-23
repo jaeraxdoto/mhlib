@@ -59,8 +59,8 @@ public:
 		{ return new oneMaxChrom(*this); }
 	double objective();
 	//TODO: Momentan noch unsauber, sollten normale nicht-statische Member-Funktionen sein!
-	static void construct(mh_solution* sol, int k=0);
-	static void shake(mh_solution* sol, int k);
+	void construct(int k=0);
+	void shake(int k);
 	double delta_obj(const nhmove &m);
 };
 
@@ -75,19 +75,17 @@ double oneMaxChrom::objective()
 }
 
 /** A simple construction heuristic that sets all positions to 0; k is ignored here. */
-void oneMaxChrom::construct(mh_solution *sol, int k)
+void oneMaxChrom::construct(int k)
 {
-	oneMaxChrom *s=dynamic_cast<oneMaxChrom *>(sol);
-	for (int i=0;i<s->length;i++)
-		s->data[i] = 0;
+	for (int i=0;i<length;i++)
+		data[i] = 0;
 }
 
-void oneMaxChrom::shake(mh_solution *sol, int k)
+void oneMaxChrom::shake(int k)
 {
-	oneMaxChrom *s=dynamic_cast<oneMaxChrom *>(sol);
 	for (int i=0; i<k; i++) {
-		int p=random_int(s->length);
-		s->data[p]=!s->data[p];
+		int p=random_int(length);
+		data[p]=!data[p];
 	}
 }
 
@@ -112,8 +110,8 @@ public:
 	virtual mh_solution *clone() const
 		{ return new onePermChrom(*this); }
 	double objective();
-	static void construct(mh_solution *sol, int i=0);
-	static void shake(mh_solution *sol, int k);
+	void construct(int i=0);
+	void shake(int k);
 };
 
 /** The actual objective function counts the number of genes equal to the
@@ -128,17 +126,16 @@ double onePermChrom::objective()
 }
 
 /** A construction heuristic that initializes the solution with 1,2,...,length. */
-void onePermChrom::construct(mh_solution *sol, int i)
+void onePermChrom::construct(int i)
 {
-	onePermChrom *s=dynamic_cast<onePermChrom *>(sol);
-	for (int i=0;i<s->length;i++)
-		s->data[i] = i;
+	for (int i=0;i<length;i++)
+		data[i] = i;
 }
 
 /** A neighborhood that currently just calls mutate. */
-void onePermChrom::shake(mh_solution *sol, int k)
+void onePermChrom::shake(int k)
 {
-	sol->mutate(k);
+	mutate(k);
 }
 
 //--------- Test for multithreading ---------------------------------
@@ -238,10 +235,12 @@ int main(int argc, char *argv[])
 		// generate the Scheduler and add SchedulableMethods
 		VNSScheduler *alg;
 		alg=new VNSScheduler(p); // create_mh(p);
-		alg->addSchedulableMethod(new SchedulableMethod(string("greedy"),&oneMaxChrom::construct,false,true,0));
+		alg->addSchedulableMethod(new SchedulableMethod(string("greedy"),
+				SchedulableMethod::memberFn<oneMaxChrom>(&oneMaxChrom::construct,0),false,true));
 		for (int i=1;i<numnhs();i++) {
 			// TODO add i in string name (to "shake")
-			alg->addSchedulableMethod(new SchedulableMethod("shake",&oneMaxChrom::shake,true,false,i));
+			alg->addSchedulableMethod(new SchedulableMethod("shake",
+					SchedulableMethod::memberFn<oneMaxChrom>(&oneMaxChrom::shake,i),true,false));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		

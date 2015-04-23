@@ -28,24 +28,12 @@ extern int_param numthreads;
 class SchedulableMethod {
 public:
 	const string name;			///> The method's (unique) name (possibly including method_par).
-	const int method_par;		///> A method-specific integer parameter that might be used within the method.
-	void (* solmethod)(mh_solution *,int);	///> The actual method to be executed, realized as member function of mh_solution.
-	// TODO: besser und allgemeiner mit templates/function object anstatt solmethod lösen:
-	// Das Folgende ist noch unvollständig... u.a. fehlen die weiteren Parameter im Konstruktur
-	template<class Function, class... Args>
-	    explicit SchedulableMethod(Function&& f, Args&&... args)
-	    {
-	        typedef decltype(std::bind(f, args...)) Call;
-	        Call* call = new Call(std::bind(f, args...));
-	        methodfunc<Call>;
-	        // mHandle = (HANDLE)_beginthreadex(NULL, 0, methodfunc<Call>,(LPVOID)call);
-	    }
-    template <class Call>
-    static void methodfunc(mh_solution *sol)
-    {
-        std::unique_ptr<Call> upCall(static_cast<Call*>(sol));
-        (*upCall)();
-    }
+	//const int method_par;		///> A method-specific integer parameter that might be used within the method.
+	//void (* solmethod)(mh_solution *,int);	///> The actual method to be executed, realized as member function of mh_solution.
+	typedef std::function<void(mh_solution *)> MethodType;
+	MethodType solmethod;
+	// TODO: besser und allgemeiner mit templates/function object anstatt solmethod lï¿½sen:
+	// Das Folgende ist noch unvollstï¿½ndig... u.a. fehlen die weiteren Parameter im Konstruktur
 
 	const bool deterministic;	///> Indicates whether this is a deterministic method or not.
 	const bool improvement;		///> Indicates whether this is an improvement method that operates on an already existing solution.
@@ -54,21 +42,44 @@ public:
 	unsigned int weight;	///> The weight currently assigned to this method.
 	unsigned int score;		///> Accumulated score that has been assigned to this method.
 
+	/** A static helper function to construct a MethodType object from a
+	 * void(int)-member function of a specific solution class derived from mh_solution.
+	 */
+	template<class SpecificSol>
+		static MethodType memberFn(void (SpecificSol::* fptr)(int),int par) {
+			return MethodType([&fptr,&par](mh_solution *sol,int par) {
+					//return (sol->*fptr)(par);
+					return ((dynamic_cast<SpecificSol *>(sol))->*fptr)(par);
+					//return sol->mutate(par);
+			});
+	}
 	/**
 	 * Constructs a new schedulable method using the given arguments, assigning a default weight of 1 and
 	 * a score of 0.
 	 */
-	SchedulableMethod(const std::string &_name, void (* _solmethod)(mh_solution *,int), bool _improvement, bool _deterministic,
+	SchedulableMethod(const std::string &_name, MethodType &&_solmethod, bool _improvement,
+			bool _deterministic) :
+				name(_name), solmethod(_solmethod),
+				deterministic(_deterministic), improvement(_improvement) {
+		idx = -1;
+		weight = 1;
+		score = 0;
+	}
+	/*
+	SchedulableMethod(const std::string &_name, void (* _solmethod)(mh_solution *,int),
+			bool _improvement, bool _deterministic,
 			int _method_par = 0) : name(_name), method_par(_method_par), solmethod(_solmethod),
 					deterministic(_deterministic), improvement(_improvement) {
 		idx = -1;
 		weight = 1;
 		score = 0;
 	}
+	*/
 
 	/** Apply the method using method_par to the given solution. */
 	void run(mh_solution *sol) {
-		(*solmethod)(sol, method_par);
+		solmethod(sol);
+		// (*solmethod)(sol, method_par);
 	}
 
 	/**

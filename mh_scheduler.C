@@ -65,10 +65,10 @@ void Scheduler::runWorker(SchedulerWorker *worker) {
 			//performGeneration();
 
 			checkPopulation();
-			//perfGenBeginCallback();
 
 			// 	schedule the next method
 			mutexScheduler.lock(); 	// Begin of atomic action
+			perfGenBeginCallback();
 			getNextMethod(worker);
 			// if there is no method left to be scheduled in a meaningful way stop thread
 			if (worker->method == NULL) {
@@ -91,7 +91,7 @@ void Scheduler::runWorker(SchedulerWorker *worker) {
 			// update the optimization data
 			updateOptimizationData(worker);
 
-			//perfGenEndCallback();
+			perfGenEndCallback();
 
 			if (terminate()) {
 				// write last generation info in any case
