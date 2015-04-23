@@ -9,11 +9,11 @@ endif
 include $(MHLIB)/makefile.common
 CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
-EXE=onemax
+EXE=schedtest
 
 HEADERS=
 
-SRCS=onemax.C
+SRCS=schedtest.C
 
 OBJS=$(SRCS:.C=.o)
 

@@ -1,18 +1,24 @@
-/*! \file onemax.C
-	\brief A template main program for the ONEMAX and ONEPERM problems.
-	Additionally performs a test of multithreading if parameter mthreadtest
-	ist set to 1.
+/*! \file schedtest.C
+	\brief A template main program demonstrating the Scheduler algorithm 	
+	class, which allows exploiting multithreading and presents a uniform
+	framework for implementing GRASP, VNS, VLNS ans similar metaheuristics.
+	This simple exemplary program solves the simple ONEMAX and ONEPERM problems.
+	Additionally performs a basic test of multithreading if parameter 	
+	mthreadtest ist set to 1.
 
-	Use this main program as a simple basis for writing your application.
-	\include onemax.C */
+	Use this main program as a basis for writing your onw application based
+	on the Scheduler.
+	\include schedtest.C */
 
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <exception>
-#include "mh_allalgs.h"
 #include "mh_util.h"
 #include "mh_param.h"
 #include "mh_random.h"
+#include "mh_allalgs.h"
+
 #include "mh_pop.h"
 #include "mh_advbase.h"
 // #include "mh_island.h"
@@ -30,7 +36,7 @@
 #include "mh_permchrom.h"
 
 #include "mh_c11threads.h"
-#include "mh_vnsscheduler.h"
+#include "mh_scheduler.h"
 
 
 
@@ -58,9 +64,6 @@ public:
 	virtual mh_solution *clone() const
 		{ return new oneMaxChrom(*this); }
 	double objective();
-	//TODO: Momentan noch unsauber, sollten normale nicht-statische Member-Funktionen sein!
-	void construct(int k=0);
-	void shake(int k);
 	double delta_obj(const nhmove &m);
 };
 
@@ -72,21 +75,6 @@ double oneMaxChrom::objective()
 		if (data[i]) 
 			sum++;
 	return sum;
-}
-
-/** A simple construction heuristic that sets all positions to 0; k is ignored here. */
-void oneMaxChrom::construct(int k)
-{
-	for (int i=0;i<length;i++)
-		data[i] = 0;
-}
-
-void oneMaxChrom::shake(int k)
-{
-	for (int i=0; i<k; i++) {
-		int p=random_int(length);
-		data[p]=!data[p];
-	}
 }
 
 double oneMaxChrom::delta_obj(const nhmove &m)
@@ -110,8 +98,6 @@ public:
 	virtual mh_solution *clone() const
 		{ return new onePermChrom(*this); }
 	double objective();
-	void construct(int i=0);
-	void shake(int k);
 };
 
 /** The actual objective function counts the number of genes equal to the
@@ -123,19 +109,6 @@ double onePermChrom::objective()
 		if (int(data[i])==i) 
 			sum++;
 	return sum;
-}
-
-/** A construction heuristic that initializes the solution with 1,2,...,length. */
-void onePermChrom::construct(int i)
-{
-	for (int i=0;i<length;i++)
-		data[i] = i;
-}
-
-/** A neighborhood that currently just calls mutate. */
-void onePermChrom::shake(int k)
-{
-	mutate(k);
 }
 
 //--------- Test for multithreading ---------------------------------
@@ -225,9 +198,9 @@ int main(int argc, char *argv[])
 			testmultithreading();
 
 		// generate a template chromosome of the problem specific class
-		//onePermChrom tchrom;
-		oneMaxChrom tchrom;
-
+		//typedef oneMaxChrom usedChrom;
+		typedef onePermChrom usedChrom; 
+		usedChrom tchrom;
 		// generate a population of these chromosomes
 		population p(tchrom);
 		// p.write(out()); 	// write out initial population
@@ -235,16 +208,15 @@ int main(int argc, char *argv[])
 		// generate the Scheduler and add SchedulableMethods
 		VNSScheduler *alg;
 		alg=new VNSScheduler(p); // create_mh(p);
-		alg->addSchedulableMethod(new SchedulableMethod(string("greedy"),
-				SchedulableMethod::memberFn<oneMaxChrom>(&oneMaxChrom::construct,0),false,true));
+		alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>(string("rndini"),
+				&usedChrom::initialize,0,false,true));
 		for (int i=1;i<numnhs();i++) {
-			// TODO add i in string name (to "shake")
-			alg->addSchedulableMethod(new SchedulableMethod("shake",
-					SchedulableMethod::memberFn<oneMaxChrom>(&oneMaxChrom::shake,i),true,false));
+			alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>("mut"+tostring(i),
+					&usedChrom::mutate,i,true,false));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		
-		// p.write(out());	// write out final population
+		p.write(out());	// write out final population
 		if (sfile()!="")
 			p.bestSol()->save(sfile());
 		alg->printStatistics(out());	// write result & statistics

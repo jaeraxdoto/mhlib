@@ -1,5 +1,5 @@
 /*! \file mh_scheduler.h
- \brief A flexible scheduler class for realizing diverse sequential and basic multithreaded
+ \brief Flexible scheduler classes for realizing diverse sequential and basic multithreaded
  	 GRASP, VNS, and VLNS approaches.
  */
 
@@ -19,68 +19,38 @@
 extern int_param numthreads;
 
 
+//--------------------------- SchedulableMethod ------------------------------
+
 /**
- * Class representing a method like a neighborhood search or construction method that can be scheduled by the
- * scheduler along with the meta-information relevant to the scheduling process.
- * The method itself is realized as a member function of mh_solution with an integer parameter that might be used
- * to more specifically choose the functionality of the method (e.g. neighborhood size or randomization factor).
+ * Abstract base class representing a method like a neighborhood search or construction method
+ * that can be scheduled by the scheduler along with the meta-information relevant to the
+ * scheduling process.
+ * This base class does not yet contain a pointer or some other reference to the method
+ * to be called.
  */
 class SchedulableMethod {
 public:
 	const string name;			///> The method's (unique) name (possibly including method_par).
-	//const int method_par;		///> A method-specific integer parameter that might be used within the method.
-	//void (* solmethod)(mh_solution *,int);	///> The actual method to be executed, realized as member function of mh_solution.
-	typedef std::function<void(mh_solution *)> MethodType;
-	MethodType solmethod;
-	// TODO: besser und allgemeiner mit templates/function object anstatt solmethod l�sen:
-	// Das Folgende ist noch unvollst�ndig... u.a. fehlen die weiteren Parameter im Konstruktur
-
-	const bool deterministic;	///> Indicates whether this is a deterministic method or not.
 	const bool improvement;		///> Indicates whether this is an improvement method that operates on an already existing solution.
+	const bool deterministic;	///> Indicates whether this is a deterministic method or not.
 
-	int idx;				///> Index in methodPool of Scheduler
+	int idx;				///> Index in methodPool of Scheduler.
 	unsigned int weight;	///> The weight currently assigned to this method.
 	unsigned int score;		///> Accumulated score that has been assigned to this method.
 
-	/** A static helper function to construct a MethodType object from a
-	 * void(int)-member function of a specific solution class derived from mh_solution.
-	 */
-	template<class SpecificSol>
-		static MethodType memberFn(void (SpecificSol::* fptr)(int),int par) {
-			return MethodType([&fptr,&par](mh_solution *sol,int par) {
-					//return (sol->*fptr)(par);
-					return ((dynamic_cast<SpecificSol *>(sol))->*fptr)(par);
-					//return sol->mutate(par);
-			});
-	}
 	/**
-	 * Constructs a new schedulable method using the given arguments, assigning a default weight of 1 and
-	 * a score of 0.
+	 * Constructs a new SchedulableMethod from a MethodType function object using the
+	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 */
-	SchedulableMethod(const std::string &_name, MethodType &&_solmethod, bool _improvement,
-			bool _deterministic) :
-				name(_name), solmethod(_solmethod),
-				deterministic(_deterministic), improvement(_improvement) {
+	SchedulableMethod(const std::string &_name, int _par, bool _improvement,	bool _deterministic) :
+				name(_name), improvement(_improvement), deterministic(_deterministic)  {
 		idx = -1;
 		weight = 1;
 		score = 0;
 	}
-	/*
-	SchedulableMethod(const std::string &_name, void (* _solmethod)(mh_solution *,int),
-			bool _improvement, bool _deterministic,
-			int _method_par = 0) : name(_name), method_par(_method_par), solmethod(_solmethod),
-					deterministic(_deterministic), improvement(_improvement) {
-		idx = -1;
-		weight = 1;
-		score = 0;
-	}
-	*/
 
-	/** Apply the method using method_par to the given solution. */
-	void run(mh_solution *sol) {
-		solmethod(sol);
-		// (*solmethod)(sol, method_par);
-	}
+	/** Apply the method to the given solution. */
+	virtual void run(mh_solution *sol) = 0;
 
 	/**
 	 * Virtual Destructor.
@@ -89,7 +59,30 @@ public:
 	}
 };
 
+/** Template class for realizing concrete SchedulableMethods for void(int) member function
+ *  of specific solution classes, i.e., classes derived from mh_solution.
+ *  An integer parameter is maintained that is passed when calling the method by run for
+ *  a specific solution. This integer can be used to control the methods functionality, e.g.
+ *  for the neighborhood size, randomization factor etc. */
+template<class SpecSol> class SolMemberSchedulableMethod : public SchedulableMethod {
+public:
+	void (SpecSol::* pmeth)(int);		///> Member function pointer to a void(int) function
+	const int par;						///> Integer paramter passed to the method
 
+	/** Constructor initializing data. */
+	SolMemberSchedulableMethod(const std::string &_name, void (SpecSol::* _pmeth)(int),
+			int _par, bool _improvement, bool _deterministic) :
+		SchedulableMethod(_name,_par,_improvement,_deterministic), pmeth(_pmeth), par(_par) {
+	}
+
+	/** Apply the method for the given solution, passing par. */
+	void run(mh_solution *sol) {
+		((dynamic_cast<SpecSol *>(sol))->*pmeth)(par);
+	}
+};
+
+
+//--------------------------- SchedulableMethod ------------------------------
 
 /**
  * Structure for a SchedulerWorker that runs as own thread spawned by the scheduler.
@@ -233,13 +226,12 @@ public:
 	 * Is called from run() after each call to performGeneration().
 	 */
 	bool terminate() {
-		if(finish)
+		if (finish)
 			return true;
-		if(callback != NULL && callback(pop->bestObj()))
+		if (callback != NULL && callback(pop->bestObj()))
 			return true;
 		if (mh_advbase::terminate())
 			return true;
-
 		return false;
 	}
 
@@ -275,7 +267,7 @@ public:
 	 * 2. The solutions in the population.
 	 * If this method is called with NULL, all data are initialized. TODO Macht das Sinn?
 	 */
-	virtual void updateOptimizationData(SchedulerWorker* worker) = 0;
+	virtual void updateSchedulerData(SchedulerWorker* worker) = 0;
 
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.
@@ -292,6 +284,46 @@ public:
 	 */
 	virtual void printStatistics(ostream &ostr);
 };
+
+
+/**
+ * This class implements a simple variable neighborhood search with a fixed order of neighborhoods.
+ */
+class VNSScheduler : public Scheduler {
+protected:
+
+public:
+	/**
+	 * Constructor: Initializes the scheduler and fills the method pool.
+	 */
+	VNSScheduler(pop_base &p, const pstring &pg = (pstring) (""));
+
+
+	/** Cloning is not implemented for this class. */
+	virtual VNSScheduler* clone() const {
+		mherror("Cloning not implemented in VNSScheduler");
+		return NULL;
+	}
+
+	/**
+	 * Schedules the next method. Initially this is the provided construction method included as first SchedulerMethod.
+	 * In every following iteration an improvement method is selected
+	 * according to the classical VNS neighborhood selection.
+     */
+	void getNextMethod(SchedulerWorker *worker);
+
+	/**
+	 * Updates the population if a better solution has been found and sets the current
+	 * neighborhood accordingly.
+	 * If no solution has been computed yet, the construction method (index 0 in the methodPool) shall be scheduled next.
+	 * Otherwise, if an improvement to the incumbent solution has been found in the previous
+	 * iteration, the first neighborhood shall be scheduled next (index 1). If no improvement
+	 * has been found, the next neighborhood shall be scheduled (increment k).
+	 TODO Berücksichtigung vom Multithreading! Wie wird das gemacht?
+	 */
+	void updateSchedulerData(SchedulerWorker *worker);
+};
+
 
 
 #endif /* MH_SCHEDULER_H */

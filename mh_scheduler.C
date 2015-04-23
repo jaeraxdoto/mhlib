@@ -31,7 +31,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 
 void Scheduler::run() {
 	// initialize the optimization data and run the scheduler
-	updateOptimizationData(NULL);	// TODO Ist ein call mit NULL zur Initialisierung wirklich sinnvoll?
+	// updateSchedulerData(NULL);	// TODO Ist ein call mit NULL zur Initialisierung wirklich sinnvoll?
 
 	checkPopulation();
 
@@ -89,7 +89,7 @@ void Scheduler::runWorker(SchedulerWorker *worker) {
 			nGeneration++;
 
 			// update the optimization data
-			updateOptimizationData(worker);
+			updateSchedulerData(worker);
 
 			perfGenEndCallback();
 
@@ -165,20 +165,14 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	for (int k = 0; k < numMethods(); k++) {
 		bool imp = methodPool[k]->improvement;
 		char tmp[200];
-		if(imp)
-			sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
-					methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
-					double(nSuccess[k])/double(nIter[k])*100.0,
-					sumGain[k],
-					double(sumGain[k])/double(nIter[k]),
-					double(nSuccess[k]/double(sumSuccess)*100.0),
-					totTime[k],
-					double(totTime[k]/double(sumTime)*100.0));
-		else
-			sprintf(tmp,"%2d\t%6d\t\t%6s\t\t%9s \t%10s\t%10s\t%9s \t%9.4f\t%9.4f %%",
-					k,nIter[k], "-", "-", "-", "-", "-",
-					totTime[k],
-					double(totTime[k]/double(sumTime)*100.0));
+		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
+			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
+			double(nSuccess[k])/double(nIter[k])*100.0,
+			sumGain[k],
+			double(sumGain[k])/double(nIter[k]),
+			double(nSuccess[k]/double(sumSuccess)*100.0),
+			totTime[k],
+			double(totTime[k]/double(sumTime)*100.0));
 		ostr << tmp << endl;
 	}
 	ostr << endl;
@@ -205,3 +199,44 @@ void Scheduler::printStatistics(ostream &ostr) {
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
 }
+
+
+//--------------------------------- VNSScheduler ---------------------------------------------
+
+VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
+		Scheduler(p, pg) {
+}
+
+void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
+	// TODO sehr schneller, schlechter Hack!!
+	// first, we call the construction method supposed to be at idx 0, then always method 1
+	static int k=1;
+
+	// for constructing the initial solution operate on a new empty solution
+	if (k == 1) {
+		worker->method = methodPool[0];
+		k=2;
+	}
+	else
+		worker->method = methodPool[1];
+	worker->solution = pop->at(0)->clone();
+}
+
+void VNSScheduler::updateSchedulerData(SchedulerWorker* worker) {
+	// TODO Simple, quick hack!! Just performs simple local search
+	// Update the first solution in the population if new solution is better
+	if (worker->solution->isBetter(*pop->at(0))) {
+		// statistics (only meaningful for the neighborhoods)
+		nSuccess[1]++;
+		sumGain[1] += abs(pop->at(0)->obj() - worker->solution->obj());
+		delete pop->replace(0, worker->solution);
+		timGenBest = CPUtime() - timStart;	// update time for best solution
+		genBest = nGeneration;				// update generation in which the best solution was found
+	}
+	else
+		delete worker->solution;
+}
+
+
+
+

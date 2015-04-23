@@ -88,7 +88,7 @@ public:
 	virtual ~stringChrom() { }
 	/** randomly initialize all genes. */
 	void initialize(int count);
-	/** Calls a mutation method, controlled by the parameter mop(). */
+	/** Calls a mutation method, controlled by the parameter strmop(). */
 	void mutate(int count);
 	/** Calls a crossover method, controlled by the parameter strxop(). */
 	void crossover(const mh_solution &parA,const mh_solution &parB);

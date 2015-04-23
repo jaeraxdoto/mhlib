@@ -191,14 +191,14 @@ bool mh_advbase::terminate()
 	switch(tcond(pgroup))
 	{
 		case -1: // new auto scheme, which does not use tcond
-			return ((tgen(pgroup) >=0 && nGeneration==tgen(pgroup)) ||
+			return ((tgen(pgroup) >=0 && nGeneration>=tgen(pgroup)) ||
 				(tcgen(pgroup)>=0 && nGeneration-genBest>=tcgen(pgroup)) ||
 				(tobj(pgroup) >=0 && (maxi(pgroup)?getBestChrom()->obj()>=tobj(pgroup):
 						    getBestChrom()->obj()<=tobj(pgroup))) ||
 				(ttime(pgroup)>=0 && ttime(pgroup)<=(CPUtime()-timStart)));
 		// DEPRECATED:
 		case 0: // terminate after tgen (not tcgen!) generations
-			return nGeneration==tgen(pgroup);
+			return nGeneration>=tgen(pgroup);
 		case 1: // terminate after convergence 
 			return nGeneration-genBest>=tgen(pgroup);
 		case 2:	// terminate when obj. value tobj() reached

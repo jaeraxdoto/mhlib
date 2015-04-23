@@ -4,10 +4,10 @@
 #include "mh_permchrom.h"
 #include "mh_util.h"
 
-int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,100);
+int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,5);
 // 6:erx 7:eerx 8:mpx not yet implemented
 
-int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,100);
+int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,3);
 // 4:displacement not yet implemented
 
 void permChrom::initialize(int count)
