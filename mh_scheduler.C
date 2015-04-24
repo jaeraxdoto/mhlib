@@ -2,6 +2,10 @@
 
 #include <float.h>
 #include <stdio.h>
+#include <vector>
+#include <exception>
+#include <stdexcept>
+
 
 #include "mh_scheduler.h"
 #include "mh_random.h"
@@ -9,10 +13,9 @@
 #include "mh_c11threads.h"
 #include <future>
 #include <chrono>
-
+#include <bits/exception_ptr.h>
 
 int_param numthreads("numthreads", "Maximum number of threads used in the scheduler", 1, 1, 100);
-
 
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
@@ -24,6 +27,10 @@ void SchedulerWorker::run() {
 
 
 //--------------------------------- Scheduler ---------------------------------------------
+
+/** Central stack of exceptions possibly occurring in threads,
+ * which are passed to the main thread. */
+static std::vector<std::exception_ptr> thread_exceptions;
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
@@ -54,57 +61,68 @@ void Scheduler::run() {
 		w->thread.join();
 		delete w;
 	}
+	// handle possibly transferred exceptions
+	for (const exception_ptr &ep : thread_exceptions)
+		std::rethrow_exception(ep);
 
 	logstr.emptyEntry();
 	logstr.flush();
 }
 
 void Scheduler::runWorker(SchedulerWorker *worker) {
-	if (!terminate())
-		for(;;) {
-			//performGeneration();
+	try {
+		if (!terminate())
+			for(;;) {
+				//performGeneration();
 
-			checkPopulation();
+				checkPopulation();
 
-			// 	schedule the next method
-			mutexScheduler.lock(); 	// Begin of atomic action
-			perfGenBeginCallback();
-			getNextMethod(worker);
-			// if there is no method left to be scheduled in a meaningful way stop thread
-			if (worker->method == NULL) {
+				// 	schedule the next method
+				mutexScheduler.lock(); 	// Begin of atomic action
+				perfGenBeginCallback();
+				getNextMethod(worker);
+				// if there is no method left to be scheduled in a meaningful way stop thread
+				if (worker->method == NULL) {
+					mutexScheduler.unlock(); // End of atomic action
+					return;
+				}
 				mutexScheduler.unlock(); // End of atomic action
-				return;
+
+				// run the scheduled method
+				double startTime = CPUtime();
+				worker->method->run(worker->solution);
+
+				// update method statistics
+				int idx = worker->method->idx;
+				mutexScheduler.lock(); // Begin of atomic action
+				totTime[idx] += CPUtime() - startTime;
+				nIter[idx]++;
+				nGeneration++;
+
+				// update the optimization data
+				updateSchedulerData(worker);
+
+				perfGenEndCallback();
+
+				if (terminate()) {
+					// write last generation info in any case
+					writeLogEntry(true);
+					mutexScheduler.unlock(); // End of atomic operation
+					break;	// ... and stop
+				}
+				else {
+					// write generation info
+					writeLogEntry();
+					mutexScheduler.unlock(); // End of atomic operation
+				}
 			}
-			mutexScheduler.unlock(); // End of atomic action
-
-			// run the scheduled method
-			double startTime = CPUtime();
-			worker->method->run(worker->solution);
-
-			// update method statistics
-			int idx = worker->method->idx;
-			mutexScheduler.lock(); // Begin of atomic action
-			totTime[idx] += CPUtime() - startTime;
-			nIter[idx]++;
-			nGeneration++;
-
-			// update the optimization data
-			updateSchedulerData(worker);
-
-			perfGenEndCallback();
-
-			if (terminate()) {
-				// write last generation info in any case
-				writeLogEntry(true);
-				mutexScheduler.unlock(); // End of atomic operation
-				break;	// ... and stop
-			}
-			else {
-				// write generation info
-				writeLogEntry();
-				mutexScheduler.unlock(); // End of atomic operation
-			}
-		}
+	}
+	catch (...) {
+		// Pass any exceptions to main thread
+		mutexScheduler.lock();
+		thread_exceptions.push_back(std::current_exception());
+		mutexScheduler.unlock();
+	}
 }
 
 void Scheduler::getNextMethod(SchedulerWorker *worker) {
@@ -163,7 +181,6 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
 	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\t rel success\ttotal time\t rel time" << endl;
 	for (int k = 0; k < numMethods(); k++) {
-		bool imp = methodPool[k]->improvement;
 		char tmp[200];
 		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
@@ -184,15 +201,15 @@ void Scheduler::printStatistics(ostream &ostr) {
 	char s[60];
 
 	double tim=CPUtime();
-	//const mh_solution *best=pop->bestSol();
+	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in iteration:\t" << genBest << endl;
 	sprintf( s, nformat(pgroup).c_str(), timGenBest );
 	ostr << "solution time for best:\t" << timGenBest << endl;
-	//ostr << "best chromosome:\t";
-	//best->write(ostr,0);
+	ostr << "best chromosome:\t";
+	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
 	ostr << "iterations:\t" << nGeneration << endl;

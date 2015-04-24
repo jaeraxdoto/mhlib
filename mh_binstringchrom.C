@@ -2,9 +2,7 @@
 
 #include <fstream>
 #include "mh_binstringchrom.h"
-
 #include "mh_nhmove.h"
-#include "mh_stringchrom_impl.h"
 #include "mh_util.h"
 
 // instantiate template

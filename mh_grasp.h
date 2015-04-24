@@ -17,7 +17,7 @@ class GRASP : public lsbase
 {
 protected:
 	/* The subpopulation for the inner algorithm. */
-	pop_base *spop;
+	pop_base *spop = NULL;
 
 public:
 	/** The constructor.
