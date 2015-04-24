@@ -105,7 +105,7 @@ public:
 		Needed e.g. for duplicate elimination. 
 		Should be implemented in an efficient way, e.g. by first
 		looking at the objective values, and only if they are
-		different then on all the genes or phenotypic properties. */
+		equal then on all the genes or phenotypic properties. */
 	virtual bool equals(mh_solution &orig)
 		{ return false; }
 	/** Returns the (phenotypic) distance between the current solution

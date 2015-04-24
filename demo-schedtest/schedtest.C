@@ -122,7 +122,7 @@ static void mythread(int t)
 {
 	for (int i=1;i<20;i++)
 	{
-		double a;
+		double a = 1;
 		for (int j=1;j<3879999;j++)
 			a*=sin(a+0.33);
     	//mymutex.lock();
@@ -220,6 +220,8 @@ int main(int argc, char *argv[])
 		if (sfile()!="")
 			p.bestSol()->save(sfile());
 		alg->printStatistics(out());	// write result & statistics
+
+		delete alg;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;

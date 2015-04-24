@@ -14,9 +14,14 @@
 
 
 /** \ingroup param
- * Sets the maximum number of parallel threads to be used by a scheduler instance.
+ * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
  */
 extern int_param numthreads;
+
+/** \ingroup param
+ * Sets the size of the population associated with each of the worker threads
+ */
+extern int_param worker_popsize;
 
 
 //--------------------------- SchedulableMethod ------------------------------
@@ -67,7 +72,7 @@ public:
 template<class SpecSol> class SolMemberSchedulableMethod : public SchedulableMethod {
 public:
 	void (SpecSol::* pmeth)(int);		///< Member function pointer to a void(int) function
-	const int par;						///< Integer paramter passed to the method
+	const int par;						///< Integer parameter passed to the method
 
 	/** Constructor initializing data. */
 	SolMemberSchedulableMethod(const std::string &_name, void (SpecSol::* _pmeth)(int),
@@ -92,18 +97,27 @@ public:
 class SchedulerWorker {
 public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
-	SchedulableMethod* method;	///< Pointer to the method currently scheduled for this worker.
-	mh_solution *solution;		///< Solution to which the method is to be applied.
-	std::thread thread;			///< Thread doing the work performing the method.
+	SchedulableMethod* method;		///< Pointer to the method currently scheduled for this worker.
+	std::thread thread;				///< Thread doing the work performing the method.
+
+	/**
+	 * Population of solutions associated with this worker.
+	 * Note that positions 0 and 1 of the population are reserved:
+	 * The working solution, i.e. the one that should be modified by the application
+	 * of the method is expected to be at position 0.
+	 * Furthermore, after the execution of the method, position 1 holds the modified solution
+	 * and position 0 the original, unmodified solution.
+	 */
+	population p;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler) {
+	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol) :
+		p(sol, worker_popsize(), true) {
 		scheduler = _scheduler;
 		method = NULL;
-		solution = NULL;
 	}
 
 	/**
@@ -245,17 +259,20 @@ public:
 	 * structures shared by the worker threads.
 	 * Note that a derived class overwriting this method must likewise guarantee
 	 * proper synchronization!
-	 * @worker A pointer to the SchedulerWorker object for whose thread this method is called.
+	 * @param worker A pointer to the SchedulerWorker object for whose thread this method is called.
 	 */
 	void runWorker(SchedulerWorker *worker);
 
 	/**
-	 * Determines a method and a solution to which
+	 * Determines a method and the solution to which
 	 * the method is to be applied according to the defined selection rules and
-	 * the weights associated to the methods and stores pointers to the method and solution in
-	 * the given SchedulerWorker. If currently nothing further can be done,
-	 * possibly because other threads have to finish first, the method pointer in
-	 * worker ist set to NULL and nother further is changes.
+	 * the weights associated to the methods.
+	 * A pointer to the method in the given SchedulerWorker is stored and the worker's
+	 * population is updated to contain the solutions required to apply the method.
+	 * Note that the solution that should actually be modified must be found at position 0
+	 * of the workers population.
+	 * If currently nothing further can be done,possibly because other threads have to
+	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
 	 */
 	virtual void getNextMethod(SchedulerWorker *worker);
 

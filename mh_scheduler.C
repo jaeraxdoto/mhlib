@@ -17,6 +17,7 @@
 
 int_param numthreads("numthreads", "Maximum number of threads used in the scheduler", 1, 1, 100);
 
+int_param worker_popsize("thread_popsize", "Size of the population associated with each of the worker threads", 2, 2, 100);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
@@ -51,7 +52,7 @@ void Scheduler::run() {
 	// spawn the worker threads
 	unsigned int nthreads=numthreads();
 	for(unsigned int i=0; i < nthreads; i++) {
-		SchedulerWorker *w = new SchedulerWorker(this);
+		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0));
 		workers.push_back(w);
 		w->run();
 	}
@@ -90,7 +91,13 @@ void Scheduler::runWorker(SchedulerWorker *worker) {
 
 				// run the scheduled method
 				double startTime = CPUtime();
-				worker->method->run(worker->solution);
+				// copy solution data and run the scheduled method:
+				// In the end, the 0th entry of the population is the original solution
+				// and the 1st entry is the modified one.
+				mh_solution* tmp = worker->p.at(1);
+				tmp->copy(*worker->p.at(0));
+				worker->p.replace(1, tmp);
+				worker->method->run(worker->p.at(1));
 
 				// update method statistics
 				int idx = worker->method->idx;
@@ -155,16 +162,15 @@ void Scheduler::getNextMethod(SchedulerWorker *worker) {
 	}
 	SchedulableMethod* scheduledMethod = allowedMethods[i-1];
 
-	mh_solution* curSol = NULL;
 	// if the method is an improvement method that needs to operate on an existing solution,
 	// select one from the population.
 	// TODO: more meaningful selection of solution to which the method is applied.
-	// TODO: WICHTIG: solutions nie neu anlegen sondern aus dem Pool der vorhandenen zu entfernende "recyclen"!
-	//				Siehe andere in der mhlib implementierete Algorithmen
-	curSol = pop->at(random_int(pop->size()))->clone();
+	// In general, the worker should keep its current working solution, whenever possible.
+	mh_solution* tmp = worker->p.at(0);
+	tmp->copy(*pop->at(random_int(pop->size())));
+	worker->p.replace(0, tmp);
 
 	worker->method = scheduledMethod;
-	worker->solution = curSol;
 	return;
 }
 
@@ -232,26 +238,43 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// for constructing the initial solution operate on a new empty solution
 	if (k == 1) {
 		worker->method = methodPool[0];
+		// assign a copy of an (empty) solution from the elite set
+		mh_solution* tmp = worker->p.at(0);
+		tmp->copy(*pop->at(0));
+		worker->p.replace(0, tmp);
 		k=2;
 	}
+	// otherwise, no new solution assignment is necessary, keep working on
+	// current solution
 	else
 		worker->method = methodPool[1];
-	worker->solution = pop->at(0)->clone();
 }
 
 void VNSScheduler::updateSchedulerData(SchedulerWorker* worker) {
 	// TODO Simple, quick hack!! Just performs simple local search
-	// Update the first solution in the population if new solution is better
-	if (worker->solution->isBetter(*pop->at(0))) {
-		// statistics (only meaningful for the neighborhoods)
+
+	// Determine, if an improvement could be achieved by the method applied by the worker
+	if(worker->p.at(1)->isBetter(*worker->p.at(0))) {	// method was successful
+		// update statistics (only meaningful for the neighborhoods)
 		nSuccess[1]++;
-		sumGain[1] += abs(pop->at(0)->obj() - worker->solution->obj());
-		delete pop->replace(0, worker->solution);
-		timGenBest = CPUtime() - timStart;	// update time for best solution
-		genBest = nGeneration;				// update generation in which the best solution was found
+		sumGain[1] += abs(worker->p.at(1)->obj() - worker->p.at(0)->obj());
+		// the improved solutions is this worker's new working solution
+		mh_solution* tmp = worker->p.at(0);
+		worker->p.replace(0, worker->p.at(1));
+		worker->p.replace(1, tmp);
+
+		// update the first solution in the population if new solution is better
+		if (worker->p.at(0)->isBetter(*pop->at(0))) {
+			mh_solution* tmp = pop->at(0);
+			tmp->copy(*worker->p.at(0));
+			pop->replace(0, tmp);
+			timGenBest = CPUtime() - timStart;	// update time for best solution
+			genBest = nGeneration;				// update generation in which the best solution was found
+		}
 	}
-	else
-		delete worker->solution;
+	else { // method was not successful
+
+	}
 }
 
 
