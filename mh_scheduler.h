@@ -182,6 +182,22 @@ protected:
 	 */
 	std::mutex mutex;
 
+	/**
+	 * Mutex used for blocking threads (together with the condition variable cvNoMethodAvailable)
+	 * if there is currently no method available that can be assigned to the thread.
+	 * If this is the case, the thread will wait until another thread
+	 * finishes its current method and sends a notification.
+	 */
+	std::mutex mutexNoMethodAvailable;
+
+	/**
+	 * Condition variable for blocking threads (together with the mutex mutexNoMethodAvailable)
+	 * if there is currently no method available that can be assigned to the thread.
+	 * If this is the case, the thread will wait until another thread
+	 * finishes its current method and sends a notification.
+	 */
+	std::condition_variable cvNoMethodAvailable;
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.

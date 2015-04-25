@@ -28,22 +28,31 @@ void SchedulerWorker::run() {
 	try {
 		if (!scheduler->terminate())
 			for(;;) {
-				//performGeneration();
-
 				scheduler->checkPopulation();
 
 				// 	schedule the next method
-				scheduler->mutex.lock(); 	// Begin of atomic action
-				scheduler->perfGenBeginCallback();
-				scheduler->getNextMethod(this);
-				// if there is no method left to be scheduled in a meaningful way stop thread
-				if (method == NULL) {
-					scheduler->mutex.unlock(); // End of atomic action
-					return;
-				}
-				scheduler->mutex.unlock(); // End of atomic action
+				bool wait = false;				// indicates if the thread needs to wait for another thread to finish
+				bool terminateThread = false;	// indicates if the termination has been initiated
+				do {
+					if(wait) { // need to wait for other threads, block until notified
+						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
+						scheduler->cvNoMethodAvailable.wait(lck);
+						if(scheduler->terminate())	// is the termination in progress?
+							terminateThread = true;
+					}
+
+					scheduler->mutex.lock(); 		// Begin of atomic operation
+					scheduler->getNextMethod(this);	// try to find and available method for scheduling
+					scheduler->mutex.unlock(); 		// End of atomic operation
+					if(method == NULL)	// no method could be scheduled -> wait for other threads
+						wait = true;
+				} while (method == NULL);
+
+				if(terminateThread) // if in the meanwhile the termination has been started, end this thread as well
+					break;
 
 				// run the scheduled method
+				scheduler->perfGenBeginCallback();
 				double startTime = CPUtime();
 				// copy solution data and run the scheduled method:
 				// In the end, the 0th entry of the population is the original solution
@@ -65,6 +74,8 @@ void SchedulerWorker::run() {
 				// update scheduler data
 				scheduler->updateMethodStatistics(this,methodTime);
 				scheduler->updateData(this);
+
+				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
 
 				scheduler->perfGenEndCallback();
 
