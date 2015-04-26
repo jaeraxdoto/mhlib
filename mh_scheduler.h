@@ -42,15 +42,18 @@ public:
 	unsigned int weight;	///< The weight currently assigned to this method.
 	unsigned int score;		///< Accumulated score that has been assigned to this method.
 
+	unsigned int scheduledCounter;	///< Number of times this method is currently scheduled.
+
 	/**
 	 * Constructs a new SchedulableMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 */
-	SchedulableMethod(const std::string &_name, int _par, bool _improvement,	bool _deterministic) :
+	SchedulableMethod(const std::string &_name, int _par, bool _improvement, bool _deterministic) :
 				name(_name), improvement(_improvement), deterministic(_deterministic)  {
 		idx = -1;
 		weight = 1;
 		score = 0;
+		scheduledCounter = 0;
 	}
 
 	/** Apply the method to the given solution. */
@@ -99,6 +102,8 @@ public:
 	SchedulableMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
 
+	unsigned int id;				///< Index of this worker in the workers list.
+
 	/**
 	 * Population of solutions associated with this worker.
 	 * Note that positions 0 and 1 of the population are reserved:
@@ -113,10 +118,11 @@ public:
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol) :
+	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol, int _id) :
 		pop(sol, threadspsize(), false, false) {
 		scheduler = _scheduler;
 		method = NULL;
+		id = _id;
 	}
 
 	/**
@@ -146,6 +152,14 @@ class Scheduler : public mh_advbase {
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
 	vector<SchedulableMethod*> methodPool;
+
+	/**
+	 * Indicates if at least one initial solution exists in the scheduler's population
+	 * to which improvement methods can be applied.
+	 * TODO: Sinnvoll als Parameter im Konstruktor ?
+	 * (falls der Scheduler im Anschluss an eine andere Methode eingsetzt wird)
+	 */
+	bool initialSolutionExists;
 
 	/* Statistical data on methods */
 	vector<int> nIter;				///< Number of iterations of the particular methods.
@@ -281,7 +295,7 @@ public:
 	 * population is updated to contain the solutions required to apply the method.
 	 * Note that the solution that should actually be modified must be found at position 0
 	 * of the workers population.
-	 * If currently nothing further can be done,possibly because other threads have to
+	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
 	 */
 	virtual void getNextMethod(SchedulerWorker *worker);
@@ -318,11 +332,18 @@ public:
 };
 
 
+//--------------------------- VNSScheduler ------------------------------
+
 /**
  * This class implements a simple variable neighborhood search with a fixed order of neighborhoods.
  */
 class VNSScheduler : public Scheduler {
 protected:
+	/**
+	 * Vector storing for each worker the index of the current method that is to be scheduled for it
+	 * according to the fixed order of the VNS.
+	 */
+	vector<unsigned int> curMethodIndices;
 
 public:
 	/**
@@ -338,20 +359,30 @@ public:
 	}
 
 	/**
-	 * Schedules the next method. Initially this is the provided construction method included as first SchedulerMethod.
+	 * Schedules the next method.
+	 * If no initial solution has been computed yet (indicated by initialSolutionExists = false),
+	 * the first construction method in the method pool is selected.
 	 * In every following iteration an improvement method is selected
 	 * according to the classical VNS neighborhood selection.
+	 * a construction method shall be scheduled next.
+	 * In particular, the method to be scheduled is suggested by the value stored in
+	 * curMethodIndices[id], where id is the given worker's id.
+	 * If this method is not suitable, the next method in the method pool that is, is scheduled.
+	 * I.e., if the selected index points to a construction method, the next improvement
+	 * method in the list will be selected and curMethodIndices[id] will be incremented accordingly.
      */
 	void getNextMethod(SchedulerWorker *worker);
 
 	/**
 	 * Updates the population if a better solution has been found and sets the current
-	 * neighborhood accordingly.
-	 * If no solution has been computed yet, the construction method (index 0 in the methodPool) shall be scheduled next.
-	 * Otherwise, if an improvement to the incumbent solution has been found in the previous
-	 * iteration, the first neighborhood shall be scheduled next (index 1). If no improvement
-	 * has been found, the next neighborhood shall be scheduled (increment k).
-	 TODO Berücksichtigung vom Multithreading! Wie wird das gemacht?
+	 * neighborhood for the respective worker accordingly.
+	 * If an improvement to the incumbent solution has been found in the previous iteration,
+	 * the first neighborhood shall be scheduled next (index 0). If no improvement
+	 * has been found, the next neighborhood shall be scheduled
+	 * (increment curMethodIndices[id], where id is the given worker's id).
+	 *
+	 * Note that the neighborhood that is ultimately scheduled for the worker,
+	 * is determined by the call to getNextMethod().
 	 */
 	void updateData(SchedulerWorker *worker);
 };

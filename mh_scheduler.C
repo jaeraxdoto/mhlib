@@ -37,18 +37,22 @@ void SchedulerWorker::run() {
 					if(wait) { // need to wait for other threads, block until notified
 						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
 						scheduler->cvNoMethodAvailable.wait(lck);
-						if(scheduler->terminate())	// is the termination in progress?
+						if(scheduler->terminate()) {	// if the termination is in progress, terminate also this thread!
 							terminateThread = true;
+							break;
+						}
 					}
 
 					scheduler->mutex.lock(); 		// Begin of atomic operation
 					scheduler->getNextMethod(this);	// try to find and available method for scheduling
-					scheduler->mutex.unlock(); 		// End of atomic operation
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
 						wait = true;
+					else
+						method->scheduledCounter++;	// increment scheduled counter for this method
+					scheduler->mutex.unlock(); 		// End of atomic operation
 				} while (method == NULL);
 
-				if(terminateThread) // if in the meanwhile the termination has been started, end this thread as well
+				if(terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
 					break;
 
 				// run the scheduled method
@@ -70,12 +74,12 @@ void SchedulerWorker::run() {
 
 				scheduler->mutex.lock(); // Begin of atomic action
 
-
 				// update scheduler data
-				scheduler->updateMethodStatistics(this,methodTime);
+				scheduler->updateMethodStatistics(this, methodTime);
 				scheduler->updateData(this);
 
 				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
+				method->scheduledCounter--;	// decrement scheduled counter for this method
 
 				scheduler->perfGenEndCallback();
 
@@ -107,6 +111,7 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
+	initialSolutionExists = false;
 }
 
 void Scheduler::run() {
@@ -124,7 +129,7 @@ void Scheduler::run() {
 	// spawn the worker threads
 	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
-		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0));
+		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0), i);
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
@@ -183,12 +188,17 @@ void Scheduler::getNextMethod(SchedulerWorker *worker) {
 	worker->method = scheduledMethod;
 }
 
-// TODO Hier fehlt doch das Updaten des obj-Gains bzw. der Erfolgsrate, oder?
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
 	totTime[idx] += methodTime;
 	nIter[idx]++;
 	nGeneration++;
+	// if the applied method was successful, update the success-counter and the total obj-gain
+	// TODO: only meaningful for improvement methods?
+	if(worker->pop.at(1)->isBetter(*worker->pop.at(0))) {
+		nSuccess[idx]++;
+		sumGain[idx] += abs(worker->pop.at(1)->obj() - worker->pop.at(0)->obj());
+	}
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
@@ -248,36 +258,83 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
 		Scheduler(p, pg) {
+	curMethodIndices.reserve(threadsnum());
+	for(int i=0; i < threadsnum(); i++)
+		curMethodIndices.push_back(0);
 }
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	// TODO sehr schneller, schlechter Hack!!
-	// first, we call the construction method supposed to be at idx 0, then always method 1
-	static int k=1;
-
-	// for constructing the initial solution operate on a new empty solution
-	if (k == 1) {
-		worker->method = methodPool[0];
-		// assign a copy of an (empty) solution from the elite set
-		mh_solution* tmp = worker->pop.at(0);
-		tmp->copy(*pop->at(0));
-		worker->pop.replace(0, tmp);
-		k=2;
+	int k=-1;
+	// if no initial solution exists, yet, we must select a construction method.
+	if(!initialSolutionExists) {
+		for(unsigned int i=0; i < methodPool.size(); i++) {
+			if(!methodPool[i]->improvement) {
+				// prevent deterministic construction methods from being called more than once
+				if(methodPool[i]->deterministic &&
+						(nIter[methodPool[i]->idx] > 0 || 		// method has been called before
+						methodPool[i]->scheduledCounter > 0 )) 	// method is currently scheduled for another thread
+					continue;
+				else {
+					k = i;
+					break;
+				}
+			}
+		}
+		if(k == -1) {	// no suitable method has been found
+			worker->method = NULL;
+			return;
+		}
 	}
+	// otherwise, select the current neighborhood, according to the predefined order
+	else {
+		// TODO: currently, select always the first neighborhood
+		k = curMethodIndices[worker->id];
+		// if this is not an improvement method, go to the next method that is.
+		if(!methodPool[k]->improvement) {
+			while(!methodPool[k]->improvement) {
+				k++;
+				if((unsigned)k == methodPool.size())
+					k=0;
+			}
+
+			// if we reached again the first method that was tried, there is no method to be currently scheduled
+			if((unsigned)k == curMethodIndices[worker->id]) {
+				worker->method = NULL;
+				return;
+			}
+			curMethodIndices[worker->id] = k; // update the worker's current neighborhood idx accordingly
+		}
+	}
+
+	// for constructing a new solution, operate on a new empty  solution:
+	if(!methodPool[k]->improvement) {
+		mh_solution* tmp = worker->pop.at(0);
+		tmp->copy(*pop->at(0)->createUninitialized());
+		worker->pop.replace(0, tmp);
+	}
+
 	// otherwise, no new solution assignment is necessary, keep working on
 	// current solution
-	else
-		worker->method = methodPool[1];
+	// else {}
+	worker->method = methodPool[k];
 }
 
 void VNSScheduler::updateData(SchedulerWorker* worker) {
-	// TODO Simple, quick hack!! Just performs simple local search
+	// if a construction method has been applied, we can assume that an initial solution exists, now
+	if(!initialSolutionExists && !worker->method->improvement) {
+		initialSolutionExists = true;
+		// copy this initial solution to all workers
+		for(unsigned int i=0; i < workers.size(); i++) {
+			if(workers[i] != worker) { // not needed for current worker
+				mh_solution* tmp = workers[i]->pop.at(0);
+				tmp->copy(*worker->pop.at(1));
+				workers[i]->pop.replace(0, tmp);
+			}
+		}
+	}
 
 	// Determine, if an improvement could be achieved by the method applied by the worker
 	if(worker->pop.at(1)->isBetter(*worker->pop.at(0))) {	// method was successful
-		// update statistics (only meaningful for the neighborhoods)
-		nSuccess[1]++;
-		sumGain[1] += abs(worker->pop.at(1)->obj() - worker->pop.at(0)->obj());
 		// the improved solutions is this worker's new working solution
 		mh_solution* tmp = worker->pop.at(0);
 		worker->pop.replace(0, worker->pop.at(1));
@@ -291,9 +348,12 @@ void VNSScheduler::updateData(SchedulerWorker* worker) {
 			timGenBest = CPUtime() - timStart;	// update time for best solution
 			genBest = nGeneration;				// update generation in which the best solution was found
 		}
+		curMethodIndices[worker->id] = 0;	// first neighborhood is to be scheduled next
 	}
-	else { // method was not successful
-
+	else { // method was not successful, increment index-counter for neighborhood that is to be scheduled next
+		curMethodIndices[worker->id]++;
+		if(curMethodIndices[worker->id] == methodPool.size())
+			curMethodIndices[worker->id] = 0;
 	}
 }
 
