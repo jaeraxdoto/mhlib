@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 	{
 		// Probably set some parameters to new default values
 		//pmut.setDefault(2);
+		// TODO depending on scheduler implementation initialize further default parameters, e.g. dupelim
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
@@ -202,8 +203,8 @@ int main(int argc, char *argv[])
 		//typedef oneMaxChrom usedChrom;
 		typedef onePermChrom usedChrom; 
 		usedChrom tchrom;
-		// generate a population of these chromosomes
-		population p(tchrom);
+		// generate a population of uninitialized chromosomes; don't use hashing
+		population p(tchrom,popsize(),false,false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods

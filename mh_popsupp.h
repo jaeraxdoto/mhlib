@@ -30,8 +30,8 @@ struct worstcompare : public binary_function<double,double,bool>
 /** \ingroup param
 	Should the worstheap data structure be maintained?
 	This is only meaningful when #repl==1 (i.e. replace the worst)
-	in a steady-state EA. In this case it will speed up the EA,
-	in particular on large populations. */
+	in a steady-state evolutionary algorithm.
+	In this case it will speed up the EA, in particular on large populations. */
 extern bool_param wheap;
 
 
@@ -40,7 +40,7 @@ typedef multimap<double,int,worstcompare>::iterator worstheap_item;
 /** An element of pophashtable. */
 struct pophashtable_elem
 {
-	mh_solution *p;	// pointer to chromosome
+	mh_solution *p;	// pointer to solution
 	int idx;	// index in population
 	worstheap_item pqi;	// reference into worstheap
 	pophashtable_elem() {}
@@ -50,7 +50,7 @@ struct pophashtable_elem
 
 
 /** A hash-table for the members of the population. 
-	This includes a heap of the chromosomes so that the worst solution
+	This includes a heap of the solutions so that the worst solution
 	can efficiently be retrieved, if #wheap is set. */
 class pophashtable
 {
@@ -75,7 +75,7 @@ public:
 	/** Adds one new population member into the hash-table with its
 		pointer and population-index. */
 	void add(mh_solution *p,int idx);
-	/// Removes entry for this chromosome from the hash-table.
+	/// Removes entry for this solution from the hash-table.
 	void remove(mh_solution *p);
 	/** Looks, if a duplicate of *p is already in the hash-table.
 		If this is the case, its index in the population is
@@ -83,7 +83,7 @@ public:
 	int findDuplicate(mh_solution *p);
 	/** if wheap() is set, the worstheap is maintained; in this
 		case, this function returns the index of the worst
-		chromosome. */
+		solution. */
 	int worstIndex();
 };
 

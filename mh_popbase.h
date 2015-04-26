@@ -10,7 +10,7 @@
 #include "mh_random.h"
 
 /** The population size.
-	The number of chromosomes the population contains. */
+	The number of solutions the population contains. */
 extern int_param popsize;
 
 /** Duplicate elimination.
@@ -25,26 +25,28 @@ extern int_param dupelim;
 class pophashtable;
 
 
-/** The EA population base.
-	This is the abstract base class for an EA population which provides
-	an interface for accessing a number of chromosomes by an algorithm. */
+/** The population base.
+	This is the abstract base class for an algorithm's population which provides
+	an interface for accessing a number of candidate solutions by an algorithm. */
 class pop_base
 {
 private:
-	/** The Init-Method
-	        Initializes the statistics fields and hashtable, if used. */
-	void init(int psize);
+	/** The Init-Method.
+	        Initializes the statistics fields and hashtable, if used.
+	        If nohashing is set, no hashtable and worst heap will be used.
+	        Otherwise, this depends on the dupelim parameter etc. */
+	void init(int psize, bool nohashing=false);
 
 protected:
-	/// size of the chromosome array
-	int nChroms;
-	/** index to best chromosome of population.
+	/// size of the solutions array
+	int nSolutions;
+	/** index to best solution of population.
 		Is always kept up to date. */
 	int indexBest;
 	/** determines indexBest for the whole population.
 		Called when best gets lost or after initialization. (O(n)). */
 	virtual void determineBest() = 0;
-	/** determines Index of worst chromosome.
+	/** determines Index of worst solution.
 		This is guaranteed to be never indexBest. (O(n)). */
 	virtual int determineWorst() const = 0;
 	/// mean objective value
@@ -66,39 +68,45 @@ protected:
 	
 public:
 	/** The Constructor.
-	        Calls the Init-Method. */
-	pop_base(int psize, const pstring &pg=(pstring)("")) : pgroup(pg.s) { init( psize ); }
+	        Calls the Init-Method with default population size according to parameter popsize. */
+	pop_base(int psize, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+
 	/** The Constructor.
-  	        Calls the Init-Method. */
-	pop_base(const pstring &pg=(pstring)("") ) : pgroup(pg.s) { init( popsize(pgroup) ); }
+  	        Calls the Init-Method with a specific population size. */
+	pop_base(const pstring &pg=pstring("") ) : pgroup(pg.s) { init( popsize(pgroup) ); }
+
+	/** The Constructor.
+	        Calls the Init-Method with the population size and nohashing parameter. */
+	pop_base(int psize, bool nohashing = false, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+
 	/** Destructor. */
 	virtual ~pop_base();
 	/** Size of population.
-		The chromosomes are indexed from 0 to size()-1. */
+		The solutions are indexed from 0 to size()-1. */
 	int size() const
-		{ return nChroms; }
-	/** Get Chromosome via given index.
-		The chromosome must not be modified or deleted! */
+		{ return nSolutions; }
+	/** Get solution via given index.
+		The solution must not be modified or deleted! */
 	virtual mh_solution *at(int index) = 0;
-	/** Replaces a chromosome at a specific index with another one.
+	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
-		prior chromosome. */
+		prior solution. */
 	virtual mh_solution *replace(int index,mh_solution *newchrom) = 0;
-	/** Index of best chromosome in population. */
+	/** Index of best solution in population. */
 	int bestIndex() const
 		{ return indexBest; }
-	/** Returns pointer to best chromosome of population. */
+	/** Returns pointer to best solution of population. */
 	virtual mh_solution *bestSol() const = 0;
-	/** Returns objective value of best chromosome. */
+	/** Returns objective value of best solution. */
 	double bestObj()
 		{ return bestSol()->obj(); }
-	/** Index of worst chromosome in population. */
+	/** Index of worst solution in population. */
 	int worstIndex() const
 		{ return determineWorst(); }
-	/** Index of a uniformly, randomly chosen chromosome. */
+	/** Index of a uniformly, randomly chosen solution. */
 	int randomIndex()
-		{ return random_int(nChroms); }
-	/** Checks wheter the given chromosome has a duplicate in 
+		{ return random_int(nSolutions); }
+	/** Checks wheter the given solution has a duplicate in
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
 	virtual int findDuplicate(mh_solution *p) = 0;
@@ -118,9 +126,9 @@ public:
 		If the current statistic data are not valid
 		(!statValid), then determine them. */
 	virtual void validateStat() = 0;
-	/** Set the algorithm for all chromosomes of the population.
-	        An algorithm should call this before using the chromosomes
-		of the population, to let the chromosomes know what algorithm
+	/** Set the algorithm for all solutions of the population.
+	        An algorithm should call this before using the solutions
+		of the population, to let the solutions know what algorithm
 		is using them. */
 	virtual void setAlgorithm(mh_base *alg) = 0;
 };

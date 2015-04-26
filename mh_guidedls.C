@@ -19,7 +19,7 @@ guidedLS::guidedLS(pop_base &p, const pstring &pg) : lsbase(p,pg), lambda(0)
 		f = fp->getFeature();
 	if ( pop->size() < 2 )
 		mherror("Population is to small");
-	spop = new population(*tmpChrom, 1, true, pgroupext((pstring)pgroup,"sub"));
+	spop = new population(*tmpChrom, 1, true, false, pgroupext((pstring)pgroup,"sub"));
 }
 
 guidedLS::~guidedLS()

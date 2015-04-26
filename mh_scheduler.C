@@ -15,6 +15,7 @@
 
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
+// TODO macht dieser Parameter Sinn? Es gibt popsize und Parameter-Groups...
 int_param threadspsize("threadspsize", "Size of the population associated with each thread in the scheduler", 2, 2, 100);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
@@ -90,6 +91,8 @@ void SchedulerWorker::run() {
 
 
 //--------------------------------- Scheduler ---------------------------------------------
+
+// TODO: Achtung: Soll die Population hashing verwenden? -> momentan abhängig von dupelim
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
@@ -169,11 +172,6 @@ void Scheduler::getNextMethod(SchedulerWorker *worker) {
 	worker->method = scheduledMethod;
 }
 
-void aaa(int a)
-{
-	std::cout << a;
-}
-
 // TODO Hier fehlt doch das Updaten des obj-Gains bzw. der Erfolgsrate, oder?
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
@@ -233,6 +231,9 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 
 //--------------------------------- VNSScheduler ---------------------------------------------
+
+// TODO Ich meine, dass wir eine generische VNS-Scheduler Klasse vermeinde sollten und diese
+// Methoden besser direkt in den Scheduler integrieren, evtl. alternative Methoden zum umschalten
 
 VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
 		Scheduler(p, pg) {

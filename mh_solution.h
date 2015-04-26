@@ -28,7 +28,7 @@ extern int_param mvnbop;
 /** Abstract solution class for the metaheuristics.
 	A concrete class must be derived for a specific problem.
 	This class should be mostly, but not completely
-	independent of the used EA. */
+	independent of the used algorithm. */
 class mh_solution
 {
 protected:

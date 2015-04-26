@@ -25,7 +25,7 @@ VNS::VNS(pop_base &p, const pstring &pg) :
 	ttime.set(vnsvndttime(),"vnd");
 	if ( pop->size() < 1 )
 		mherror("Population is too small");
-	spop = new population(*pop->bestSol(), 1, false, vndpg);
+	spop = new population(*pop->bestSol(), 1, false, false, vndpg);
 	// start with best chromosome
 	// spop->at(0)->reproduce(*pop->bestSol());
 	VNSProvider *vns = dynamic_cast<VNSProvider *> (spop->at(0));

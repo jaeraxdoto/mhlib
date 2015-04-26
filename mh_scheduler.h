@@ -114,7 +114,7 @@ public:
 	 * will executable by the run() method.
 	 */
 	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol) :
-		pop(sol, threadspsize(), true) {
+		pop(sol, threadspsize(), false, false) {
 		scheduler = _scheduler;
 		method = NULL;
 	}
@@ -185,6 +185,7 @@ protected:
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
+	 * TODO: Achtung: Soll die Population hashing verwenden? -> momentan abhängig von dupelim
 	 */
 	Scheduler(pop_base &p, const pstring &pg = (pstring) (""));
 
@@ -233,8 +234,7 @@ public:
 	void run();
 
 	/**
-	 * NOT IMPLEMENTED!
-	 * This method does nothing and is only implemented since it is required by the underlying
+	 * This method does here nothing and is only implemented since it is required by the underlying
 	 * base class mh_advbase.
 	 */
 	void performGeneration() {

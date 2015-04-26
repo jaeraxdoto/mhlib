@@ -12,7 +12,7 @@ GRASP::GRASP(pop_base &p, const pstring &pg) : lsbase(p,pg)
 		mherror("Chromosome is not a gcProvider");
 	if ( pop->size() < 2 )
 		mherror("Population is to small");
-	spop = new population(*tmpChrom, 1, true, pgroupext((pstring)pgroup,"sub"));
+	spop = new population(*tmpChrom, 1, true, false, pgroupext((pstring)pgroup,"sub"));
 }
 
 GRASP::~GRASP()

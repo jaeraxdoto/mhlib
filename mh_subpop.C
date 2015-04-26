@@ -8,7 +8,7 @@
 void subPopulation::determineBest()
 {
 	indexBest=0;
-	for (int i=1;i<nChroms;i++)
+	for (int i=1;i<nSolutions;i++)
 		if (at(i)->isBetter(*at(indexBest)))
 			indexBest=i;
 }
@@ -20,11 +20,11 @@ int subPopulation::determineWorst() const
 	{
 		idx=phash->worstIndex();
 		if (idx==indexBest)	// avoid that indexBest is returned
-			idx=(idx+1)%nChroms;
+			idx=(idx+1)%nSolutions;
 	}
 	else
 	{
-		for (int i=1;i<nChroms;i++)
+		for (int i=1;i<nSolutions;i++)
 			if (!superPopulation->at(indexFrom+i)->isBetter(
 					*superPopulation->at(indexFrom+idx)) && i!=indexBest)
 				idx=i;
@@ -40,7 +40,7 @@ subPopulation::subPopulation(pop_base *super,int from,int to, const pstring &pg)
 	if ((from<0) || (to>super->size()))
 		mherror("Bad indizes for Sub-population");
 	if (phash)
-		for (int i=0;i<nChroms;i++)
+		for (int i=0;i<nSolutions;i++)
 			phash->add(at(i),i);
 	determineBest();
 }
@@ -67,7 +67,7 @@ int subPopulation::findDuplicate(mh_solution *p)
 		return phash->findDuplicate(p);
 	else
 	{
-		for (int i=0;i<nChroms;i++)
+		for (int i=0;i<nSolutions;i++)
 			if (p->equals(*at(i)))
 				return i;
 		return -1;
@@ -77,7 +77,7 @@ int subPopulation::findDuplicate(mh_solution *p)
 void subPopulation::write(ostream &ostr)
 {
 	ostr << "# Population:" << endl;
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 	{
 		ostr << i << ":\t" << at(i)->obj() << '\t';
 		at(i)->write(ostr,0);
@@ -91,7 +91,7 @@ void subPopulation::validateStat()
 		return;
 	double sum=0,sum2=0;
 	int idxwor=0;
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 	{
 		double o=at(i)->obj();
 		sum+=o;
@@ -99,14 +99,14 @@ void subPopulation::validateStat()
 		if (at(i)->isWorse(*at(idxwor)))
 			idxwor=i;
 	}
-	statMean=sum/nChroms;
+	statMean=sum/nSolutions;
 	statWorst=at(idxwor)->obj();
-	statDev=sqrt(sum2/nChroms-statMean*statMean);
+	statDev=sqrt(sum2/nSolutions-statMean*statMean);
 	statValid=true;
 }
 
 void subPopulation::setAlgorithm(mh_base *alg)
 {
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 		at(i)->setAlgorithm(alg);
 }
