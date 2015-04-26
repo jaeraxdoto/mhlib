@@ -114,10 +114,11 @@ double onePermChrom::objective()
 //--------- Test for multithreading ---------------------------------
 
 /** Problem specific parameters (the number of genes). */
-int_param mthreadtest("mthreadtest","test mutlithreading",false);
+int_param threadstest("threadstest","Test mutlithreading before starting actual application",false);
 
 std::mutex mymutex;
 
+/** A test thread doing some meaningless work and writing out the given parameter t. */
 static void mythread(int t)
 {
 	for (int i=1;i<20;i++)
@@ -131,7 +132,8 @@ static void mythread(int t)
 	}
 }
 
-
+/** A simple test for multithreading, doing some meaningless work in sequential and
+ * then parallel fashion and writing out the needed CPU-times. */
 static void testmultithreading()
 {
 		cerr << "Time: " << CPUtime() << endl;
@@ -161,7 +163,6 @@ static void testmultithreading()
 
 
 //------------------------------------------------------------------------
-#include <iostream>       // std::cout
 
 /** The example main function.
 	It should remain small. It contains only the creation 
@@ -194,7 +195,7 @@ int main(int argc, char *argv[])
 		param::printAll(out());
 		out() << endl;
 
-		if (mthreadtest()) 
+		if (threadstest())
 			testmultithreading();
 
 		// generate a template chromosome of the problem specific class

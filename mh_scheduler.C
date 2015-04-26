@@ -11,27 +11,85 @@
 #include "mh_random.h"
 #include "mh_util.h"
 #include "mh_c11threads.h"
-#include <future>
-#include <chrono>
 #include <bits/exception_ptr.h>
 
-int_param numthreads("numthreads", "Maximum number of threads used in the scheduler", 1, 1, 100);
+int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
-int_param worker_popsize("thread_popsize", "Size of the population associated with each of the worker threads", 2, 2, 100);
+int_param threadspsize("threadspsize", "Size of the population associated with each thread in the scheduler", 2, 2, 100);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
+/** Central stack of exceptions possibly occurring in threads,
+ * which are passed to the main thread. */
+static std::vector<std::exception_ptr> worker_exceptions;
+
 void SchedulerWorker::run() {
-		thread = std::thread(&Scheduler::runWorker, scheduler, this);
+	try {
+		if (!scheduler->terminate())
+			for(;;) {
+				//performGeneration();
+
+				scheduler->checkPopulation();
+
+				// 	schedule the next method
+				scheduler->mutex.lock(); 	// Begin of atomic action
+				scheduler->perfGenBeginCallback();
+				scheduler->getNextMethod(this);
+				// if there is no method left to be scheduled in a meaningful way stop thread
+				if (method == NULL) {
+					scheduler->mutex.unlock(); // End of atomic action
+					return;
+				}
+				scheduler->mutex.unlock(); // End of atomic action
+
+				// run the scheduled method
+				double startTime = CPUtime();
+				// copy solution data and run the scheduled method:
+				// In the end, the 0th entry of the population is the original solution
+				// and the 1st entry is the modified one.
+				/* TODO: Copying solutions is in general a relatively expensive operation.
+				 * We should think about whether or not this is really always necessary here in
+				 * general. An alternative might be that the threads act on individual exclusive
+				 * ranges of the scheduler's population. */
+				mh_solution* tmp = pop.at(1);
+				tmp->copy(*pop.at(0));
+				pop.replace(1, tmp);
+
+				method->run(pop.at(1));
+				double methodTime = CPUtime() - startTime;
+
+				scheduler->mutex.lock(); // Begin of atomic action
+
+
+				// update scheduler data
+				scheduler->updateMethodStatistics(this,methodTime);
+				scheduler->updateData(this);
+
+				scheduler->perfGenEndCallback();
+
+				if (scheduler->terminate()) {
+					// write last generation info in any case
+					scheduler->writeLogEntry(true);
+					scheduler->mutex.unlock(); // End of atomic operation
+					break;	// ... and stop
+				}
+				else {
+					// write generation info
+					scheduler->writeLogEntry();
+					scheduler->mutex.unlock(); // End of atomic operation
+				}
+			}
+	}
+	catch (...) {
+		// Pass any exceptions to main thread
+		scheduler->mutex.lock();
+		worker_exceptions.push_back(std::current_exception());
+		scheduler->mutex.unlock();
+	}
 }
 
 
-
 //--------------------------------- Scheduler ---------------------------------------------
-
-/** Central stack of exceptions possibly occurring in threads,
- * which are passed to the main thread. */
-static std::vector<std::exception_ptr> thread_exceptions;
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
@@ -39,7 +97,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 
 void Scheduler::run() {
 	// initialize the optimization data and run the scheduler
-	// updateSchedulerData(NULL);	// TODO Ist ein call mit NULL zur Initialisierung wirklich sinnvoll?
+	// updateData(NULL);	// TODO Ist ein call mit NULL zur Initialisierung wirklich sinnvoll?
 
 	checkPopulation();
 
@@ -50,11 +108,11 @@ void Scheduler::run() {
 	logstr.flush();
 
 	// spawn the worker threads
-	unsigned int nthreads=numthreads();
+	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
 		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0));
 		workers.push_back(w);
-		w->run();
+		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
 
 	// wait for the threads to finish and delete them
@@ -63,73 +121,11 @@ void Scheduler::run() {
 		delete w;
 	}
 	// handle possibly transferred exceptions
-	for (const exception_ptr &ep : thread_exceptions)
+	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
 
 	logstr.emptyEntry();
 	logstr.flush();
-}
-
-void Scheduler::runWorker(SchedulerWorker *worker) {
-	try {
-		if (!terminate())
-			for(;;) {
-				//performGeneration();
-
-				checkPopulation();
-
-				// 	schedule the next method
-				mutexScheduler.lock(); 	// Begin of atomic action
-				perfGenBeginCallback();
-				getNextMethod(worker);
-				// if there is no method left to be scheduled in a meaningful way stop thread
-				if (worker->method == NULL) {
-					mutexScheduler.unlock(); // End of atomic action
-					return;
-				}
-				mutexScheduler.unlock(); // End of atomic action
-
-				// run the scheduled method
-				double startTime = CPUtime();
-				// copy solution data and run the scheduled method:
-				// In the end, the 0th entry of the population is the original solution
-				// and the 1st entry is the modified one.
-				mh_solution* tmp = worker->p.at(1);
-				tmp->copy(*worker->p.at(0));
-				worker->p.replace(1, tmp);
-				worker->method->run(worker->p.at(1));
-
-				// update method statistics
-				int idx = worker->method->idx;
-				mutexScheduler.lock(); // Begin of atomic action
-				totTime[idx] += CPUtime() - startTime;
-				nIter[idx]++;
-				nGeneration++;
-
-				// update the optimization data
-				updateSchedulerData(worker);
-
-				perfGenEndCallback();
-
-				if (terminate()) {
-					// write last generation info in any case
-					writeLogEntry(true);
-					mutexScheduler.unlock(); // End of atomic operation
-					break;	// ... and stop
-				}
-				else {
-					// write generation info
-					writeLogEntry();
-					mutexScheduler.unlock(); // End of atomic operation
-				}
-			}
-	}
-	catch (...) {
-		// Pass any exceptions to main thread
-		mutexScheduler.lock();
-		thread_exceptions.push_back(std::current_exception());
-		mutexScheduler.unlock();
-	}
 }
 
 void Scheduler::getNextMethod(SchedulerWorker *worker) {
@@ -166,12 +162,24 @@ void Scheduler::getNextMethod(SchedulerWorker *worker) {
 	// select one from the population.
 	// TODO: more meaningful selection of solution to which the method is applied.
 	// In general, the worker should keep its current working solution, whenever possible.
-	mh_solution* tmp = worker->p.at(0);
+	mh_solution* tmp = worker->pop.at(0);
 	tmp->copy(*pop->at(random_int(pop->size())));
-	worker->p.replace(0, tmp);
+	worker->pop.replace(0, tmp);
 
 	worker->method = scheduledMethod;
-	return;
+}
+
+void aaa(int a)
+{
+	std::cout << a;
+}
+
+// TODO Hier fehlt doch das Updaten des obj-Gains bzw. der Erfolgsrate, oder?
+void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
+	int idx=worker->method->idx;
+	totTime[idx] += methodTime;
+	nIter[idx]++;
+	nGeneration++;
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
@@ -239,9 +247,9 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	if (k == 1) {
 		worker->method = methodPool[0];
 		// assign a copy of an (empty) solution from the elite set
-		mh_solution* tmp = worker->p.at(0);
+		mh_solution* tmp = worker->pop.at(0);
 		tmp->copy(*pop->at(0));
-		worker->p.replace(0, tmp);
+		worker->pop.replace(0, tmp);
 		k=2;
 	}
 	// otherwise, no new solution assignment is necessary, keep working on
@@ -250,23 +258,23 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		worker->method = methodPool[1];
 }
 
-void VNSScheduler::updateSchedulerData(SchedulerWorker* worker) {
+void VNSScheduler::updateData(SchedulerWorker* worker) {
 	// TODO Simple, quick hack!! Just performs simple local search
 
 	// Determine, if an improvement could be achieved by the method applied by the worker
-	if(worker->p.at(1)->isBetter(*worker->p.at(0))) {	// method was successful
+	if(worker->pop.at(1)->isBetter(*worker->pop.at(0))) {	// method was successful
 		// update statistics (only meaningful for the neighborhoods)
 		nSuccess[1]++;
-		sumGain[1] += abs(worker->p.at(1)->obj() - worker->p.at(0)->obj());
+		sumGain[1] += abs(worker->pop.at(1)->obj() - worker->pop.at(0)->obj());
 		// the improved solutions is this worker's new working solution
-		mh_solution* tmp = worker->p.at(0);
-		worker->p.replace(0, worker->p.at(1));
-		worker->p.replace(1, tmp);
+		mh_solution* tmp = worker->pop.at(0);
+		worker->pop.replace(0, worker->pop.at(1));
+		worker->pop.replace(1, tmp);
 
 		// update the first solution in the population if new solution is better
-		if (worker->p.at(0)->isBetter(*pop->at(0))) {
+		if (worker->pop.at(0)->isBetter(*pop->at(0))) {
 			mh_solution* tmp = pop->at(0);
-			tmp->copy(*worker->p.at(0));
+			tmp->copy(*worker->pop.at(0));
 			pop->replace(0, tmp);
 			timGenBest = CPUtime() - timStart;	// update time for best solution
 			genBest = nGeneration;				// update generation in which the best solution was found

@@ -88,6 +88,8 @@ int main(int argc, char *argv[])
 		FitnessDistanceCorrelation fdc;
 		fdc.perform(p.bestSol(),"");
 		fdc.write(out,"fdc.tsv");
+
+		delete alg;
 	}
 	// catch all exceptions and write error message
 	catch (std::string &s)

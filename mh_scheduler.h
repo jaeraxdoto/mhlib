@@ -7,7 +7,6 @@
 #define MH_SCHEDULER_H
 
 #include <string>
-#include <functional>
 #include "mh_advbase.h"
 #include "mh_pop.h"
 #include "mh_c11threads.h"
@@ -16,12 +15,12 @@
 /** \ingroup param
  * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
  */
-extern int_param numthreads;
+extern int_param threadsnum;
 
 /** \ingroup param
- * Sets the size of the population associated with each of the worker threads
+ * Size of the population associated with each of the worker threads in the scheduler algorithm.
  */
-extern int_param worker_popsize;
+extern int_param threadspsize;
 
 
 //--------------------------- SchedulableMethod ------------------------------
@@ -87,12 +86,12 @@ public:
 };
 
 
-//--------------------------- SchedulableMethod ------------------------------
+//--------------------------- SchedulerWorker ------------------------------
 
 /**
- * Structure for a SchedulerWorker that runs as own thread spawned by the scheduler.
- * The structure contains pointers to the Scheduler, Schedulable Method and the solution
- * to which the method is to be applied.
+ * SchedulerWorker that runs as own thread spawned by the scheduler.
+ * The class contains in particular pointers to the Scheduler, SchedulableMethod and
+ * the workers own population to which the method is to be applied.
  */
 class SchedulerWorker {
 public:
@@ -108,24 +107,32 @@ public:
 	 * Furthermore, after the execution of the method, position 1 holds the modified solution
 	 * and position 0 the original, unmodified solution.
 	 */
-	population p;
+	population pop;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
 	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol) :
-		p(sol, worker_popsize(), true) {
+		pop(sol, threadspsize(), true) {
 		scheduler = _scheduler;
 		method = NULL;
 	}
 
 	/**
-	 * Starts the worker
+	 * This method is the main procedure of a worker, which is spawend as an own thread.
+	 * It contains the main loop consisting of the selection of the next method, running it
+	 * and updating the Scheduler data.
+	 * Additionally, the termination criteria are checked after each iteration by calling the
+	 * terminate() method.
+	 * mutex is used to ensure synchronization of the access to the optimization data
+	 * structures shared by the worker threads.
+	 * Note that a derived class overwriting this method must likewise guarantee
+	 * proper synchronization.
+	 * @param worker A pointer to the SchedulerWorker object for whose thread this method is called.
 	 */
 	void run();
 };
-
 
 
 /**
@@ -135,6 +142,7 @@ public:
  * specific method is applied.
  */
 class Scheduler : public mh_advbase {
+	friend class SchedulerWorker;
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
 	vector<SchedulableMethod*> methodPool;
@@ -172,7 +180,7 @@ protected:
 	 * Mutex used for the synchronization of access to the Scheduler data not owned by the workers,
 	 * i.e., the population of solutions, the method pool, etc.
 	 */
-	std::mutex mutexScheduler;
+	std::mutex mutex;
 
 public:
 	/**
@@ -250,20 +258,6 @@ public:
 	}
 
 	/**
-	 * This method is run by a worker thread after it is created.
-	 * It contains the main loop consisting of the selection of the next method, running it
-	 * and updating the Scheduler data.
-	 * Additionally, the termination criteria are checked after each iteration by calling the
-	 * terminate() method.
-	 * mutexScheduler is used to ensure synchronization of the access to the optimization data
-	 * structures shared by the worker threads.
-	 * Note that a derived class overwriting this method must likewise guarantee
-	 * proper synchronization!
-	 * @param worker A pointer to the SchedulerWorker object for whose thread this method is called.
-	 */
-	void runWorker(SchedulerWorker *worker);
-
-	/**
 	 * Determines a method and the solution to which
 	 * the method is to be applied according to the defined selection rules and
 	 * the weights associated to the methods.
@@ -284,7 +278,12 @@ public:
 	 * 2. The solutions in the population.
 	 * If this method is called with NULL, all data are initialized. TODO Macht das Sinn?
 	 */
-	virtual void updateSchedulerData(SchedulerWorker* worker) = 0;
+	virtual void updateData(SchedulerWorker* worker) = 0;
+
+	/**
+	 * Updates the statistics data after applying a method in worker.
+	 */
+	virtual void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
 
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.
@@ -338,7 +337,7 @@ public:
 	 * has been found, the next neighborhood shall be scheduled (increment k).
 	 TODO Berücksichtigung vom Multithreading! Wie wird das gemacht?
 	 */
-	void updateSchedulerData(SchedulerWorker *worker);
+	void updateData(SchedulerWorker *worker);
 };
 
 
