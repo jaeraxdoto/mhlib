@@ -15,8 +15,6 @@
 
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
-// TODO macht dieser Parameter Sinn? Es gibt popsize und Parameter-Groups...
-int_param threadspsize("threadspsize", "Size of the population associated with each thread in the scheduler", 2, 2, 100);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
@@ -47,8 +45,6 @@ void SchedulerWorker::run() {
 					scheduler->getNextMethod(this);	// try to find and available method for scheduling
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
 						wait = true;
-					else
-						method->scheduledCounter++;	// increment scheduled counter for this method
 					scheduler->mutex.unlock(); 		// End of atomic operation
 				} while (method == NULL);
 
@@ -69,17 +65,16 @@ void SchedulerWorker::run() {
 				tmp->copy(*pop.at(0));
 				pop.replace(1, tmp);
 
-				method->run(pop.at(1));
+				bool solchanged = method->run(pop.at(0));
 				double methodTime = CPUtime() - startTime;
 
 				scheduler->mutex.lock(); // Begin of atomic action
 
 				// update scheduler data
-				scheduler->updateMethodStatistics(this, methodTime);
-				scheduler->updateData(this);
+				scheduler->updateMethodStatistics(this, methodTime, solchanged);
+				scheduler->updateData(this, solchanged);
 
 				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
-				method->scheduledCounter--;	// decrement scheduled counter for this method
 
 				scheduler->perfGenEndCallback();
 
@@ -107,17 +102,13 @@ void SchedulerWorker::run() {
 
 //--------------------------------- Scheduler ---------------------------------------------
 
-// TODO: Achtung: Soll die Population hashing verwenden? -> momentan abhängig von dupelim
-
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
-	initialSolutionExists = false;
 }
 
 void Scheduler::run() {
-	// initialize the optimization data and run the scheduler
-	// updateData(NULL);	// TODO Ist ein call mit NULL zur Initialisierung wirklich sinnvoll?
 
+	// so far only construction and simple improvement methods are considered
 	checkPopulation();
 
 	timStart=CPUtime();
@@ -129,7 +120,7 @@ void Scheduler::run() {
 	// spawn the worker threads
 	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
-		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0), i);
+		SchedulerWorker *w = new SchedulerWorker(this, *pop->at(0));
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
@@ -145,47 +136,6 @@ void Scheduler::run() {
 
 	logstr.emptyEntry();
 	logstr.flush();
-}
-
-void Scheduler::getNextMethod(SchedulerWorker *worker) {
-	vector<SchedulableMethod*> allowedMethods;
-	allowedMethods.reserve(methodPool.size());	// methods currently allowed for scheduling
-	unsigned int sum = 0;
-	for (auto sm : methodPool) {
-		// only allow methods having a weight greater than 0
-		if (sm->weight == 0)
-			continue;
-
-		// TODO: for multithreading:
-		// only allow methods that are not already scheduled at the moment;
-		// maintain data structure of active threads!
-
-		allowedMethods.push_back(sm);
-		sum += sm->weight;
-	}
-	if (allowedMethods.empty()) { // no more method to schedule
-		worker = NULL;
-		return;
-	}
-
-	// roulette-wheel selection from the allowed methods (proportional to the weight)
-	int rand = random_int(1, sum);
-	unsigned int i=0;
-	while(rand > 0) {
-		rand -= allowedMethods[i]->weight;
-		i++;
-	}
-	SchedulableMethod* scheduledMethod = allowedMethods[i-1];
-
-	// if the method is an improvement method that needs to operate on an existing solution,
-	// select one from the population.
-	// TODO: more meaningful selection of solution to which the method is applied.
-	// In general, the worker should keep its current working solution, whenever possible.
-	mh_solution* tmp = worker->pop.at(0);
-	tmp->copy(*pop->at(random_int(pop->size())));
-	worker->pop.replace(0, tmp);
-
-	worker->method = scheduledMethod;
 }
 
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
@@ -252,16 +202,6 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 
 //--------------------------------- VNSScheduler ---------------------------------------------
-
-// TODO Ich meine, dass wir eine generische VNS-Scheduler Klasse vermeinde sollten und diese
-// Methoden besser direkt in den Scheduler integrieren, evtl. alternative Methoden zum umschalten
-
-VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
-		Scheduler(p, pg) {
-	curMethodIndices.reserve(threadsnum());
-	for(int i=0; i < threadsnum(); i++)
-		curMethodIndices.push_back(0);
-}
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	int k=-1;
@@ -356,6 +296,51 @@ void VNSScheduler::updateData(SchedulerWorker* worker) {
 			curMethodIndices[worker->id] = 0;
 	}
 }
+
+
+
+/*
+void Scheduler::getNextMethod(SchedulerWorker *worker) {
+	vector<SchedulableMethod*> allowedMethods;
+	allowedMethods.reserve(methodPool.size());	// methods currently allowed for scheduling
+	unsigned int sum = 0;
+	for (auto sm : methodPool) {
+		// only allow methods having a weight greater than 0
+		if (sm->weight == 0)
+			continue;
+
+		// TODO: for multithreading:
+		// only allow methods that are not already scheduled at the moment;
+		// maintain data structure of active threads!
+
+		allowedMethods.push_back(sm);
+		sum += sm->weight;
+	}
+	if (allowedMethods.empty()) { // no more method to schedule
+		worker = NULL;
+		return;
+	}
+
+	// roulette-wheel selection from the allowed methods (proportional to the weight)
+	int rand = random_int(1, sum);
+	unsigned int i=0;
+	while(rand > 0) {
+		rand -= allowedMethods[i]->weight;
+		i++;
+	}
+	SchedulableMethod* scheduledMethod = allowedMethods[i-1];
+
+	// if the method is an improvement method that needs to operate on an existing solution,
+	// select one from the population.
+	// TODO: more meaningful selection of solution to which the method is applied.
+	// In general, the worker should keep its current working solution, whenever possible.
+	mh_solution* tmp = worker->pop.at(0);
+	tmp->copy(*pop->at(random_int(pop->size())));
+	worker->pop.replace(0, tmp);
+
+	worker->method = scheduledMethod;
+}
+*/
 
 
 
