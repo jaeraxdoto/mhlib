@@ -1,10 +1,3 @@
-From https://github.com/meganz/mingw-std-threads
-
-Adapted by GR: 
-- made thread::id get_id() and void yield() inline to be able to include
-  in in multiple source files and link them without multiple definition error
-
-
 mingw-std-threads
 =================
 

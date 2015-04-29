@@ -2,3 +2,6 @@
 **/*.exe
 **/*.a
 **/*.dll
+demo-onemax/onemax
+demo-qap/qap
+demo-schedtest/schedtest
