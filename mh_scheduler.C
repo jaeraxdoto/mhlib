@@ -138,7 +138,8 @@ void Scheduler::run() {
 	logstr.flush();
 }
 
-void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
+void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime,
+		bool solchanged) {
 	int idx=worker->method->idx;
 	totTime[idx] += methodTime;
 	nIter[idx]++;
@@ -155,7 +156,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
-	for (int k=0;k<numMethods();k++) {
+	for (int k=0;k<methodPool.size();k++) {
 		sumSuccess+=nSuccess[k];
 		sumIter+=nIter[k];
 		sumTime+= totTime[k];
@@ -163,7 +164,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << "total num of iterations:\t" << sumIter << endl;
 	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
 	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\t rel success\ttotal time\t rel time" << endl;
-	for (int k = 0; k < numMethods(); k++) {
+	for (int k = 0; k < methodPool.size(); k++) {
 		char tmp[200];
 		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
@@ -204,6 +205,19 @@ void Scheduler::printStatistics(ostream &ostr) {
 //--------------------------------- VNSScheduler ---------------------------------------------
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
+	if (worker->method == NULL) {
+		// Worker has just been created, apply construction method first
+		worker->method = methodPool[0];
+		// Uninitialized solution in the worker's population is fine
+	}
+	else {
+		if (worker->)
+	}
+
+
+
+
+
 	int k=-1;
 	// if no initial solution exists, yet, we must select a construction method.
 	if(!initialSolutionExists) {
@@ -259,43 +273,39 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	worker->method = methodPool[k];
 }
 
-void VNSScheduler::updateData(SchedulerWorker* worker) {
-	// if a construction method has been applied, we can assume that an initial solution exists, now
-	if(!initialSolutionExists && !worker->method->improvement) {
-		initialSolutionExists = true;
-		// copy this initial solution to all workers
-		for(unsigned int i=0; i < workers.size(); i++) {
-			if(workers[i] != worker) { // not needed for current worker
-				mh_solution* tmp = workers[i]->pop.at(0);
-				tmp->copy(*worker->pop.at(1));
-				workers[i]->pop.replace(0, tmp);
-			}
-		}
-	}
+void VNSScheduler::copyBetter(SchedulerWorker *worker) {
+	worker->pop->at(1)->copy(*worker->pop->at(0));
+	if (worker->pop->at(1)->isBetter(pop->at(0)))
+		pop->at(0)->copy(worker->pop->at(1));
+}
 
-	// Determine, if an improvement could be achieved by the method applied by the worker
-	if(worker->pop.at(1)->isBetter(*worker->pop.at(0))) {	// method was successful
-		// the improved solutions is this worker's new working solution
-		mh_solution* tmp = worker->pop.at(0);
-		worker->pop.replace(0, worker->pop.at(1));
-		worker->pop.replace(1, tmp);
-
-		// update the first solution in the population if new solution is better
-		if (worker->pop.at(0)->isBetter(*pop->at(0))) {
-			mh_solution* tmp = pop->at(0);
-			tmp->copy(*worker->pop.at(0));
-			pop->replace(0, tmp);
-			timGenBest = CPUtime() - timStart;	// update time for best solution
-			genBest = nGeneration;				// update generation in which the best solution was found
-		}
-		curMethodIndices[worker->id] = 0;	// first neighborhood is to be scheduled next
+void VNSScheduler::updateData(SchedulerWorker *worker, bool solchanged) {
+	assert(methodPool.size()>=2);
+	if (worker->method->idx == 0) {
+		// construction method has been applied,
+		// just save new solution also in position 1 (= so far best solution of worker)
+		copyBetter(worker);
 	}
-	else { // method was not successful, increment index-counter for neighborhood that is to be scheduled next
-		curMethodIndices[worker->id]++;
-		if(curMethodIndices[worker->id] == methodPool.size())
-			curMethodIndices[worker->id] = 0;
+	else {
+		// neighborhood method has been applied
+		if (solchanged && worker->pop->at(0).isbetter(worker->pop->at(1))) {
+			// improvement achieved:
+			// copy new best sol to pos 1 and restart with first neighborhood
+			copyBetter(worker);
+			worker->method = methodPool[1];
+		}
+		else {
+			// unsuccessful neighborhood method call
+			if (solchanged)
+				worker->pop->at(1)->copy(*worker->pop->at(0)); // restore old solution
+			// go to next neighborhood
+			int idx = worker->medhod->idx + 1;
+			if (idx ==  methodPool.size())
+				idx = 1;	// after last neighborhood start again with first
+		}
 	}
 }
+
 
 
 

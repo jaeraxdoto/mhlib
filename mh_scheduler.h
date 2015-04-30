@@ -148,8 +148,6 @@ protected:
 	vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
 	vector<double> sumGain;			///< Total gain achieved by the particular methods.
 
-	int numMethods() { return methodPool.size(); }	///< Total number of methods.
-
 	/**
 	 * Optional function pointer to a callback function passed by the interface.
 	 * This function (if != NULL)  is called periodically during the optimization, in particular each time
@@ -322,6 +320,13 @@ public:
  * Scheduler's main population.
  */
 class VNSScheduler : public Scheduler {
+
+protected:
+	/** An improved solution has been obtained by a method and is stored in worker->pop[0].
+	 * Update worker->pop[1] holding the worker's so far best solution and
+	 * possibly the Scheduler's global best solution at pop[0].
+	 */
+	void copyBetter(SchedulerWorker *worker);
 
 public:
 	/**
