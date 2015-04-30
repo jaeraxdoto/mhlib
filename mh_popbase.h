@@ -88,10 +88,18 @@ public:
 	/** Get solution via given index.
 		The solution must not be modified or deleted! */
 	virtual mh_solution *at(int index) = 0;
+	mh_solution *operator[](int index)
+		{ return at(index); }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. */
 	virtual mh_solution *replace(int index,mh_solution *newchrom) = 0;
+	/** Copy the given solution into the solution at position index in
+	 * the population and update population data.
+	 */
+	virtual void copy(int index, mh_solution *newchrom) {
+		mherror("Copy not supported in popbase");
+	}
 	/** Index of best solution in population. */
 	int bestIndex() const
 		{ return indexBest; }

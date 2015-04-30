@@ -35,8 +35,8 @@ public:
 
 	int idx;				///< Index in methodPool of Scheduler.
 	// TODO Was sind weight und score? Erklärung fehlt!
-	unsigned int weight;	///< The weight currently assigned to this method.
-	unsigned int score;		///< Accumulated score that has been assigned to this method.
+	// unsigned int weight;	///< The weight currently assigned to this method.
+	// unsigned int score;		///< Accumulated score that has been assigned to this method.
 
 	/**
 	 * Constructs a new SchedulableMethod from a MethodType function object using the
@@ -45,14 +45,14 @@ public:
 	SchedulableMethod(const std::string &_name, int _par, int _arity) :
 				name(_name), arity(_arity)  {
 		idx = -1;
-		weight = 1;
-		score = 0;
+		// weight = 1;
+		// score = 0;
 		// so far only construction and simple improvement methods are considered
 		assert(arity>=0 && arity<=1);
 	}
 
 	/** Apply the method to the given solution. The method returns true if the solution
-	 * has been changed (possibly by an improvement move but not necessarily), otherwise false.*/
+	 * has been changed and false otherwise. */
 	virtual bool run(mh_solution *sol) = 0;
 
 	/**
@@ -62,14 +62,15 @@ public:
 	}
 };
 
-/** Template class for realizing concrete SchedulableMethods for void(int) member function
+/** Template class for realizing concrete SchedulableMethods for bool(int) member function
  *  of specific solution classes, i.e., classes derived from mh_solution.
  *  An integer parameter is maintained that is passed when calling the method by run for
  *  a specific solution. This integer can be used to control the methods functionality, e.g.
- *  for the neighborhood size, randomization factor etc. */
+ *  for the neighborhood size, randomization factor etc. The return value must indicate
+ *  whether or not the solution has actually been modified. */
 template<class SpecSol> class SolMemberSchedulableMethod : public SchedulableMethod {
 public:
-	void (SpecSol::* pmeth)(int);		///< Member function pointer to a void(int) function
+	bool (SpecSol::* pmeth)(int);		///< Member function pointer to a bool(int) function
 	const int par;						///< Integer parameter passed to the method
 
 	/** Constructor initializing data. */
@@ -80,7 +81,7 @@ public:
 
 	/** Apply the method for the given solution, passing par. */
 	bool run(mh_solution *sol) {
-		return (bool (dynamic_cast<SpecSol *>(sol))->*pmeth)(par);
+		return ((dynamic_cast<SpecSol *>(sol))->*pmeth)(par);
 	}
 };
 
@@ -100,21 +101,31 @@ public:
 
 	/**
 	 * Population of solutions associated with this worker.
-	 * The first arity solutions are those for which the method is called, and the solution
-	 * at position 0 is the one supposed to be modified by the method.
-	 * Possible further solutions depend on specific scheduler implementations and may
-	 * contain e.g. the original solution before modification etc.
+	 * The exact meaning depends on the specific, derived scheduler class.
 	 */
 	population pop;
+
+	/**
+	 * The solution which is actually created/modified by a called method.
+	 */
+	mh_solution *tmpChrom;
+
+	/** Indicates the result of the last method call w.r.t. tmpChrom:
+	 * - -1: solution not changed
+	 * -  0: solution not improved but changed
+	 * -  1  solution improved */
+	bool tmpChromImproved;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, const mh_solution& sol) :
-		pop(sol, 2, false, false) {
+	SchedulerWorker(class Scheduler* _scheduler, const mh_solution *sol) :
+		pop(*sol, 1, false, false) {
 		scheduler = _scheduler;
 		method = NULL;
+		tmpChrom = sol->clone();
+		tmpChromImproved = -1;
 	}
 
 	/**
@@ -266,33 +277,26 @@ public:
 	}
 
 	/**
-	 * Determines a method and the solution(s) to which
-	 * the method is to be applied according to the defined selection rules and
-	 * the weights associated to the methods.
-	 * A pointer to the method in the given SchedulerWorker is stored and the worker's
-	 * population is updated if necessary to contain the solutions required to apply the method.
-	 * Note that the solution that should actually be modified must be found at position 0
-	 * of the workers population.
+	 * Determines the next method to be applied and sets it in the given worker.
+	 * The solution to be modified is tmpChrom and the method may depend on
+	 * the worker's population.
 	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
 	 */
 	virtual void getNextMethod(SchedulerWorker *worker) = 0;
 
 	/**
-	 * Updates the optimization-global data after performing a method
-	 * within the specified SchedulerWorker,
-	 * i.e. in particular the solutions in the population are updated.
-	 * @param solchanged true if the method actually changed the solution, false otherwise
+	 * Updates the worker->tmpChrom, worker->pop and the schedulers population and possibly
+	 * other data according to the result of the last method application.
+	 * This method is called with mutex locked.
 	 */
-	virtual void updateData(SchedulerWorker* worker, bool solchanged) = 0;
+	virtual void updateData(SchedulerWorker* worker) = 0;
 
 	/**
 	 * Updates the statistics data after applying a method in worker.
 	 * @param methodTime CPU time used by the method call
-	 * @param solchanged true if the method actually changed the solution, false otherwise
 	 */
-	virtual void updateMethodStatistics(SchedulerWorker *worker, double methodTime,
-			bool solchanged);
+	virtual void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
 
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.
@@ -322,8 +326,8 @@ public:
 class VNSScheduler : public Scheduler {
 
 protected:
-	/** An improved solution has been obtained by a method and is stored in worker->pop[0].
-	 * Update worker->pop[1] holding the worker's so far best solution and
+	/** An improved solution has been obtained by a method and is stored in tmpChrom.
+	 * This method updates worker->pop[0] holding the worker's so far best solution and
 	 * possibly the Scheduler's global best solution at pop[0].
 	 */
 	void copyBetter(SchedulerWorker *worker);
@@ -344,14 +348,13 @@ public:
 	/**
 	 * Schedules the next method. Initially, if the worker just started and no other method
 	 * has been performed yet, the construction method with index 0 is scheduled.
-	 * TODO ergänzen
+	 * Otherwise the next method is chosen according to the classic VNS strategy.
      */
 	void getNextMethod(SchedulerWorker *worker);
 
 	/**
-	 * Updates the population if a better solution has been found and sets the current
-	 * neighborhood for the respective worker accordingly.
-	 * TODO ergänzen
+	 * Updates the tmpChrom, worker->pop and the schedulers population according to
+	 * the result of the last method application.
 	 */
 	void updateData(SchedulerWorker *worker);
 };

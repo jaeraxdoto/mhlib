@@ -96,6 +96,21 @@ mh_solution *population::replace(int index,mh_solution *newchrom)
 	return old; 
 }
 
+void population::copy(int index, mh_solution *newchrom)
+{
+	statValid=false;
+	if (phash)
+		phash->remove(chroms[index]);
+	chroms[index]->copy(*newchrom);
+	if (phash)
+		phash->add(newchrom,index);
+	if (newchrom->isBetter(*chroms[indexBest]))
+		indexBest=index;
+	else if (index==indexBest)
+		determineBest();
+}
+
+
 int population::findDuplicate(mh_solution *p)
 {
 	if (phash)

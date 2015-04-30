@@ -285,13 +285,12 @@ void NBStructureOrder::permuteRandomly()
 }
 
 NBStructureOrder::NBStructureOrder(int _lmax,int _strategy)
-	: lmax(_lmax), order(_lmax+1), strategy(_strategy)
+	: lmax(_lmax), strategy(_strategy)
 {
+	order.reserve(_lmax+1);
 	// initialize neighborhood order
 	for (int i=0;i<=lmax;i++)
-	{
-		order[i].first=i; order[i].second=0.0;
-	}
+		order.push_back(pair<int,double>(i,0.0));
 	if (strategy>0)
 		permuteRandomly();
 }

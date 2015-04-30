@@ -74,8 +74,12 @@ public:
 		{ return chroms[index]; }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
-		prior solution. */
+		prior solution. Population data is updated. */
 	mh_solution *replace(int index,mh_solution *newchrom);
+	/** Copy the given solution into the solution at position index in
+	 * the population and update population data.
+	 */
+	void copy(int index, mh_solution *newchrom);
 	/** Returns pointer to best solution of population. */
 	mh_solution *bestSol() const
 		{ return chroms[indexBest]; }

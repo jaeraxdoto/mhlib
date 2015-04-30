@@ -44,7 +44,7 @@
 int_param genes("genes","number of genes",20,1,10000);
 
 /** Number of VNS shaking neighborhoods. */
-int_param numnhs("numnhs","number of VNS neighborhoods",5,1,50);
+int_param nhnum("nhnum","number of VNS neighborhoods",5,1,50);
 
 /** Name of file to save best chromosome. */
 string_param sfile("sfile","name of file to save solution to","");
@@ -65,6 +65,16 @@ public:
 		{ return new oneMaxChrom(*this); }
 	double objective();
 	double delta_obj(const nhmove &m);
+	bool construct(int k) {
+		initialize(k); return true;
+	}
+	bool searchNeighbor(int k) {
+		// int i=random_int(length);
+		// data[i]=!data[i];
+		// invalidate();
+		mutate(k);
+		return true;
+	}
 };
 
 /// The actual objective function counts the number of genes set to 1.
@@ -98,6 +108,13 @@ public:
 	virtual mh_solution *clone() const
 		{ return new onePermChrom(*this); }
 	double objective();
+	bool construct(int k) {
+		initialize(k); return true;
+	}
+	bool searchNeighbor(int k) {
+		mutate(k); return true;
+	}
+
 };
 
 /** The actual objective function counts the number of genes equal to the
@@ -200,8 +217,8 @@ int main(int argc, char *argv[])
 			testmultithreading();
 
 		// generate a template chromosome of the problem specific class
-		//typedef oneMaxChrom usedChrom;
-		typedef onePermChrom usedChrom; 
+		typedef oneMaxChrom usedChrom;
+		// typedef onePermChrom usedChrom;
 		usedChrom tchrom;
 		// generate a population of uninitialized chromosomes; don't use hashing
 		population p(tchrom,popsize(),false,false);
@@ -211,10 +228,10 @@ int main(int argc, char *argv[])
 		VNSScheduler *alg;
 		alg=new VNSScheduler(p); // create_mh(p);
 		alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>(string("rndini"),
-				&usedChrom::initialize,0,false,true));
-		for (int i=1;i<numnhs();i++) {
+				&usedChrom::construct,0,1));
+		for (int i=1;i<=nhnum();i++) {
 			alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>("mut"+tostring(i),
-					&usedChrom::mutate,i,true,false));
+					&usedChrom::searchNeighbor,i,1));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		
