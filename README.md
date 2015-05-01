@@ -1,6 +1,6 @@
 mhlib - An efficient, generic C++ library for metaheuristics
 
-This library is available under the GNU General Public License Version 3
+This library is available under the GNU General Public License Version 3.0
 
 (c) Algorithms and Data Structures Group  
 Vienna University of Technology  
