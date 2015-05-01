@@ -96,7 +96,7 @@ mh_solution *population::replace(int index,mh_solution *newchrom)
 	return old; 
 }
 
-void population::copy(int index, mh_solution *newchrom)
+void population::update(int index, mh_solution *newchrom)
 {
 	statValid=false;
 	if (phash)
@@ -131,6 +131,7 @@ void population::write(ostream &ostr)
 	{
 		ostr << i << ":\t" << chroms[i]->obj() << '\t';
 		chroms[i]->write(ostr,0);
+		ostr << endl;
 	}
 	ostr << endl;
 }

@@ -68,13 +68,7 @@ public:
 	bool construct(int k) {
 		initialize(k); return true;
 	}
-	bool searchNeighbor(int k) {
-		// int i=random_int(length);
-		// data[i]=!data[i];
-		// invalidate();
-		mutate(k);
-		return true;
-	}
+	bool searchNeighbor(int k);
 };
 
 /// The actual objective function counts the number of genes set to 1.
@@ -91,6 +85,15 @@ double oneMaxChrom::delta_obj(const nhmove &m)
 {
 	const bitflipMove &bfm = dynamic_cast<const bitflipMove &>(m);
 	return (data[bfm.r]?-1:1);
+}
+
+bool oneMaxChrom::searchNeighbor(int k)
+{
+	// int i=random_int(length);
+	// data[i]=!data[i];
+	// invalidate();
+	mutate(k);
+	return true;
 }
 
 //-- 2. example problem: ONEPERM -----------------------------------------
@@ -192,7 +195,7 @@ int main(int argc, char *argv[])
 	{
 		// Probably set some parameters to new default values
 		//pmut.setDefault(2);
-		// TODO depending on scheduler implementation initialize further default parameters, e.g. dupelim
+		popsize.setDefault(1);
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
@@ -235,7 +238,7 @@ int main(int argc, char *argv[])
 		}
 		alg->run();		// run Scheduler until termination cond.
 		
-		// p.write(out());	// write out final population
+	    // p.write(out());	// write out final population
 		if (sfile()!="")
 			p.bestSol()->save(sfile());
 		alg->printStatistics(out());	// write result & statistics

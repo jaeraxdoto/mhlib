@@ -108,13 +108,13 @@ public:
 	/**
 	 * The solution which is actually created/modified by a called method.
 	 */
-	mh_solution *tmpChrom;
+	mh_solution *tmpSol;
 
 	/** Indicates the result of the last method call w.r.t. tmpChrom:
 	 * - -1: solution not changed
 	 * -  0: solution not improved but changed
 	 * -  1  solution improved */
-	bool tmpChromImproved;
+	bool tmpSolImproved;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -124,8 +124,8 @@ public:
 		pop(*sol, 1, false, false) {
 		scheduler = _scheduler;
 		method = NULL;
-		tmpChrom = sol->clone();
-		tmpChromImproved = -1;
+		tmpSol = sol->clone();
+		tmpSolImproved = -1;
 	}
 
 	/**

@@ -18,7 +18,7 @@ int_param vnsvndttime("vnsvndttime","ttime for VND embedded in VSN",-1);
 VNS::VNS(pop_base &p, const pstring &pg) : 
 	lsbase(p,pg), vndpg(pgroupext((pstring)pgroup,"vnd"))
 {
-	if ( dynamic_cast<VNSProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<VNSProvider*>(tmpSol) == 0 )
 		mherror("Chromosome is not an VNSProvider");
 	
 	tgen.set(vnsvndtgen(),"vnd");
@@ -38,9 +38,9 @@ VNS::VNS(pop_base &p, const pstring &pg) :
 	nFullIter=0;
 	if (vndnum(vndpg.s)>0)
 	{
-		VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpChrom);
+		VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
-		if ( dynamic_cast<VNDProvider*>(tmpChrom) == 0 )
+		if ( dynamic_cast<VNDProvider*>(tmpSol) == 0 )
 			mherror("Solution is not a VNDProvider");
 
 		int lmax = vndsol->get_lmax(vndpg);
@@ -95,8 +95,8 @@ void VNS::performGeneration()
 	}
 
 	/* Move or not */
-	tmpChrom->reproduce(*spop->at(0));
-	if (pop->at(0)->isWorse(*tmpChrom))
+	tmpSol->reproduce(*spop->at(0));
+	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
 		if (k>0)
@@ -105,7 +105,7 @@ void VNS::performGeneration()
 			nShakeSuccess[kidx]++;
 			sumShakeGain[kidx]+=abs(pop->at(0)->obj()-spop->at(0)->obj());
 		}
-		tmpChrom = replace(tmpChrom);
+		tmpSol = replace(tmpSol);
 		k = 1;
 	}
 	else

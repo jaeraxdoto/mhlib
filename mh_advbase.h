@@ -52,10 +52,10 @@ extern int_param tselk;
 
 /** \ingroup param
 	Replacement scheme:
-	- 0: A new chromosome replaces a randomly chosen existing chromosome
+	- 0: A new solutionosome replaces a randomly chosen existing solution
 		with the exception of the best solution.
-	- 1: A new chromosome replaces the worst existing solution.
-	- -k: The chromosome to be replaced is selected via a tournament
+	- 1: A new solution replaces the worst existing solution.
+	- -k: The solution to be replaced is selected via a tournament
 		selection of group size k (with replacement of actual).
 
 	In addition, duplicate eliminiation takes place according to
@@ -76,14 +76,14 @@ extern bool_param logcputime;
 
 /** \ingroup param
 	The crossover probability.
-	Probability for generating a new chromosome by crossover. */
+	Probability for generating a new solution by crossover. */
 extern double_param pcross;
 
 /** \ingroup param
-	Probability/rate of mutating a new chromosome. 
+	Probability/rate of mutating a new solution.
 
 	If #pmut is negative, its absolute value is interpreted as an
-	average value per chromosome instead of a fixed rate, and for each
+	average value per solution instead of a fixed rate, and for each
 	gene it is randomly decided if mutation takes place or not. 
 	(More precisely, the actual number of mutations is determined via
 	a Poisson-distributed random number.)
@@ -100,7 +100,7 @@ extern double_param pmut;
 
 /** \ingroup param
 	Probability with which locallyImprove is called for a new
-	chromosome. */
+	solution. */
 extern double_param plocim;
 
 /** \ingroup param
@@ -121,7 +121,7 @@ public:
 		It is not owned by the metaheuristic and therefore not deleted by it. */
 	pop_base *pop;
 	/** The constructor.
-		An initialized population already containing chromosomes 
+		An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
 	mh_advbase(pop_base &p, const pstring &pg=(pstring)(""));
@@ -129,7 +129,7 @@ public:
 		Creates an empty EA that can only be used as a template. */
 	mh_advbase(const pstring &pg=(pstring)(""));
 	/** The destructor.
-		It does delete the temporary chromosome, but not the 
+		It does delete the temporary solution, but not the
 		population. */
 	virtual ~mh_advbase();
 	/** Create new object of same class.
@@ -144,31 +144,33 @@ public:
 	/** Performs a single generation.
 		Is called from run(); is also called if used as island. */
 	virtual void performGeneration() = 0;
-	/** Performs crossover on the given chromosomes and updates 
+	/** Performs crossover on the given solutions and updates
 		statistics. */
 	void performCrossover(mh_solution *p1,mh_solution *p2,
 		mh_solution *c);
-	/** Performs mutation on the given chromosome with the given
+	/** Performs mutation on the given solution with the given
 		probability and updates statistics. */
 	void performMutation(mh_solution *c,double prob);
 	/** The termination criterion.
 		Calls a concerete termination functions and returns true
 		if the algorithm should terminate. */
 	virtual bool terminate();
-	/** Returns an index for a chromosome to be replaced.
+	/** Returns an index for a solution to be replaced.
 		According to the used replacement strategy (parameter repl),
 		an index is returned.
 		Replacement strategies: 0: random, 1: worst. */
 	virtual int replaceIndex();
-	/** Replaces a chromosome in the population.
-		The given chromosome replaces another one in the population,
+	/** Replaces a solution in the population.
+		The given solution replaces another one in the population,
 		determined by the replaceIndex method.
-		The replaced chromosome is returned. 
+		The replaced solution is returned.
 		Duplicate elimination is performed if #dupelim is set. */
 	virtual mh_solution *replace(mh_solution *);
+	/** Updates the solution with the given index by copying it from *sol. */
+	virtual void update(int index, mh_solution *sol);
 	/** Print statistic informations.
 		Prints out various statistic informations including
-		the best chromosome of the population.. */
+		the best solution of the population.. */
 	virtual void printStatistics(ostream &ostr);
 	/** Writes the log entry for the current generation.
 		If inAnyCase is set, then the entry is written in any case. */
@@ -237,11 +239,10 @@ protected:
 	double timGenBest;  ///< Time at which best chrom was generated
 	
 	// other class variables
-	mh_solution *tmpChrom;	// a temporary chromosome
+	mh_solution *tmpSol;	///< a temporary solution in which the result of operations is stored
 	
-//private:
-	double bestObj;		// temporary best objective value
-	double timStart;        // CPUtime when run() was called
+	double bestObj;		///< temporary best objective value
+	double timStart;        ///< CPUtime when run() was called
 };
 
 #endif //MH_ADVBASE_H

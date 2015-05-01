@@ -48,9 +48,9 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 {
 	pop = &p;
 	pop->setAlgorithm(this);
-	// create one temporary chromosome which is always used to
+	// create one temporary solution which is always used to
 	// generate a new solution.
-	tmpChrom=pop->bestSol()->createUninitialized();
+	tmpSol=pop->bestSol()->createUninitialized();
 	// initialize all statistic data
 	nGeneration=0;
 	nSubGenerations=0;
@@ -77,7 +77,7 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 {
 	pop=NULL;
-	tmpChrom=NULL;
+	tmpSol=NULL;
 	nGeneration=0;
 	nSubGenerations=0;
 	nSelections=0;
@@ -104,7 +104,7 @@ mh_advbase *mh_advbase::clone(pop_base &p, const pstring &pg)
 
 mh_advbase::~mh_advbase()
 {
-	delete tmpChrom;
+	delete tmpSol;
 }
 
 void mh_advbase::run()
@@ -177,7 +177,7 @@ void mh_advbase::performMutation(mh_solution *c,double prob)
 	{
 		static mh_solution *tmp2Chrom=c->createUninitialized();
 		tmp2Chrom->copy(*c);
-		int muts=tmpChrom->mutation(prob);
+		int muts=tmpSol->mutation(prob);
 		nMutations+=muts;
 		if (muts>0 && tmp2Chrom->equals(*c))
 			nMutationDups+=muts;
@@ -275,6 +275,14 @@ mh_solution *mh_advbase::replace(mh_solution *p)
 	return replaced;
 }
 
+void mh_advbase::update(int index, mh_solution *sol) {
+	checkPopulation();
+	saveBest();
+	pop->update(index,sol);
+	checkBest();
+}
+
+
 void mh_advbase::printStatistics(ostream &ostr)
 {
 	checkPopulation();
@@ -289,7 +297,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	ostr << "best obtained in generation:\t" << genBest << endl;
 	sprintf( s, nformat(pgroup).c_str(), timGenBest );
 	ostr << "solution time for best:\t" << timGenBest << endl;
-	ostr << "best chromosome:\t"; 
+	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
@@ -358,7 +366,7 @@ void mh_advbase::checkBest()
 	double nb=pop->bestObj();
 	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
 	{
-		genBest=nGeneration+1;
+		genBest=nGeneration;
 		timGenBest = CPUtime();
 	}
 }

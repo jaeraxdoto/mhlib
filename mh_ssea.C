@@ -26,30 +26,30 @@ void steadyStateEA::performGeneration()
 		int p2=select();
 		mh_solution *pp1=pop->at(p1);
 		mh_solution *pp2=pop->at(p2);
-		performCrossover(pp1,pp2,tmpChrom);
-		performMutation(tmpChrom,pmut(pgroup));
+		performCrossover(pp1,pp2,tmpSol);
+		performMutation(tmpSol,pmut(pgroup));
 	}
 	else
 	{
 		// no recombination
-		tmpChrom->reproduce(*pop->at(p1));
+		tmpSol->reproduce(*pop->at(p1));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);
-		performMutation(tmpChrom,pm);
+		performMutation(tmpSol,pm);
 	}
 
 	// optionally locally improve the chromosome
 	if (plocim(pgroup) && random_prob(plocim(pgroup)))
 	{
-		tmpChrom->locallyImprove();
+		tmpSol->locallyImprove();
 		nLocalImprovements++;
 	}
 
 	// replace in population
-	mh_solution *r=tmpChrom;
-	tmpChrom=replace(tmpChrom);
-	if (!dcdag(pgroup) || r!=tmpChrom)
+	mh_solution *r=tmpSol;
+	tmpSol=replace(tmpSol);
+	if (!dcdag(pgroup) || r!=tmpSol)
 		nGeneration++;
 
 	perfGenEndCallback();

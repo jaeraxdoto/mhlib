@@ -26,9 +26,9 @@ int VNDProvider::get_lmax(const pstring &pg)
 
 VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 {
-	VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpChrom);
+	VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
-	if ( dynamic_cast<VNDProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<VNDProvider*>(tmpSol) == 0 )
 		mherror("Solution is not a VNDProvider");
 
 	lmax = vndsol->get_lmax(pg);
@@ -99,10 +99,10 @@ void VND::performGeneration(){
 	checkPopulation();
 
 	perfGenBeginCallback();
-	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpChrom);
+	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
 	double starttime=CPUtime();
-	tmpChrom->reproduce(*pop->at(0));
+	tmpSol->reproduce(*pop->at(0));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);
@@ -111,13 +111,13 @@ void VND::performGeneration(){
 	time[lidx]+=CPUtime()-starttime;
 
 	/* Move or not */
-	if (pop->at(0)->isWorse(*tmpChrom))
+	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
 		nSearchSuccess[lidx]++;
 		sumSearchGain[lidx]+=pop->at(0)->obj()-
-			tmpChrom->obj();
-		tmpChrom = replace(tmpChrom);
+			tmpSol->obj();
+		tmpSol = replace(tmpSol);
 		l = 1;
 	}
 	else 

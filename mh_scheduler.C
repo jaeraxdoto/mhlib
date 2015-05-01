@@ -53,13 +53,13 @@ void SchedulerWorker::run() {
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				double startTime = CPUtime();
-				bool tmpChromChanged = method->run(tmpChrom);
+				bool tmpSolChanged = method->run(tmpSol);
 				double methodTime = CPUtime() - startTime;
 
-				if (tmpChromChanged)
-					tmpChromImproved = tmpChrom->isBetter(*pop[0]);
+				if (tmpSolChanged)
+					tmpSolImproved = tmpSol->isBetter(*pop[0]);
 				else
-					tmpChromImproved = -1;
+					tmpSolImproved = -1;
 
 				scheduler->mutex.lock(); // Begin of atomic action
 
@@ -137,9 +137,9 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 	nIter[idx]++;
 	nGeneration++;
 	// if the applied method was successful, update the success-counter and the total obj-gain
-	if (worker->tmpChrom->isBetter(*worker->pop.at(0))) {
+	if (worker->tmpSolImproved == 1) {
 		nSuccess[idx]++;
-		sumGain[idx] += abs(worker->pop.at(0)->obj() - worker->tmpChrom->obj());
+		sumGain[idx] += abs(worker->pop.at(0)->obj() - worker->tmpSol->obj());
 	}
 }
 
@@ -183,7 +183,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "best obtained in iteration:\t" << genBest << endl;
 	sprintf( s, nformat(pgroup).c_str(), timGenBest );
 	ostr << "solution time for best:\t" << timGenBest << endl;
-	ostr << "best chromosome:\t";
+	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
@@ -201,9 +201,9 @@ VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
 }
 
 void VNSScheduler::copyBetter(SchedulerWorker *worker) {
-	worker->pop.copy(0,worker->tmpChrom);
+	worker->pop.update(0, worker->tmpSol);
 	if (worker->pop[0]->isBetter(*(pop->at(0))))
-		pop->copy(0,worker->pop[0]);
+		update(0, worker->pop[0]);
 }
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
@@ -215,10 +215,9 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	}
 	else {
 		// neighborhood method has been applied
-		if (worker->tmpChromImproved == 1) {
+		if (worker->tmpSolImproved == 1) {
 			// improvement achieved:
-			// restart with first neighborhood
-			worker->method = methodPool[1];
+			worker->method = methodPool[1];		// restart with first neighborhood
 		}
 		else {
 			// unsuccessful neighborhood method call
@@ -233,21 +232,19 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 
 void VNSScheduler::updateData(SchedulerWorker *worker) {
 	if (worker->method->idx == 0) {
-		// construction method has been applied,
-		// just save new solution also in position 1 (= so far best solution of worker)
-		copyBetter(worker);
+		// construction method has been applied
+		copyBetter(worker);	// save new best solution
 	}
 	else {
 		// neighborhood method has been applied
-		if (worker->tmpChromImproved == 1) {
+		if (worker->tmpSolImproved == 1) {
 			// improvement achieved:
-			// copy new best sol to pos 1 and restart with first neighborhood
-			copyBetter(worker);
+			copyBetter(worker);	// save new best solution
 		}
 		else {
 			// unsuccessful neighborhood method call
-			if (worker->tmpChromImproved == 0)
-				tmpChrom->copy(*worker->pop[0]); // restore old solution
+			if (worker->tmpSolImproved == 0)
+				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 		}
 	}
 }

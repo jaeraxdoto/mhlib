@@ -79,7 +79,7 @@ public:
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */
-	void copy(int index, mh_solution *newchrom);
+	void update(int index, mh_solution *newchrom);
 	/** Returns pointer to best solution of population. */
 	mh_solution *bestSol() const
 		{ return chroms[indexBest]; }

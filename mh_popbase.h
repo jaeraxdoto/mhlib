@@ -97,8 +97,8 @@ public:
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */
-	virtual void copy(int index, mh_solution *newchrom) {
-		mherror("Copy not supported in popbase");
+	virtual void update(int index, mh_solution *newchrom) {
+		mherror("Update not supported in popbase");
 	}
 	/** Index of best solution in population. */
 	int bestIndex() const

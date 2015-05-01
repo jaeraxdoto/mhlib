@@ -26,15 +26,15 @@ void simulatedAnnealing::performGeneration()
 	perfGenBeginCallback();
 
 	mh_solution *pold=pop->at(0);
-	tmpChrom->reproduce(*pold);
-	tmpChrom->selectNeighbour();
+	tmpSol->reproduce(*pold);
+	tmpSol->selectNeighbour();
 
-	if (tmpChrom->isBetter(*pold))
-		tmpChrom=replace(tmpChrom);
+	if (tmpSol->isBetter(*pold))
+		tmpSol=replace(tmpSol);
 	else
-		if ( accept( pold, tmpChrom ) )
+		if ( accept( pold, tmpSol ) )
 		{
-			tmpChrom=replace(tmpChrom);
+			tmpSol=replace(tmpSol);
 			nDeteriorations++;
 		}
 

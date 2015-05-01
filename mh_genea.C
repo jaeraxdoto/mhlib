@@ -85,7 +85,7 @@ void generationalEA::createNextGeneration()
 			performMutation(nextGeneration[i],pmut(pgroup));
 			if (plocim(pgroup)>0 && random_prob(plocim(pgroup)))
 			{
-				tmpChrom->locallyImprove();
+				tmpSol->locallyImprove();
 				nLocalImprovements++;
 			}
 		}

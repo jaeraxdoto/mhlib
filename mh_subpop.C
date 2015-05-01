@@ -81,6 +81,7 @@ void subPopulation::write(ostream &ostr)
 	{
 		ostr << i << ":\t" << at(i)->obj() << '\t';
 		at(i)->write(ostr,0);
+		ostr << std::endl;
 	}
 	ostr << endl;
 }

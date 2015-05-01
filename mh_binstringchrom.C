@@ -12,7 +12,6 @@ void binStringChrom::write(ostream &ostr,int detailed) const
 {
 	for (int i=0;i<length;i++) 
 		ostr << (data[i]?1:0);
-	ostr << endl;
 }
 
 void binStringChrom::applyMove(const nhmove &m)

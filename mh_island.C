@@ -108,8 +108,8 @@ void islandModelEA::performMigration()
 			for (int iii=0;iii<islk(pgroup);iii++)
 				if (i!=iii)
 				{
-					tmpChrom->copy(*t);
-					tmpChrom=subEAs[iii]->replace(tmpChrom);
+					tmpSol->copy(*t);
+					tmpSol=subEAs[iii]->replace(tmpSol);
 				}
 		}
 	}

@@ -179,11 +179,11 @@ public:
 	virtual void reproduce(const mh_solution &par)
 		{ copy(par); }
 	/** Writes the solution to an ostream.
-		The solution should be written to the given ostream in in
-		text format. "detailed" tells how detailed the description 
-		should be (0...least detailed). The objective value need
-		not to be written out. */
-	virtual void write(ostream &ostr,int detailed=0)const=0;
+		The solution is written to the given ostream in in
+		text format.
+		@param detailed tells how detailed the description
+		should be (0...least detailed). */
+	virtual void write(ostream &ostr,int detailed=0) const=0;
 	/** Saves a solution to a file. (Not necessarily needed.) */
 	virtual void save(const char *fname) {}
 	/** Saves a solution to a file. (Not necessarily needed.) */
@@ -253,5 +253,11 @@ inline double mh_solution::obj()
 	  	return objval; 
 	} 
 }
+
+/** Operator << overloaded for writing solutions to an osteram. */
+inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
+	sol.write(ostr); return ostr;
+}
+
 
 #endif //MH_SOLUTION_H

@@ -329,7 +329,6 @@ template <class T> void stringChrom<T>::write(ostream &ostr,int detailed) const
 {
 	for (int i=0;i<length;i++)
 		ostr << int(data[i]) << ' ';
-	ostr << endl;
 }
 
 template <class T> void stringChrom<T>::save(const char *fname)
