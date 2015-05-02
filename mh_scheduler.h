@@ -33,7 +33,7 @@ public:
 	const string name;			///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
 
-	int idx;				///< Index in methodPool of Scheduler.
+	unsigned int idx;				///< Index in methodPool of Scheduler.
 	// TODO Was sind weight und score? Erklärung fehlt!
 	// unsigned int weight;	///< The weight currently assigned to this method.
 	// unsigned int score;		///< Accumulated score that has been assigned to this method.
@@ -202,6 +202,19 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
+	/** Different strategies for selecting a method from a method pool:
+	 * - sequential: choose one after the other in the given order
+	 * - random: uniform random selection
+	 * - selfadaptive: random selection with self-adaptive probabilities */
+	enum MethodSelStrat { MSsequential, MSrandom, MSselfadaptive };
+
+	/** Select a method from the given methodidxpool using the specified strategy.
+	 * So far, just a uniform random choice is implemented.
+	 * TODO: To be extended, also by further parameter providing the necessary
+	 * data for realizing the advanced methods
+	 */
+	SchedulableMethod *selectMethod(vector<unsigned int> &methodidxpool, MethodSelStrat strategy);
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
@@ -256,7 +269,7 @@ public:
 	 * This method does here nothing and is only implemented since it is required by the underlying
 	 * base class mh_advbase.
 	 */
-	void performGeneration() {
+	void performIteration() {
 		mherror("Scheduler does not implement/use performGeneration");
 	}
 
@@ -318,14 +331,21 @@ public:
 //--------------------------- VNSScheduler ------------------------------
 
 /**
- * This class implements a simple variable neighborhood search (VNS) with one construction heuristic
- * and a set of neighborhood search methods which are applied in the given order.
+ * This class implements a general variable neighborhood search (GVNS) with an arbitrary
+ * many construction heuristics, local improvement methods, and shaking or large neighborhood
+ * search methods. For each of the categories of methods, it can be chosen whether the
+ * different methods are applied in a strictly sequential way, uniform random way,
+ * or random with with self-adaptive application probabilities.
  * Each worker performs an independent VNS, the overall best solution is adopted to the
  * Scheduler's main population.
  */
 class VNSScheduler : public Scheduler {
 
 protected:
+	vector<unsigned int> constheu;	///< Index vector of construction heuristic methods
+	vector<unsigned int> locimpnh;	///< Index vector of local improvement neighborhood methods
+	vector<unsigned int> shakingnh;	///< Index vector of shaking/LNS methods
+
 	/** An improved solution has been obtained by a method and is stored in tmpChrom.
 	 * This method updates worker->pop[0] holding the worker's so far best solution and
 	 * possibly the Scheduler's global best solution at pop[0].
@@ -334,10 +354,13 @@ protected:
 
 public:
 	/**
-	 * Constructor: Initializes the scheduler and fills the method pool.
+	 * Constructor: Initializes the VNSScheduler. Construction, improvement and shaking methods
+	 * are then added by addSchedulableMethod, whereas nconstheu>=0 construction heuristics
+	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
+	 * finally nshakingnh  shaking or large neighborhood search neighborhoods.
 	 */
-	VNSScheduler(pop_base &p, const pstring &pg = (pstring) (""));
-
+	VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
+			unsigned int nshakingnh, const pstring &pg = (pstring) (""));
 
 	/** Cloning is not implemented for this class. */
 	virtual VNSScheduler* clone() const {

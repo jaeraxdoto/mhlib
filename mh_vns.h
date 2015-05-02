@@ -24,7 +24,7 @@ extern int_param vnsorder;
 /** \ingroup param
     Parameter tgen for embedded VND
  */
-extern int_param vnsvndtgen;
+extern int_param vnsvndtiter;
 
 /** \ingroup param
     Parameter ttime for embedded VND
@@ -81,7 +81,7 @@ public:
 	/** Destructor. */
 	virtual ~VNS();
 	/** Performs a single generation, is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 
 	/** Write only meaningful information into log. */
 	virtual void writeLogHeader();

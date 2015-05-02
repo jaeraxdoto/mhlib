@@ -1,5 +1,5 @@
-/*! \file qapchrom.h
-  \brief A quadratic assignment problem chromosome.
+/*! \file qapsol.h
+  \brief A quadratic assignment problem solution.
 */
 
 #ifndef MH_QAPCHROM_H
@@ -28,7 +28,7 @@ extern double_param graspa;
 extern double_param graspb;
 
 
-/** A concrete chromosome class for the quadratic assignment problem. */
+/** A concrete solution class for the quadratic assignment problem. */
 class qapSol : public mh_solution, public featureProvider, public tabuProvider, public gcProvider
 {
 	friend class qapFeature;
@@ -40,12 +40,12 @@ protected:
 	/// Actual gene string.
 	vector<int> data;
 
-	/** Dynamically cast a chromosome reference to a qapChrom reference.
+	/** Dynamically cast a solution reference to a qapSol reference.
 		If the original object was of the correct type.
 	
 		\param ref Object to dynamically cast
 	*/
-	static const qapSol &toQAPChrom(const mh_solution &ref)
+	static const qapSol &toQAPSol(const mh_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
 	mh_solution *createUninitialized() const
@@ -72,18 +72,18 @@ public:
 	qapSol(const pstring &pg=(pstring)("")) : mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
 		{}
 	
-	/** Copy all data from a given chromosome into the current one.
+	/** Copy all data from a given solution into the current one.
 		\param orig Object to copy from.
 	*/
 	void copy(const mh_solution &orig);
 	
-	/** Return true if the current chromosome is equal to *orig.
+	/** Return true if the current solution is equal to *orig.
 		\param orig Object to compare to.
 	*/
 	bool equals( mh_solution &orig);
 	
 	/** Returns the hamming distance.
-		\param c Chromosome to compute distance to.
+		\param c Solution to compute distance to.
 	*/
 	double dist(mh_solution &c);
 	
@@ -103,7 +103,7 @@ public:
 	*/
 	void crossover(const mh_solution &parA,const mh_solution &parB);
 	
-	/** Writes the chromosome to an ostream.
+	/** Writes the solution to an ostream.
 		The values of the permutation are incremented by one for better human readability.
 		The detailed parameter is ignored.
 	
@@ -112,7 +112,7 @@ public:
 	*/
 	void write(ostream &ostr,int detailed=0) const;
 	
-	/** Saves a chromosome to a file.
+	/** Saves a solution to a file.
 		The values of the permutation are incremented by
 		one for better human readability.
 	
@@ -120,7 +120,7 @@ public:
 	*/
 	void save(const char *fname);
 	
-	/** Loads a chromosome from a file.
+	/** Loads a solution from a file.
 		\param fname Filename of the solution to load.
 	*/
 	void load(const char *fname);
@@ -145,8 +145,8 @@ public:
 	*/
 	void applyMove(const nhmove &m);
 	
-	/** Replace current chromosome with a better or even the best neighbour.
-		\param find_best If true, the best chromosome in the neighbourhood is searched,
+	/** Replace current solution with a better or even the best neighbour.
+		\param find_best If true, the best solution in the neighbourhood is searched,
 			if it is false the next improvment is selected (if one exists).
 	*/
 	void selectImprovement(bool find_best);

@@ -5,7 +5,7 @@
 #include <vector>
 #include <exception>
 #include <stdexcept>
-
+#include <assert.h>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"
@@ -61,9 +61,8 @@ void SchedulerWorker::run() {
 				else
 					tmpSolImproved = -1;
 
+				// update statistics and scheduler data
 				scheduler->mutex.lock(); // Begin of atomic action
-
-				// update scheduler data
 				scheduler->updateMethodStatistics(this, methodTime);
 				scheduler->updateData(this);
 
@@ -100,8 +99,6 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 }
 
 void Scheduler::run() {
-
-	// so far only construction and simple improvement methods are considered
 	checkPopulation();
 
 	timStart=CPUtime();
@@ -135,7 +132,7 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 	int idx=worker->method->idx;
 	totTime[idx] += methodTime;
 	nIter[idx]++;
-	nGeneration++;
+	nIteration++;
 	// if the applied method was successful, update the success-counter and the total obj-gain
 	if (worker->tmpSolImproved == 1) {
 		nSuccess[idx]++;
@@ -180,24 +177,48 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in iteration:\t" << genBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timGenBest );
-	ostr << "solution time for best:\t" << timGenBest << endl;
+	ostr << "best obtained in iteration:\t" << iterBest << endl;
+	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
-	ostr << "iterations:\t" << nGeneration << endl;
+	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
+}
+
+SchedulableMethod *Scheduler::selectMethod(vector<unsigned int> &methodidxpool,
+		MethodSelStrat strategy) {
+	switch (strategy) {
+	case MSsequential:
+		mherror("Sequential strategy in Scheduler::selectMethod not yet implemented");
+		break;
+	case MSrandom:
+		return methodPool[random_int(methodidxpool.size())];
+	case MSselfadaptive:
+		mherror("Selfadaptive strategy in Scheduler::selectMethod not yet implemented");
+		break;
+	default:
+		mherror("Invalid strategy in Scheduler::selectMethod",tostring(strategy));
+	}
+	return NULL;
 }
 
 
 //--------------------------------- VNSScheduler ---------------------------------------------
 
-
-VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
+VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
+		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg) {
+	unsigned int i = 0;
+	for (; i < nconstheu; i++)
+		constheu.push_back(i);
+	for (; i < nconstheu + nlocimpnh; i++)
+		locimpnh.push_back(i);
+	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
+		shakingnh.push_back(i);
 }
 
 void VNSScheduler::copyBetter(SchedulerWorker *worker) {
@@ -207,31 +228,37 @@ void VNSScheduler::copyBetter(SchedulerWorker *worker) {
 }
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	assert(methodPool.size()>=2);
+	// must have enough methods added
+	assert(methodPool.size() == constheu.size() + locimpnh.size() + shakingnh.size());
+
 	if (worker->method == NULL) {
-		// Worker has just been created, apply construction method first
-		worker->method = methodPool[0];
+		// Worker has just been created, apply construction method first if one exists
+		// TODO mutex.lock();    when using Scheduler data that might change
+		if (!constheu.empty())
+			worker->method = selectMethod(constheu, MSrandom);
+		else
+			worker->method = methodPool[shakingnh[0]];
 		// Uninitialized solution in the worker's population is fine
 	}
 	else {
 		// neighborhood method has been applied
 		if (worker->tmpSolImproved == 1) {
 			// improvement achieved:
-			worker->method = methodPool[1];		// restart with first neighborhood
+			worker->method = methodPool[shakingnh[0]];		// restart with first locimp neighborhood
 		}
 		else {
 			// unsuccessful neighborhood method call
 			// go to next neighborhood
 			unsigned int idx = worker->method->idx + 1;
 			if (idx ==  methodPool.size())
-				idx = 1;	// after last neighborhood start again with first
+				idx = shakingnh[0];	// after last neighborhood start again with first
 			worker->method = methodPool[idx];
 		}
 	}
 }
 
 void VNSScheduler::updateData(SchedulerWorker *worker) {
-	if (worker->method->idx == 0) {
+	if (worker->method->idx < constheu.size()) {
 		// construction method has been applied
 		copyBetter(worker);	// save new best solution
 	}

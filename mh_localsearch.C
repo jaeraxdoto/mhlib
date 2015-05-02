@@ -4,11 +4,11 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
-void localSearch::performGeneration()
+void localSearch::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
 
@@ -20,11 +20,11 @@ void localSearch::performGeneration()
 		mh_solution *r=tmpSol;
 		tmpSol=replace(tmpSol);
 		if (!dcdag(pgroup) || r!=tmpSol)
-			nGeneration++;
+			nIteration++;
 		return;
 	}
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }

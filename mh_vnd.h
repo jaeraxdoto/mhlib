@@ -116,7 +116,7 @@ public:
 	virtual void run();
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 	/** Write only meaningful information into log. */
 	virtual void writeLogHeader();
 	/** Write only meaningful information into log. */

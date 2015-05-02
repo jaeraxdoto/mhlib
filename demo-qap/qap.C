@@ -24,11 +24,11 @@
 #include "mh_tabusearch.h"
 #include "mh_log.h"
 #include "mh_fdc.h"
-#include "qapchrom.h"
+#include "qapsol.h"
 #include "qapinstance.h"
 
 
-/// Name of file to save best chromosome.
+/// Name of file to save best solution.
 string_param sfile("sfile","name of file to save solution to","");
 
 /** The example main function.
@@ -68,11 +68,11 @@ int main(int argc, char *argv[])
 		qi = qapInstance::getInstance();
 		qi->initialize(qapfile());
 		
-		// generate a template chromosome of the problem specific qapChrom tchrom;
-		qapSol tchrom;
+		// generate a template solution of the problem specific qapSol tsol;
+		qapSol tsol;
 		
-		// generate a population of these chromosomes
-		population p(tchrom,popsize(),true);
+		// generate a population of these solutions
+		population p(tsol,popsize(),true);
 		// p.write(out()); 	// write out initial population
 		// generate the algorithm
 		mh_advbase *alg;

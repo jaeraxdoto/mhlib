@@ -12,11 +12,11 @@ double_param pmutnc("pmutnc","mutation prob. for chroms created via crossover",
 
 bool_param cntopd("cntopd","count operator duplicates",false);
 
-void steadyStateEA::performGeneration()
+void steadyStateEA::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 	
 	// create a new solution
 	int p1=select();
@@ -50,8 +50,8 @@ void steadyStateEA::performGeneration()
 	mh_solution *r=tmpSol;
 	tmpSol=replace(tmpSol);
 	if (!dcdag(pgroup) || r!=tmpSol)
-		nGeneration++;
+		nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 
 }

@@ -32,37 +32,37 @@
 #include "mh_log.h"
 #include "mh_interfaces.h"
 // #include "mh_fdc.h"
-#include "mh_binstringchrom.h"
-#include "mh_permchrom.h"
+#include "mh_binstringsol.h"
+#include "mh_permsol.h"
 
 #include "mh_c11threads.h"
 #include "mh_scheduler.h"
 
 
 
-/** Problem specific parameters (the number of genes). */
-int_param genes("genes","number of genes",20,1,10000);
+/** Problem specific parameters (the number of variablens). */
+int_param vars("vars","number of variables",20,1,10000);
 
 /** Number of VNS shaking neighborhoods. */
 int_param nhnum("nhnum","number of VNS neighborhoods",5,1,50);
 
-/** Name of file to save best chromosome. */
+/** Name of file to save best solution. */
 string_param sfile("sfile","name of file to save solution to","");
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
-/** This is the chromosome class for the OneMax problem.
+/** This is the solution class for the OneMax problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class oneMaxChrom : public binStringChrom  //, public gcProvider
+class oneMaxSol : public binStringSol  //, public gcProvider
 {
 public:
-	oneMaxChrom() : binStringChrom(genes())
+	oneMaxSol() : binStringSol(vars())
 		{}
 	virtual mh_solution *createUninitialized() const
-		{ return new oneMaxChrom; }
+		{ return new oneMaxSol; }
 	virtual mh_solution *clone() const
-		{ return new oneMaxChrom(*this); }
+		{ return new oneMaxSol(*this); }
 	double objective();
 	double delta_obj(const nhmove &m);
 	bool construct(int k) {
@@ -71,8 +71,8 @@ public:
 	bool searchNeighbor(int k);
 };
 
-/// The actual objective function counts the number of genes set to 1.
-double oneMaxChrom::objective()
+/// The actual objective function counts the number of variables set to 1.
+double oneMaxSol::objective()
 {
 	int sum=0;
 	for (int i=0;i<length;i++) 
@@ -81,13 +81,13 @@ double oneMaxChrom::objective()
 	return sum;
 }
 
-double oneMaxChrom::delta_obj(const nhmove &m)
+double oneMaxSol::delta_obj(const nhmove &m)
 {
 	const bitflipMove &bfm = dynamic_cast<const bitflipMove &>(m);
 	return (data[bfm.r]?-1:1);
 }
 
-bool oneMaxChrom::searchNeighbor(int k)
+bool oneMaxSol::searchNeighbor(int k)
 {
 	// int i=random_int(length);
 	// data[i]=!data[i];
@@ -98,18 +98,18 @@ bool oneMaxChrom::searchNeighbor(int k)
 
 //-- 2. example problem: ONEPERM -----------------------------------------
 
-/** This is the chromosome class for the OnePerm problem.
+/** This is the solution class for the OnePerm problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class onePermChrom : public permChrom //, public gcProvider
+class onePermSol : public permSol //, public gcProvider
 {
 public:
-	onePermChrom() : permChrom(genes())
+	onePermSol() : permSol(vars())
 		{}
 	virtual mh_solution *createUninitialized() const
-		{ return new onePermChrom; }
+		{ return new onePermSol; }
 	virtual mh_solution *clone() const
-		{ return new onePermChrom(*this); }
+		{ return new onePermSol(*this); }
 	double objective();
 	bool construct(int k) {
 		initialize(k); return true;
@@ -120,9 +120,9 @@ public:
 
 };
 
-/** The actual objective function counts the number of genes equal to the
- permutation 0,1,...genes()-1. */
-double onePermChrom::objective()
+/** The actual objective function counts the number of variables equal to the
+ permutation 0,1,...vars()-1. */
+double onePermSol::objective()
 {
 	int sum=0;
 	for (int i=0;i<length;i++) 
@@ -133,7 +133,7 @@ double onePermChrom::objective()
 
 //--------- Test for multithreading ---------------------------------
 
-/** Problem specific parameters (the number of genes). */
+/** Problem specific parameters (the number of variables). */
 int_param threadstest("threadstest","Test mutlithreading before starting actual application",false);
 
 std::mutex mymutex;
@@ -219,22 +219,22 @@ int main(int argc, char *argv[])
 		if (threadstest())
 			testmultithreading();
 
-		// generate a template chromosome of the problem specific class
-		typedef oneMaxChrom usedChrom;
-		// typedef onePermChrom usedChrom;
-		usedChrom tchrom;
-		// generate a population of uninitialized chromosomes; don't use hashing
+		// generate a template solution of the problem specific class
+		typedef oneMaxSol usedSol;
+		// typedef onePermSol usedSol;
+		usedSol tchrom;
+		// generate a population of uninitialized solutions; don't use hashing
 		population p(tchrom,popsize(),false,false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
 		VNSScheduler *alg;
-		alg=new VNSScheduler(p); // create_mh(p);
-		alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>(string("rndini"),
-				&usedChrom::construct,0,1));
+		alg=new VNSScheduler(p,1,0,nhnum()); // create_mh(p);
+		alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedSol>(string("rndini"),
+				&usedSol::construct,0,1));
 		for (int i=1;i<=nhnum();i++) {
-			alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedChrom>("mut"+tostring(i),
-					&usedChrom::searchNeighbor,i,1));
+			alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedSol>("mut"+tostring(i),
+					&usedSol::searchNeighbor,i,1));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;
-		// fdc.perform(p.bestChrom(),"");
+		// fdc.perform(p.bestSol(),"");
 		// fdc.write(out,"fdc.tsv");
 	}
 	// catch all exceptions and write error message
