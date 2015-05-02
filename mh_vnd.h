@@ -1,5 +1,5 @@
 /*! \file mh_vnd.h
-A general class Variable Neighborhood Descent VND.
+\brief A general class Variable Neighborhood Descent VND.
 */
 
 #ifndef MH_VND_H

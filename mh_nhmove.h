@@ -1,5 +1,5 @@
-/*! \file mh_move.h 
-	\brief Classes related to neighbourhood moves.
+/*! \file mh_nhmove.h 
+\brief Classes related to neighbourhood moves.
  */
 
 #ifndef MH_NHMOVE_H

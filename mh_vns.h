@@ -1,5 +1,5 @@
 /*! \file mh_vns.h
-An class for general Variable Neighborhood Search (VNS).
+\brief An class for general Variable Neighborhood Search (VNS).
 */
 
 #ifndef MH_VNS_H

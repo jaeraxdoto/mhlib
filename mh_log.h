@@ -1,5 +1,6 @@
 /*! \file mh_log.h 
 	\brief A generic output stream and a class for generating log files.
+
 	A program should never directly write to cout or a log file but use
 	this classes. In this way, the output can be redirected to files
 	easily via common parameters. Class logging should be used for

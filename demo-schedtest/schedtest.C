@@ -1,12 +1,14 @@
 /*! \file schedtest.C
-	\brief A template main program demonstrating the Scheduler algorithm 	
+    \brief A template main program for the Scheduler algorithm and multithreading.  
+
+	A  main program demonstrating the Scheduler algorithm 	
 	class, which allows exploiting multithreading and presents a uniform
 	framework for implementing GRASP, VNS, VLNS ans similar metaheuristics.
 	This simple exemplary program solves the simple ONEMAX and ONEPERM problems.
 	Additionally performs a basic test of multithreading if parameter 	
 	mthreadtest ist set to 1.
 
-	Use this main program as a basis for writing your onw application based
+	Use this main program as a basis for writing your own application based
 	on the Scheduler.
 	\include schedtest.C */
 
@@ -21,17 +23,8 @@
 
 #include "mh_pop.h"
 #include "mh_advbase.h"
-// #include "mh_island.h"
-// #include "mh_genea.h"
-// #include "mh_grasp.h"
-// #include "mh_guidedls.h"
-// #include "mh_localsearch.h"
-// #include "mh_simanneal.h"
-// #include "mh_ssea.h"
-// #include "mh_tabusearch.h"
 #include "mh_log.h"
 #include "mh_interfaces.h"
-// #include "mh_fdc.h"
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
 
