@@ -2,6 +2,10 @@
 
 https://bitbucket.org/ads-tuwien/mhlib
 
+mhlib is a collection of modules supporting the efficient and simple implementation of metaheuristics.
+
+![mh.png](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
+
 This library is available under the GNU General Public License Version 3
 available at https://www.gnu.org/copyleft/gpl.html
 
@@ -9,9 +13,6 @@ available at https://www.gnu.org/copyleft/gpl.html
 Vienna University of Technology  
 http://www.ac.tuwien.ac.at  
 Mainly responsible is Günther Raidl <raidl@ac.tuwien.ac.at>
-
-mhlib is a collection of modules supporting the efficient and simple implementation 
-of metaheuristics.
 
 To use the library you need a GNU C++ compiler and doxygen for the documentation,
 call "make all" and have a look at the documentation in the doxy
