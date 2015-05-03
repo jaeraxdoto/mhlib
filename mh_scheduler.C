@@ -189,19 +189,26 @@ void Scheduler::printStatistics(ostream &ostr) {
 	printMethodStatistics(ostr);
 }
 
-SchedulableMethod *Scheduler::selectMethod(vector<unsigned int> &methodidxpool,
-		MethodSelStrat strategy) {
+
+//--------------------------------- SchedulerMethodSelector ---------------------------------------------
+
+SchedulerMethod *SchedulerMethodSelector::select() {
+	if (methodList.empty())
+		return NULL;
 	switch (strategy) {
 	case MSsequential:
-		mherror("Sequential strategy in Scheduler::selectMethod not yet implemented");
+		lastMethod++;
+		if (unsigned(lastMethod) == methodList.size())
+			lastMethod = 0;
+		return scheduler->methodPool[methodList[lastMethod]];
 		break;
 	case MSrandom:
-		return methodPool[random_int(methodidxpool.size())];
+		return scheduler->methodPool[methodList[random_int(methodList.size())]];
 	case MSselfadaptive:
-		mherror("Selfadaptive strategy in Scheduler::selectMethod not yet implemented");
+		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
 		break;
 	default:
-		mherror("Invalid strategy in Scheduler::selectMethod",tostring(strategy));
+		mherror("Invalid strategy in SchedulerMethodSelector::select",tostring(strategy));
 	}
 	return NULL;
 }
@@ -211,14 +218,19 @@ SchedulableMethod *Scheduler::selectMethod(vector<unsigned int> &methodidxpool,
 
 VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
-		Scheduler(p, pg) {
+		Scheduler(p, pg),
+		constheu(this, SchedulerMethodSelector::MSrandom),
+		locimpnh(this,SchedulerMethodSelector::MSsequential),
+		shakingnh(this, SchedulerMethodSelector::MSsequential) {
 	unsigned int i = 0;
 	for (; i < nconstheu; i++)
-		constheu.push_back(i);
+		constheu.add(i);
 	for (; i < nconstheu + nlocimpnh; i++)
-		locimpnh.push_back(i);
+		locimpnh.add(i);
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		shakingnh.push_back(i);
+		shakingnh.add(i);
+	if (!locimpnh.empty())
+		mherror("Local improvement neighborhoods not yet supported in VNSScheduler");
 }
 
 void VNSScheduler::copyBetter(SchedulerWorker *worker) {
@@ -228,32 +240,20 @@ void VNSScheduler::copyBetter(SchedulerWorker *worker) {
 }
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	// must have enough methods added
+	// must have the exact number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh.size() + shakingnh.size());
 
 	if (worker->method == NULL) {
 		// Worker has just been created, apply construction method first if one exists
-		// TODO mutex.lock();    when using Scheduler data that might change
 		if (!constheu.empty())
-			worker->method = selectMethod(constheu, MSrandom);
+			worker->method = constheu.select();
 		else
-			worker->method = methodPool[shakingnh[0]];
+			worker->method = shakingnh.select();
 		// Uninitialized solution in the worker's population is fine
 	}
 	else {
-		// neighborhood method has been applied
-		if (worker->tmpSolImproved == 1) {
-			// improvement achieved:
-			worker->method = methodPool[shakingnh[0]];		// restart with first locimp neighborhood
-		}
-		else {
-			// unsuccessful neighborhood method call
-			// go to next neighborhood
-			unsigned int idx = worker->method->idx + 1;
-			if (idx ==  methodPool.size())
-				idx = shakingnh[0];	// after last neighborhood start again with first
-			worker->method = methodPool[idx];
-		}
+		// shaking neighborhood method has been applied before
+		worker->method = shakingnh.select();
 	}
 }
 
@@ -266,6 +266,7 @@ void VNSScheduler::updateData(SchedulerWorker *worker) {
 		// neighborhood method has been applied
 		if (worker->tmpSolImproved == 1) {
 			// improvement achieved:
+			shakingnh.resetLastMethod();
 			copyBetter(worker);	// save new best solution
 		}
 		else {

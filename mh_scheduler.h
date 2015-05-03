@@ -19,7 +19,7 @@
 extern int_param threadsnum;
 
 
-//--------------------------- SchedulableMethod ------------------------------
+//--------------------------- SchedulerMethod ------------------------------
 
 /**
  * Abstract base class representing a method like a neighborhood search or construction method
@@ -28,7 +28,7 @@ extern int_param threadsnum;
  * This base class does not yet contain a pointer or some other reference to the method
  * to be called.
  */
-class SchedulableMethod {
+class SchedulerMethod {
 public:
 	const string name;			///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
@@ -39,10 +39,10 @@ public:
 	// unsigned int score;		///< Accumulated score that has been assigned to this method.
 
 	/**
-	 * Constructs a new SchedulableMethod from a MethodType function object using the
+	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 */
-	SchedulableMethod(const std::string &_name, int _par, int _arity) :
+	SchedulerMethod(const std::string &_name, int _par, int _arity) :
 				name(_name), arity(_arity)  {
 		idx = -1;
 		// weight = 1;
@@ -58,25 +58,25 @@ public:
 	/**
 	 * Virtual Destructor.
 	 */
-	virtual ~SchedulableMethod() {
+	virtual ~SchedulerMethod() {
 	}
 };
 
-/** Template class for realizing concrete SchedulableMethods for bool(int) member function
+/** Template class for realizing concrete SchedulerMethods for bool(int) member function
  *  of specific solution classes, i.e., classes derived from mh_solution.
  *  An integer parameter is maintained that is passed when calling the method by run for
  *  a specific solution. This integer can be used to control the methods functionality, e.g.
  *  for the neighborhood size, randomization factor etc. The return value must indicate
  *  whether or not the solution has actually been modified. */
-template<class SpecSol> class SolMemberSchedulableMethod : public SchedulableMethod {
+template<class SpecSol> class SolMemberSchedulerMethod : public SchedulerMethod {
 public:
 	bool (SpecSol::* pmeth)(int);		///< Member function pointer to a bool(int) function
 	const int par;						///< Integer parameter passed to the method
 
 	/** Constructor initializing data. */
-	SolMemberSchedulableMethod(const std::string &_name, bool (SpecSol::* _pmeth)(int),
+	SolMemberSchedulerMethod(const std::string &_name, bool (SpecSol::* _pmeth)(int),
 			int _par, int _arity) :
-		SchedulableMethod(_name,_par,_arity), pmeth(_pmeth), par(_par) {
+		SchedulerMethod(_name,_par,_arity), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. */
@@ -90,13 +90,13 @@ public:
 
 /**
  * SchedulerWorker that runs as own thread spawned by the scheduler.
- * The class contains in particular pointers to the Scheduler, SchedulableMethod and
+ * The class contains in particular pointers to the Scheduler, SchedulerMethod and
  * the workers own population to which the method is to be applied.
  */
 class SchedulerWorker {
 public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
-	SchedulableMethod* method;		///< Pointer to the method currently scheduled for this worker.
+	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
 
 	/**
@@ -128,6 +128,11 @@ public:
 		tmpSolImproved = -1;
 	}
 
+	/** Destructor of SchedulerWorker */
+	virtual ~SchedulerWorker() {
+		delete tmpSol;
+	}
+
 	/**
 	 * This method is the main procedure of a worker, which is spawend as an own thread.
 	 * It contains the main loop consisting of the selection of the next method and solutions
@@ -141,17 +146,86 @@ public:
 };
 
 
+//--------------------------- SchedulerMethodSelector ------------------------------
+
+/**
+ * Class for selecting a method out of a subset of alternative SchedulerMethods.
+ * Different selection strategies such as sequential, uniformly random or self-adaptive
+ * are provided. Also contains the contextual data required for the selection.
+ * A SchedulerMethodSelector can be associated with a worker thread only or the whole Scheduler.
+ */
+class SchedulerMethodSelector {
+
+public:
+	/** Different strategies for selecting a method from a method pool:
+	 * - sequential: choose one after the other in the given order
+	 * - random: uniform random selection
+	 * - selfadaptive: random selection with self-adaptive probabilities */
+	enum MethodSelStrat { MSsequential, MSrandom, MSselfadaptive };
+
+protected:
+
+	Scheduler *scheduler;				///< Associated Scheduler
+	MethodSelStrat strategy;			///< The selection strategy to be used.
+	vector<unsigned int> methodList; 	///< List of Indexes of the methods in the methodPool.
+
+	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
+
+public:
+
+	/** Initialize SchedulerMethodSelector for given strategy. */
+	SchedulerMethodSelector(Scheduler *scheduler_, MethodSelStrat strategy_)
+		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1) {
+	}
+
+	/** Cleanup. */
+	virtual ~SchedulerMethodSelector() {
+	}
+
+	/** Adds a the method with the given index to the methodList. */
+	void add(unsigned int idx) {
+		methodList.push_back(idx);
+	}
+
+	/** Returns the number of method contained in the methodList. */
+	unsigned int size() {
+		return methodList.size();
+	}
+
+	/** Returns true if them methodList is empty. */
+	bool empty() {
+		return methodList.empty();
+	}
+
+	/** Returns the i-th method in the methodList. */
+	unsigned int operator[](unsigned int i) {
+		return methodList[i];
+	}
+
+	/** Reset lastMethod to none (= -1). */
+	void resetLastMethod() {
+		lastMethod = -1;
+	}
+
+	/** Select a method according to the Selector's strategy from the methodList.
+	 */
+	SchedulerMethod *select();
+};
+
+//--------------------------- Scheduler ------------------------------
+
 /**
  * The scheduler base class for flexibly realizing GRASP, VNS, VLNS etc. approaches in sequential as well as
- * multithreaded ways. It maintains a methodPool consisting of SchedulableMethods that are iteratively
+ * multithreaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
  * called. The scheduler is in particular responsible for deciding at which point in the optimization which
  * specific method is applied.
  */
 class Scheduler : public mh_advbase {
 	friend class SchedulerWorker;
+	friend class SchedulerMethodSelector;
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
-	vector<SchedulableMethod*> methodPool;
+	vector<SchedulerMethod*> methodPool;
 
 	/* Statistical data on methods */
 	vector<int> nIter;				///< Number of iterations of the particular methods.
@@ -202,19 +276,6 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	/** Different strategies for selecting a method from a method pool:
-	 * - sequential: choose one after the other in the given order
-	 * - random: uniform random selection
-	 * - selfadaptive: random selection with self-adaptive probabilities */
-	enum MethodSelStrat { MSsequential, MSrandom, MSselfadaptive };
-
-	/** Select a method from the given methodidxpool using the specified strategy.
-	 * So far, just a uniform random choice is implemented.
-	 * TODO: To be extended, also by further parameter providing the necessary
-	 * data for realizing the advanced methods
-	 */
-	SchedulableMethod *selectMethod(vector<unsigned int> &methodidxpool, MethodSelStrat strategy);
-
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
@@ -246,10 +307,10 @@ public:
 	/**
 	 * Adds a new schedulable method to the scheduler's method pool
 	 * and add corresponding initial values in the data structure used for the method statistics.
-	 * These SchedulableMethod objects are assumed to belong to the Scheduler and will finally
+	 * These SchedulerMethod objects are assumed to belong to the Scheduler and will finally
 	 * be deleted by its destructor.
 	 */
-	void addSchedulableMethod(SchedulableMethod* method) {
+	void addSchedulerMethod(SchedulerMethod* method) {
 		method->idx = methodPool.size();
 		methodPool.push_back(method);
 		nIter.push_back(0);
@@ -342,9 +403,9 @@ public:
 class VNSScheduler : public Scheduler {
 
 protected:
-	vector<unsigned int> constheu;	///< Index vector of construction heuristic methods
-	vector<unsigned int> locimpnh;	///< Index vector of local improvement neighborhood methods
-	vector<unsigned int> shakingnh;	///< Index vector of shaking/LNS methods
+	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
+	SchedulerMethodSelector locimpnh;	///< Selector for local improvement neighborhood methods
+	SchedulerMethodSelector shakingnh;	///< Selector for shaking/LNS methods
 
 	/** An improved solution has been obtained by a method and is stored in tmpChrom.
 	 * This method updates worker->pop[0] holding the worker's so far best solution and
@@ -355,7 +416,7 @@ protected:
 public:
 	/**
 	 * Constructor: Initializes the VNSScheduler. Construction, improvement and shaking methods
-	 * are then added by addSchedulableMethod, whereas nconstheu>=0 construction heuristics
+	 * are then added by addSchedulerMethod, whereas nconstheu>=0 construction heuristics
 	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
 	 * finally nshakingnh  shaking or large neighborhood search neighborhoods.
 	 */

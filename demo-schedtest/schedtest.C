@@ -36,6 +36,11 @@
 /** Problem specific parameters (the number of variablens). */
 int_param vars("vars","number of variables",20,1,10000);
 
+
+/** Number of construction heuristics. */
+int_param chnum("chnum","number of construcction heuristics",1,0,10000);
+
+
 /** Number of VNS shaking neighborhoods. */
 int_param nhnum("nhnum","number of VNS neighborhoods",5,1,50);
 
@@ -222,12 +227,13 @@ int main(int argc, char *argv[])
 
 		// generate the Scheduler and add SchedulableMethods
 		VNSScheduler *alg;
-		alg=new VNSScheduler(p,1,0,nhnum()); // create_mh(p);
-		alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedSol>(string("rndini"),
-				&usedSol::construct,0,1));
+		alg=new VNSScheduler(p,chnum(),0,nhnum()); // create_mh(p);
+		for (int i=1;i<=chnum();i++)
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("ch"+tostring(i),
+				&usedSol::construct,i,0));
 		for (int i=1;i<=nhnum();i++) {
-			alg->addSchedulableMethod(new SolMemberSchedulableMethod<usedSol>("mut"+tostring(i),
-					&usedSol::searchNeighbor,i,1));
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("mut"+tostring(i),
+				&usedSol::searchNeighbor,i,1));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		
