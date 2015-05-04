@@ -43,6 +43,7 @@ void SchedulerWorker::run() {
 					}
 
 					scheduler->getNextMethod(this);	// try to find and available method for scheduling
+
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
 						wait = true;
 				} while (method == NULL);

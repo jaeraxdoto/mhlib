@@ -16,7 +16,7 @@ protected:
 		{ return (dynamic_cast<const binStringSol &>(ref)); }
 public:
 	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }
-	/** Cormal constructor, number of genes must be passed to base class. */
+	/** Normal constructor, number of genes must be passed to base class. */
 	binStringSol(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,t,pg) { }
 	binStringSol(int l, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,pg) { }
 	/** Writes out the binary string. */
