@@ -110,7 +110,7 @@ void Scheduler::run() {
 	// spawn the worker threads
 	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
-		SchedulerWorker *w = new SchedulerWorker(this, pop->at(0));
+		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0));
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
@@ -219,17 +219,23 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
-		constheu(this, SchedulerMethodSelector::MSrandom),
-		locimpnh(this,SchedulerMethodSelector::MSsequential),
-		shakingnh(this, SchedulerMethodSelector::MSsequential) {
+		constheu(this, SchedulerMethodSelector::MSrandom) {
+	for (int t=0; t<threadsnum();t++) {
+		locimpnh.push_back(new SchedulerMethodSelector(this,
+				SchedulerMethodSelector::MSsequential));
+		shakingnh.push_back(new SchedulerMethodSelector(this,
+				SchedulerMethodSelector::MSsequential));
+	}
 	unsigned int i = 0;
 	for (; i < nconstheu; i++)
-		constheu.add(i);
+			constheu.add(i);
 	for (; i < nconstheu + nlocimpnh; i++)
-		locimpnh.add(i);
+		for (int t=0; t<threadsnum();t++)
+			locimpnh[t]->add(i);
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		shakingnh.add(i);
-	if (!locimpnh.empty())
+		for (int t=0; t<threadsnum();t++)
+			shakingnh[t]->add(i);
+	if (!locimpnh[0]->empty())
 		mherror("Local improvement neighborhoods not yet supported in VNSScheduler");
 }
 
@@ -241,19 +247,19 @@ void VNSScheduler::copyBetter(SchedulerWorker *worker) {
 
 void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// must have the exact number of methods added
-	assert(methodPool.size() == constheu.size() + locimpnh.size() + shakingnh.size());
+	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
 	if (worker->method == NULL) {
 		// Worker has just been created, apply construction method first if one exists
 		if (!constheu.empty())
 			worker->method = constheu.select();
 		else
-			worker->method = shakingnh.select();
+			worker->method = shakingnh[worker->id]->select();
 		// Uninitialized solution in the worker's population is fine
 	}
 	else {
 		// shaking neighborhood method has been applied before
-		worker->method = shakingnh.select();
+		worker->method = shakingnh[worker->id]->select();
 	}
 }
 
@@ -266,7 +272,7 @@ void VNSScheduler::updateData(SchedulerWorker *worker) {
 		// neighborhood method has been applied
 		if (worker->tmpSolImproved == 1) {
 			// improvement achieved:
-			shakingnh.resetLastMethod();
+			shakingnh[worker->id]->resetLastMethod();
 			copyBetter(worker);	// save new best solution
 		}
 		else {

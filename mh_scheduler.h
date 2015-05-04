@@ -33,10 +33,7 @@ public:
 	const string name;			///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
 
-	unsigned int idx;				///< Index in methodPool of Scheduler.
-	// TODO Was sind weight und score? Erklärung fehlt!
-	// unsigned int weight;	///< The weight currently assigned to this method.
-	// unsigned int score;		///< Accumulated score that has been assigned to this method.
+	unsigned int idx;			///< Index in methodPool of Scheduler.
 
 	/**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
@@ -96,6 +93,7 @@ public:
 class SchedulerWorker {
 public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
+	unsigned int id;				///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
 
@@ -120,9 +118,10 @@ public:
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, const mh_solution *sol) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol) :
 		pop(*sol, 1, false, false) {
 		scheduler = _scheduler;
+		id=_id,
 		method = NULL;
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
@@ -404,8 +403,8 @@ class VNSScheduler : public Scheduler {
 
 protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
-	SchedulerMethodSelector locimpnh;	///< Selector for local improvement neighborhood methods
-	SchedulerMethodSelector shakingnh;	///< Selector for shaking/LNS methods
+	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
+	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
 
 	/** An improved solution has been obtained by a method and is stored in tmpChrom.
 	 * This method updates worker->pop[0] holding the worker's so far best solution and
@@ -427,6 +426,14 @@ public:
 	virtual VNSScheduler* clone() const {
 		mherror("Cloning not implemented in VNSScheduler");
 		return NULL;
+	}
+
+	/** Cleanup: delete SchedulerMethodSelectors. */
+	~VNSScheduler() {
+		for (int t=0;t<threadsnum();t++) {
+			delete locimpnh[t];
+			delete shakingnh[t];
+		}
 	}
 
 	/**
