@@ -198,29 +198,30 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 	switch (strategy) {
 	case MSSequential:
 	case MSSequentialOnce:
-		lastMethod++;
-		if (unsigned(lastMethod) == methodList.size())
+		if (unsigned(lastMethod) == methodList.size()-1) {
 			if (strategy == MSSequential)
 				lastMethod = 0;
-			else {
-				lastMethod--;
+			else
 				return NULL;	// MSSequentialOnce
-			}
+		}
+		else
+			lastMethod++;
 		return scheduler->methodPool[methodList[lastMethod]];
 		break;
 	case MSRandom:
 		return scheduler->methodPool[methodList[random_int(methodList.size())]];
 	case MSRandomOnce: {
-		int remaining = methodList.size() - numSelected;
-		if (remaining == 0)
+		if (unsigned(lastMethod) == methodList.size()-1)
 			return NULL;	// no more methods
-		int r = random_int(remaining);
-		int i=0;
-		while (r>0 || selected[i]) {
-			if (!selected[i])
-				i++;
+		lastMethod++;
+		// Choose randomly a not yet selected method and swap it to position lastMethod
+		int r = random_int(lastMethod, methodList.size()-1);
+		if (r != lastMethod) {
+			unsigned int tmp = methodList[lastMethod];
+			methodList[lastMethod] = methodList[r];
+			methodList[r] = tmp;
 		}
-		return scheduler->methodPool[methodList[i]];
+		return scheduler->methodPool[methodList[lastMethod]];
 	}
 	case MSSelfadaptive:
 		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
@@ -231,18 +232,25 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 	return NULL;
 }
 
+SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
+	if (lastMethod == -1)
+		return NULL;
+	else
+		return scheduler->methodPool[methodList[lastMethod]];
+}
+
 
 //--------------------------------- VNSScheduler ---------------------------------------------
 
 VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
-		constheu(this, SchedulerMethodSelector::MSrandom) {
+		constheu(this, SchedulerMethodSelector::MSRandom) {
 	for (int t=0; t<threadsnum();t++) {
 		locimpnh.push_back(new SchedulerMethodSelector(this,
-				SchedulerMethodSelector::MSsequential));
+				SchedulerMethodSelector::MSSequentialOnce));
 		shakingnh.push_back(new SchedulerMethodSelector(this,
-				SchedulerMethodSelector::MSsequential));
+				SchedulerMethodSelector::MSSequential));
 	}
 	unsigned int i = 0;
 	for (; i < nconstheu; i++)
@@ -253,8 +261,6 @@ VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlo
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
 		for (int t=0; t<threadsnum();t++)
 			shakingnh[t]->add(i);
-	if (!locimpnh[0]->empty())
-		mherror("Local improvement neighborhoods not yet supported in VNSScheduler");
 }
 
 void VNSScheduler::copyBetter(SchedulerWorker *worker) {
@@ -267,36 +273,90 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// must have the exact number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
-	if (worker->method == NULL) {
+	if (worker->method == NULL && !constheu.empty()) {
 		// Worker has just been created, apply construction method first if one exists
-		if (!constheu.empty())
-			worker->method = constheu.select();
+		worker->method = constheu.select();
+		return;
+	}
+	if (!locimpnh[0]->empty()) {
+		// choose next local improvement method
+		worker->method = locimpnh[worker->id]->select();
+		if (worker->method != NULL)
+			return;
 		else
-			worker->method = shakingnh[worker->id]->select();
-		// Uninitialized solution in the worker's population is fine
+			// VND done
+			locimpnh[worker->id]->resetLastMethod();
 	}
-	else {
-		// shaking neighborhood method has been applied before
+	// perform next shaking method
+	if (!shakingnh[0]->empty()) {
 		worker->method = shakingnh[worker->id]->select();
+		if (worker->method != NULL)
+			return;
 	}
+	if (!constheu.empty())
+		worker->method = constheu.select();
+	else
+		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
 }
 
 void VNSScheduler::updateData(SchedulerWorker *worker) {
 	if (worker->method->idx < constheu.size()) {
 		// construction method has been applied
 		copyBetter(worker);	// save new best solution
+		return;
 	}
-	else {
-		// neighborhood method has been applied
+	if (worker->method->idx < locimpnh[0]->size()) {
+		// local improvement neighborhood has been applied
 		if (worker->tmpSolImproved == 1) {
-			// improvement achieved:
-			shakingnh[worker->id]->resetLastMethod();
-			copyBetter(worker);	// save new best solution
+			// improvement achieved, restart with first local improvement method
+			copyBetter(worker);	// save new best solution within local improvement
+			return;
 		}
 		else {
-			// unsuccessful neighborhood method call
-			if (worker->tmpSolImproved == 0)
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+			// unsuccessful local improvement method call
+			if (locimpnh[worker->id]->hasFurtherMethod()) {
+				// continue VND with next neighborhood and incumbent VND solution
+				if (worker->tmpSolImproved == 0)
+					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				return;
+			}
+			else {
+				// the embedded VND is done
+				if (worker->tmpSol->isBetter(*(worker->pop[1]))) {
+					worker->pop.update(1,worker->tmpSol);
+					// TODO
+				}
+				else {
+					// Go back to best solution before last shaking
+					worker->tmpSol->copy(*worker->pop[1]);
+					worker->pop.update(0,worker->tmpSol);
+					// TODO
+				}
+			}
+		}
+	}
+	else {
+		// shaking neighborhood method has been applied
+		if (locimpnh[0]->empty()) {
+			// no local improvement methods, directly handle result of shaking
+			if (worker->tmpSolImproved == 1) {
+				// improvement achieved:
+				shakingnh[worker->id]->resetLastMethod();
+				copyBetter(worker);	// save new best solution
+			}
+			else {
+				// unsuccessful neighborhood method call
+				if (worker->tmpSolImproved == 0)
+					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+			}
+		}
+		else {
+			// start available local improvement neighborhoods
+			if (worker->tmpSolImproved == 1)
+				copyBetter(worker);	// save new best solution
+			else
+				// nevertheless store solution after shaking as incumbent of local improvement
+				worker->pop.update(0, worker->tmpSol);
 		}
 	}
 }

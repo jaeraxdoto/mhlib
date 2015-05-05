@@ -38,11 +38,13 @@ int_param vars("vars","number of variables",20,1,10000);
 
 
 /** Number of construction heuristics. */
-int_param chnum("chnum","number of construcction heuristics",1,0,10000);
-
+int_param constheus("constheus","number of construcction heuristics",1,0,10000);
 
 /** Number of VNS shaking neighborhoods. */
-int_param nhnum("nhnum","number of VNS neighborhoods",5,1,50);
+int_param vndnhs("vndnhs","number of VND neighborhoods",0,0,10000);
+
+/** Number of VNS shaking neighborhoods. */
+int_param vnsnhs("vnsnhs","number of VNS neighborhoods",5,0,10000);
 
 /** Name of file to save best solution. */
 string_param sfile("sfile","name of file to save solution to","");
@@ -66,7 +68,8 @@ public:
 	bool construct(int k) {
 		initialize(k); return true;
 	}
-	bool searchNeighbor(int k);
+	bool localimp(int k);
+	bool shaking(int k);
 };
 
 /// The actual objective function counts the number of variables set to 1.
@@ -85,7 +88,19 @@ double oneMaxSol::delta_obj(const nhmove &m)
 	return (data[bfm.r]?-1:1);
 }
 
-bool oneMaxSol::searchNeighbor(int k)
+bool oneMaxSol::localimp(int k)
+{
+	// "locally optimize" position k, i.e., set it to 1 if 0
+	if (!data[k])
+	{
+		data[k] = 1;
+		invalidate();
+		return true;
+	}
+	return false;	// no change
+}
+
+bool oneMaxSol::shaking(int k)
 {
 	// int i=random_int(length);
 	// data[i]=!data[i];
@@ -112,10 +127,12 @@ public:
 	bool construct(int k) {
 		initialize(k); return true;
 	}
-	bool searchNeighbor(int k) {
+	bool localimp(int k) {
 		mutate(k); return true;
 	}
-
+	bool shaking(int k) {
+		mutate(k); return true;
+	}
 };
 
 /** The actual objective function counts the number of variables equal to the
@@ -227,13 +244,16 @@ int main(int argc, char *argv[])
 
 		// generate the Scheduler and add SchedulableMethods
 		VNSScheduler *alg;
-		alg=new VNSScheduler(p,chnum(),0,nhnum()); // create_mh(p);
-		for (int i=1;i<=chnum();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("ch"+tostring(i),
+		alg=new VNSScheduler(p,constheus(),vndnhs(),vnsnhs());
+		for (int i=1;i<=constheus();i++)
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("conh"+tostring(i),
 				&usedSol::construct,i,0));
-		for (int i=1;i<=nhnum();i++) {
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("mut"+tostring(i),
-				&usedSol::searchNeighbor,i,1));
+		for (int i=1;i<=vndnhs();i++)
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("vndnh"+tostring(i),
+				&usedSol::localimp,i,1));
+		for (int i=1;i<=vnsnhs();i++) {
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("vnsnh"+tostring(i),
+				&usedSol::shaking,i,1));
 		}
 		alg->run();		// run Scheduler until termination cond.
 		

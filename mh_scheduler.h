@@ -119,7 +119,7 @@ public:
 	 * will executable by the run() method.
 	 */
 	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol) :
-		pop(*sol, 1, false, false) {
+		pop(*sol, 2, false, false) {
 		scheduler = _scheduler;
 		id=_id,
 		method = NULL;
@@ -169,8 +169,6 @@ protected:
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
 	vector<unsigned int> methodList; 	///< List of Indexes of the methods in the methodPool.
-	vector<bool> selected;				///< Flags for marking already selected methods.
-	int numSelected;					///< Number of already selected methods for MSRandomOnce
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 
@@ -178,7 +176,7 @@ public:
 
 	/** Initialize SchedulerMethodSelector for given strategy. */
 	SchedulerMethodSelector(Scheduler *scheduler_, MethodSelStrat strategy_)
-		: scheduler(scheduler_), strategy(strategy_), numSelected(0), lastMethod(-1) {
+		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1) {
 	}
 
 	/** Cleanup. */
@@ -188,7 +186,6 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(unsigned int idx) {
 		methodList.push_back(idx);
-		selected.push_back(false);
 	}
 
 	/** Returns the number of method contained in the methodList. */
@@ -209,14 +206,19 @@ public:
 	/** Reset lastMethod to none (= -1). */
 	void resetLastMethod() {
 		lastMethod = -1;
-		for (int i=0; i<selected.size(); i++)
-			selected = false;
-		numSelected = 0;
 	}
 
 	/** Select a method according to the Selector's strategy from the methodList.
 	 */
 	SchedulerMethod *select();
+
+	/** Returns true if at least one more method can be returned. */
+	bool hasFurtherMethod() {
+		return lastMethod < int(methodList.size())-1;
+	}
+
+	/** Returns the last selected method or NULL if none has been selected yet. */
+	SchedulerMethod *getLastMethod();
 };
 
 //--------------------------- Scheduler ------------------------------
@@ -445,9 +447,8 @@ public:
 	}
 
 	/**
-	 * Schedules the next method. Initially, if the worker just started and no other method
-	 * has been performed yet, the construction method with index 0 is scheduled.
-	 * Otherwise the next method is chosen according to the classic VNS strategy.
+	 * Schedules the next method according to the general VNS scheme, i.e., with the VND embedded
+	 * in the VNS. If multiple construction heuristics exist, one is chosen at random.
      */
 	void getNextMethod(SchedulerWorker *worker);
 
