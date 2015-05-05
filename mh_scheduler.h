@@ -48,7 +48,7 @@ public:
 		assert(arity>=0 && arity<=1);
 	}
 
-	/** Apply the method to the given solution. The method returns true if the solution
+	/** Applies the method to the given solution. The method returns true if the solution
 	 * has been changed and false otherwise. */
 	virtual bool run(mh_solution *sol) = 0;
 
@@ -109,7 +109,7 @@ public:
 	 */
 	mh_solution *tmpSol;
 
-	/** Indicates the result of the last method call w.r.t. tmpChrom:
+	/** Indicates the result of the last method call w.r.t. tmpSol:
 	 * - -1: solution not changed
 	 * -  0: solution not improved but changed
 	 * -  1  solution improved */
@@ -170,7 +170,7 @@ protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	vector<unsigned int> methodList; 	///< List of Indexes of the methods in the methodPool.
+	vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 
@@ -190,12 +190,12 @@ public:
 		methodList.push_back(idx);
 	}
 
-	/** Returns the number of method contained in the methodList. */
+	/** Returns the number of methods contained in the methodList. */
 	unsigned int size() {
 		return methodList.size();
 	}
 
-	/** Returns true if them methodList is empty. */
+	/** Returns true if the methodList is empty. */
 	bool empty() {
 		return methodList.empty();
 	}
@@ -205,12 +205,12 @@ public:
 		return methodList[i];
 	}
 
-	/** Reset lastMethod to none (= -1). */
+	/** Resets lastMethod to none (= -1). */
 	void resetLastMethod() {
 		lastMethod = -1;
 	}
 
-	/** Select a method according to the Selector's strategy from the methodList.
+	/** Selects a method according to the chosen selection strategy from the methodList.
 	 */
 	SchedulerMethod *select();
 
@@ -363,7 +363,7 @@ public:
 
 	/**
 	 * Determines the next method to be applied and sets it in the given worker.
-	 * The solution to be modified is tmpChrom and the method may depend on
+	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
 	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
@@ -374,7 +374,7 @@ public:
 	virtual void getNextMethod(SchedulerWorker *worker) = 0;
 
 	/**
-	 * Updates the worker->tmpChrom, worker->pop and the schedulers population and possibly
+	 * Updates the worker->tmpSol, worker->pop and the schedulers population and possibly
 	 * other data according to the result of the last method application.
 	 * This method is called with mutex locked.
 	 */
@@ -422,7 +422,8 @@ protected:
 	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
 	double shakingStartTime;	///< CPUtime when the last shaking operation has been started
 
-	/** An improved solution has been obtained by a method and is stored in tmpChrom.
+	/**
+	 * An improved solution has been obtained by a method and is stored in tmpSol.
 	 * This method updates worker->pop[0] holding the worker's so far best solution and
 	 * possibly the Scheduler's global best solution at pop[0].
 	 */
@@ -433,7 +434,7 @@ public:
 	 * Constructor: Initializes the VNSScheduler. Construction, improvement and shaking methods
 	 * are then added by addSchedulerMethod, whereas nconstheu>=0 construction heuristics
 	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
-	 * finally nshakingnh  shaking or large neighborhood search neighborhoods.
+	 * finally nshakingnh shaking or large neighborhood search neighborhoods.
 	 */
 	GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 			unsigned int nshakingnh, const pstring &pg = (pstring) (""));
@@ -459,7 +460,7 @@ public:
 	void getNextMethod(SchedulerWorker *worker);
 
 	/**
-	 * Updates the tmpChrom, worker->pop and the schedulers population according to
+	 * Updates the tmpSol, worker->pop and the schedulers population according to
 	 * the result of the last method application.
 	 */
 	void updateData(SchedulerWorker *worker);

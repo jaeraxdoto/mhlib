@@ -15,7 +15,6 @@
 
 // #define DEBUGMETH 1		// Enable for writing out debug info on applied methods
 
-
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
 
@@ -46,7 +45,7 @@ void SchedulerWorker::run() {
 						}
 					}
 
-					scheduler->getNextMethod(this);	// try to find and available method for scheduling
+					scheduler->getNextMethod(this);	// try to find an available method for scheduling
 
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
 						wait = true;
@@ -72,7 +71,7 @@ void SchedulerWorker::run() {
 #endif
 
 				// update statistics and scheduler data
-				scheduler->mutex.lock(); // Begin of atomic action
+				scheduler->mutex.lock(); // Begin of atomic operation
 				scheduler->updateMethodStatistics(this, methodTime);
 				scheduler->updateData(this);
 
@@ -168,7 +167,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
-			double(sumGain[k])/double(nIter[k]),
+			(nIter[k] > 0 ? double(sumGain[k])/double(nIter[k]) : 0),
 			double(nSuccess[k]/double(sumSuccess)*100.0),
 			totTime[k],
 			double(totTime[k]/double(sumTime)*100.0));
@@ -271,6 +270,8 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
 		for (int t=0; t<threadsnum();t++)
 			shakingnh[t]->add(i);
+
+	shakingStartTime = 0;
 }
 
 void GVNSScheduler::copyBetter(SchedulerWorker *worker) {
@@ -305,6 +306,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 			return;
 		}
 	}
+
 	if (!constheu.empty())
 		worker->method = constheu.select();
 	else
@@ -317,6 +319,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 		copyBetter(worker);	// save new best solution
 		return;
 	}
+
 	if (worker->method->idx < locimpnh[0]->size() + constheu.size()) {
 		// local improvement neighborhood has been applied
 		if (worker->tmpSolImproved == 1) {
@@ -335,7 +338,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 			}
 			else {
 				// the embedded VND is done
-				// update statistics for last shaking method only now?
+				// update statistics for last shaking method (including the just finished local improvement)
 				if (worker->pop[0]->isBetter(*(worker->pop[1]))) {
 					updateShakingMethodStatistics(worker,true);
 					worker->pop.update(1,worker->pop[0]);
@@ -356,18 +359,23 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 		// shaking neighborhood method has been applied
 		if (locimpnh[0]->empty()) {
 			// no local improvement methods, directly handle result of shaking
+			// update statistics for that method
 			if (worker->tmpSolImproved == 1) {
 				// improvement achieved:
+				worker->pop.update(1,worker->pop[0]);
 				copyBetter(worker);	// save new best solution
+				updateShakingMethodStatistics(worker,true);
 				shakingnh[worker->id]->resetLastMethod();
 			}
 			else {
 				// unsuccessful neighborhood method call
+				updateShakingMethodStatistics(worker,false);
 				if (worker->tmpSolImproved == 0)
 					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 			}
 		}
 		else {
+			// do not update statistics for that method (will be done after local improvement)
 			// start available local improvement neighborhoods
 			if (worker->tmpSolImproved == 1)
 				copyBetter(worker);	// save new best solution
