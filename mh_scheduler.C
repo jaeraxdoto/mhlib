@@ -196,15 +196,33 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 	if (methodList.empty())
 		return NULL;
 	switch (strategy) {
-	case MSsequential:
+	case MSSequential:
+	case MSSequentialOnce:
 		lastMethod++;
 		if (unsigned(lastMethod) == methodList.size())
-			lastMethod = 0;
+			if (strategy == MSSequential)
+				lastMethod = 0;
+			else {
+				lastMethod--;
+				return NULL;	// MSSequentialOnce
+			}
 		return scheduler->methodPool[methodList[lastMethod]];
 		break;
-	case MSrandom:
+	case MSRandom:
 		return scheduler->methodPool[methodList[random_int(methodList.size())]];
-	case MSselfadaptive:
+	case MSRandomOnce: {
+		int remaining = methodList.size() - numSelected;
+		if (remaining == 0)
+			return NULL;	// no more methods
+		int r = random_int(remaining);
+		int i=0;
+		while (r>0 || selected[i]) {
+			if (!selected[i])
+				i++;
+		}
+		return scheduler->methodPool[methodList[i]];
+	}
+	case MSSelfadaptive:
 		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
 		break;
 	default:

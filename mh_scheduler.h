@@ -157,16 +157,20 @@ class SchedulerMethodSelector {
 
 public:
 	/** Different strategies for selecting a method from a method pool:
-	 * - sequential: choose one after the other in the given order
-	 * - random: uniform random selection
-	 * - selfadaptive: random selection with self-adaptive probabilities */
-	enum MethodSelStrat { MSsequential, MSrandom, MSselfadaptive };
+	 * - MSSequential: choose one after the other in the given order, then restarting again with first
+	 * - MSSequentialOnce: choose one after the other, each just once, and then return NULL
+	 * - MSRandom: uniform random selection
+	 * - MSRandomOnce: uniform random selection, but each just once; finally return NULL
+	 * - MSSelfadaptive: random selection with self-adaptive probabilities */
+	enum MethodSelStrat { MSSequential, MSSequentialOnce, MSRandom, MSRandomOnce, MSSelfadaptive };
 
 protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
 	vector<unsigned int> methodList; 	///< List of Indexes of the methods in the methodPool.
+	vector<bool> selected;				///< Flags for marking already selected methods.
+	int numSelected;					///< Number of already selected methods for MSRandomOnce
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 
@@ -174,7 +178,7 @@ public:
 
 	/** Initialize SchedulerMethodSelector for given strategy. */
 	SchedulerMethodSelector(Scheduler *scheduler_, MethodSelStrat strategy_)
-		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1) {
+		: scheduler(scheduler_), strategy(strategy_), numSelected(0), lastMethod(-1) {
 	}
 
 	/** Cleanup. */
@@ -184,6 +188,7 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(unsigned int idx) {
 		methodList.push_back(idx);
+		selected.push_back(false);
 	}
 
 	/** Returns the number of method contained in the methodList. */
@@ -204,6 +209,9 @@ public:
 	/** Reset lastMethod to none (= -1). */
 	void resetLastMethod() {
 		lastMethod = -1;
+		for (int i=0; i<selected.size(); i++)
+			selected = false;
+		numSelected = 0;
 	}
 
 	/** Select a method according to the Selector's strategy from the methodList.
