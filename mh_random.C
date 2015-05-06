@@ -154,10 +154,12 @@ double random_double()
 	iv[j] = idum;
 	if (iy < 1) 
 		iy += IMM1;
+	temp=AM*iy; 
 	rndmutex.unlock();
-	if ((temp=AM*iy) > RNMX) 
+	if (temp > RNMX) 
 		return RNMX;
-	else return temp;
+	else 
+		return temp;
 }
 
 
