@@ -13,6 +13,9 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
+// #define DEBUGMETH 1		// Enable for writing out debug info on applied methods
+
+
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
 
@@ -24,6 +27,7 @@ static std::vector<std::exception_ptr> worker_exceptions;
 
 void SchedulerWorker::run() {
 	try {
+		pop.update(1,pop[0]);	// Initialize pop[1] with a copy of pop[0]
 		if (!scheduler->terminate())
 			for(;;) {
 				scheduler->checkPopulation();
@@ -47,12 +51,14 @@ void SchedulerWorker::run() {
 						wait = true;
 				} while (method == NULL);
 
-				if(terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
+				if (terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
 					break;
-
+#ifdef DEBUGMETH
+				cout << *tmpSol << endl;
+#endif
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				double startTime = CPUtime();
+				startTime = CPUtime();
 				bool tmpSolChanged = method->run(tmpSol);
 				double methodTime = CPUtime() - startTime;
 
@@ -60,6 +66,9 @@ void SchedulerWorker::run() {
 					tmpSolImproved = tmpSol->isBetter(*pop[0]);
 				else
 					tmpSolImproved = -1;
+#ifdef DEBUGMETH
+				cout << *tmpSol << "<-" << method->name << " " << tmpSolChanged << "/" << tmpSolImproved << endl;
+#endif
 
 				// update statistics and scheduler data
 				scheduler->mutex.lock(); // Begin of atomic action
@@ -242,7 +251,7 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 
 //--------------------------------- VNSScheduler ---------------------------------------------
 
-VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
+GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
 		constheu(this, SchedulerMethodSelector::MSRandom) {
@@ -263,13 +272,13 @@ VNSScheduler::VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlo
 			shakingnh[t]->add(i);
 }
 
-void VNSScheduler::copyBetter(SchedulerWorker *worker) {
+void GVNSScheduler::copyBetter(SchedulerWorker *worker) {
 	worker->pop.update(0, worker->tmpSol);
 	if (worker->pop[0]->isBetter(*(pop->at(0))))
 		update(0, worker->pop[0]);
 }
 
-void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
+void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// must have the exact number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
@@ -284,14 +293,16 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		if (worker->method != NULL)
 			return;
 		else
-			// VND done
+			// all local improvement methods applied to this solution, VND done
 			locimpnh[worker->id]->resetLastMethod();
 	}
 	// perform next shaking method
 	if (!shakingnh[0]->empty()) {
 		worker->method = shakingnh[worker->id]->select();
-		if (worker->method != NULL)
+		if (worker->method != NULL) {
+			shakingStartTime = CPUtime();
 			return;
+		}
 	}
 	if (!constheu.empty())
 		worker->method = constheu.select();
@@ -299,17 +310,18 @@ void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
 }
 
-void VNSScheduler::updateData(SchedulerWorker *worker) {
+void GVNSScheduler::updateData(SchedulerWorker *worker) {
 	if (worker->method->idx < constheu.size()) {
 		// construction method has been applied
 		copyBetter(worker);	// save new best solution
 		return;
 	}
-	if (worker->method->idx < locimpnh[0]->size()) {
+	if (worker->method->idx < locimpnh[0]->size() + constheu.size()) {
 		// local improvement neighborhood has been applied
 		if (worker->tmpSolImproved == 1) {
 			// improvement achieved, restart with first local improvement method
 			copyBetter(worker);	// save new best solution within local improvement
+			locimpnh[worker->id]->resetLastMethod();
 			return;
 		}
 		else {
@@ -322,15 +334,19 @@ void VNSScheduler::updateData(SchedulerWorker *worker) {
 			}
 			else {
 				// the embedded VND is done
-				if (worker->tmpSol->isBetter(*(worker->pop[1]))) {
-					worker->pop.update(1,worker->tmpSol);
-					// TODO
+				// update statistics for last shaking method only now?
+				if (worker->pop[0]->isBetter(*(worker->pop[1]))) {
+					updateShakingMethodStatistics(worker,true);
+					worker->pop.update(1,worker->pop[0]);
+					shakingnh[worker->id]->resetLastMethod();
+					if (worker->tmpSolImproved == 0)
+						worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 				}
 				else {
 					// Go back to best solution before last shaking
+					updateShakingMethodStatistics(worker,false);
 					worker->tmpSol->copy(*worker->pop[1]);
 					worker->pop.update(0,worker->tmpSol);
-					// TODO
 				}
 			}
 		}
@@ -341,8 +357,8 @@ void VNSScheduler::updateData(SchedulerWorker *worker) {
 			// no local improvement methods, directly handle result of shaking
 			if (worker->tmpSolImproved == 1) {
 				// improvement achieved:
-				shakingnh[worker->id]->resetLastMethod();
 				copyBetter(worker);	// save new best solution
+				shakingnh[worker->id]->resetLastMethod();
 			}
 			else {
 				// unsuccessful neighborhood method call
@@ -357,6 +373,29 @@ void VNSScheduler::updateData(SchedulerWorker *worker) {
 			else
 				// nevertheless store solution after shaking as incumbent of local improvement
 				worker->pop.update(0, worker->tmpSol);
+		}
+	}
+}
+
+
+void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
+	if (worker->method->idx < constheu.size() + locimpnh[0]->size())
+		Scheduler::updateMethodStatistics(worker, methodTime);
+	else
+		nIteration++;
+	// else skip shaking method statistics updated; will be done separately
+}
+
+void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
+	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
+	if (sm != NULL) {
+		int idx=shakingnh[worker->id]->getLastMethod()->idx;
+		totTime[idx] += CPUtime() - shakingStartTime;
+		nIter[idx]++;
+		// if the applied method was successful, update the success-counter and the total obj-gain
+		if (improved) {
+			nSuccess[idx]++;
+			sumGain[idx] += abs(worker->pop[0]->obj() - worker->pop[1]->obj());
 		}
 	}
 }

@@ -52,7 +52,7 @@ string_param sfile("sfile","name of file to save solution to","");
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
 /** This is the solution class for the OneMax problem.
-	In larger appications, it should be implemented in a separate
+	In larger applications, it should be implemented in a separate
 	module. */
 class oneMaxSol : public binStringSol  //, public gcProvider
 {
@@ -90,6 +90,7 @@ double oneMaxSol::delta_obj(const nhmove &m)
 
 bool oneMaxSol::localimp(int k)
 {
+	// a rather meaningless demo local improvement:
 	// "locally optimize" position k, i.e., set it to 1 if 0
 	if (!data[k])
 	{
@@ -102,10 +103,12 @@ bool oneMaxSol::localimp(int k)
 
 bool oneMaxSol::shaking(int k)
 {
-	// int i=random_int(length);
-	// data[i]=!data[i];
-	// invalidate();
-	mutate(k);
+	for (int j=0; j<k; j++) {
+		int i=random_int(length);
+		data[i]=!data[i];
+	}
+	invalidate();
+	// mutate(k);
 	return true;
 }
 
@@ -243,16 +246,16 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
-		VNSScheduler *alg;
-		alg=new VNSScheduler(p,constheus(),vndnhs(),vnsnhs());
+		GVNSScheduler *alg;
+		alg=new GVNSScheduler(p,constheus(),vndnhs(),vnsnhs());
 		for (int i=1;i<=constheus();i++)
 			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("conh"+tostring(i),
 				&usedSol::construct,i,0));
-		for (int i=1;i<=vndnhs();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("vndnh"+tostring(i),
+		for (int i=0;i<vndnhs();i++)
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("locim"+tostring(i),
 				&usedSol::localimp,i,1));
 		for (int i=1;i<=vnsnhs();i++) {
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("vnsnh"+tostring(i),
+			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("shake"+tostring(i),
 				&usedSol::shaking,i,1));
 		}
 		alg->run();		// run Scheduler until termination cond.

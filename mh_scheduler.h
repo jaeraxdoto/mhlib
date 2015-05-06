@@ -96,6 +96,7 @@ public:
 	unsigned int id;				///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
+	double startTime;				///< Time when the last method call has been started
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -112,7 +113,7 @@ public:
 	 * - -1: solution not changed
 	 * -  0: solution not improved but changed
 	 * -  1  solution improved */
-	bool tmpSolImproved;
+	int tmpSolImproved;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -123,6 +124,7 @@ public:
 		scheduler = _scheduler;
 		id=_id,
 		method = NULL;
+		startTime = 0;
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
 	}
@@ -133,7 +135,7 @@ public:
 	}
 
 	/**
-	 * This method is the main procedure of a worker, which is spawend as an own thread.
+	 * This method is the main procedure of a worker, which is spawned as an own thread.
 	 * It contains the main loop consisting of the selection of the next method and solutions
 	 * to which it is applied, running it, and updating relevant data.
 	 * Additionally, the termination criteria are checked after each iteration by calling the
@@ -398,7 +400,7 @@ public:
 };
 
 
-//--------------------------- VNSScheduler ------------------------------
+//--------------------------- GVNSScheduler ------------------------------
 
 /**
  * This class implements a general variable neighborhood search (GVNS) with an arbitrary
@@ -409,12 +411,13 @@ public:
  * Each worker performs an independent VNS, the overall best solution is adopted to the
  * Scheduler's main population.
  */
-class VNSScheduler : public Scheduler {
+class GVNSScheduler : public Scheduler {
 
 protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
 	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
 	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
+	double shakingStartTime;	///< CPUtime when the last shaking operation has been started
 
 	/** An improved solution has been obtained by a method and is stored in tmpChrom.
 	 * This method updates worker->pop[0] holding the worker's so far best solution and
@@ -429,17 +432,17 @@ public:
 	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
 	 * finally nshakingnh  shaking or large neighborhood search neighborhoods.
 	 */
-	VNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
+	GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 			unsigned int nshakingnh, const pstring &pg = (pstring) (""));
 
 	/** Cloning is not implemented for this class. */
-	virtual VNSScheduler* clone() const {
+	virtual GVNSScheduler* clone() const {
 		mherror("Cloning not implemented in VNSScheduler");
 		return NULL;
 	}
 
 	/** Cleanup: delete SchedulerMethodSelectors. */
-	~VNSScheduler() {
+	~GVNSScheduler() {
 		for (int t=0;t<threadsnum();t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
@@ -457,6 +460,20 @@ public:
 	 * the result of the last method application.
 	 */
 	void updateData(SchedulerWorker *worker);
+
+	/**
+	 * Updates the statistics data after applying a method in worker.
+	 * The special aspect here is that method times and success rates of shaking neighborhoods
+	 * consider the embedded local improvement and they are therefore not done here but in the separate
+	 * method updateShakingMethodStatistics.
+	 * @param methodTime CPU time used by the method call
+	 */
+	void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
+
+	/** Separate statistics update for shaking methods, which is called after performing
+	 * a full local improvement.
+	 */
+	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
 };
 
 
