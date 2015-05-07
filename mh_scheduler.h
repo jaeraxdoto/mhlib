@@ -119,8 +119,8 @@ public:
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol) :
-		pop(*sol, 2, false, false) {
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, int _popsize=2) :
+		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
 		method = NULL;
