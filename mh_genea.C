@@ -27,11 +27,11 @@ generationalEA::~generationalEA()
 	delete nextGeneration;
 }
 
-void generationalEA::performGeneration()
+void generationalEA::performIteration()
 {
 	checkPopulation();
 	
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	// create new generation
 	createNextGeneration();
@@ -43,9 +43,9 @@ void generationalEA::performGeneration()
 		nextGeneration[i]=pop->replace(i,nextGeneration[i]);
 	}
 	checkBest();
-	nGeneration++;
+	nIteration++;
 	
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 void generationalEA::createNextGeneration()
@@ -85,7 +85,7 @@ void generationalEA::createNextGeneration()
 			performMutation(nextGeneration[i],pmut(pgroup));
 			if (plocim(pgroup)>0 && random_prob(plocim(pgroup)))
 			{
-				tmpChrom->locallyImprove();
+				tmpSol->locallyImprove();
 				nLocalImprovements++;
 			}
 		}

@@ -49,7 +49,7 @@ public:
 	void run();
 	/** Performs a single generation.
 		Calls the islands' corresponding function. */
-	void performGeneration();
+	void performIteration();
 
 protected:
 	/** Performs migration between islands. */

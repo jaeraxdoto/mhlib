@@ -26,9 +26,9 @@ int VNDProvider::get_lmax(const pstring &pg)
 
 VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 {
-	VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpChrom);
+	VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
-	if ( dynamic_cast<VNDProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<VNDProvider*>(tmpSol) == 0 )
 		mherror("Solution is not a VNDProvider");
 
 	lmax = vndsol->get_lmax(pg);
@@ -41,7 +41,7 @@ VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 	else
 		nborder=nbo;	// use provided neighborhood order object
 
-	tcgen.set(lmax, pg.s);
+	tciter.set(lmax, pg.s);
 	nSearch.assign(lmax+1,0);
 	nSearchSuccess.assign(lmax+1,0);
 	sumSearchGain.assign(lmax+1,0.0);
@@ -71,7 +71,7 @@ void VND::run(){
 	{
 		while(true)
 		{
-			performGeneration();
+			performIteration();
 			if (terminate())
 			{
 				// write last generation info in any case
@@ -94,15 +94,15 @@ void VND::run(){
 	}
 }
 
-void VND::performGeneration(){
+void VND::performIteration(){
 
 	checkPopulation();
 
-	perfGenBeginCallback();
-	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpChrom);
+	perfIterBeginCallback();
+	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
 	double starttime=CPUtime();
-	tmpChrom->reproduce(*pop->at(0));
+	tmpSol->reproduce(*pop->at(0));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);
@@ -111,26 +111,26 @@ void VND::performGeneration(){
 	time[lidx]+=CPUtime()-starttime;
 
 	/* Move or not */
-	if (pop->at(0)->isWorse(*tmpChrom))
+	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
 		nSearchSuccess[lidx]++;
 		sumSearchGain[lidx]+=pop->at(0)->obj()-
-			tmpChrom->obj();
-		tmpChrom = replace(tmpChrom);
+			tmpSol->obj();
+		tmpSol = replace(tmpSol);
 		l = 1;
 	}
 	else 
 		l++;
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 void VND::writeLogEntry(bool inAnyCase) {
 	checkPopulation();
-	if (logstr.startEntry(nGeneration, pop->bestObj(), inAnyCase)) {
+	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
 		// 		logstr.write(pop->getMean());
 		// 		logstr.write(pop->getDev());
@@ -194,15 +194,15 @@ void VND::printStatistics(ostream &ostr)
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in generation:\t" << genBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timGenBest );
-	ostr << "solution time for best:\t" << timGenBest << endl;
+	ostr << "best obtained in generation:\t" << iterBest << endl;
+	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
-	ostr << "generations:\t" << nGeneration << endl;
-	ostr << "subgenerations:\t" << nSubGenerations << endl;
+	ostr << "generations:\t" << nIteration << endl;
+	ostr << "subgenerations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
 	ostr << "crossovers:\t" << nCrossovers << endl;
 	ostr << "mutations:\t" << nMutations << endl;
@@ -285,13 +285,12 @@ void NBStructureOrder::permuteRandomly()
 }
 
 NBStructureOrder::NBStructureOrder(int _lmax,int _strategy)
-	: lmax(_lmax), order(_lmax+1), strategy(_strategy)
+	: lmax(_lmax), strategy(_strategy)
 {
+	order.reserve(_lmax+1);
 	// initialize neighborhood order
 	for (int i=0;i<=lmax;i++)
-	{
-		order[i].first=i; order[i].second=0.0;
-	}
+		order.push_back(pair<int,double>(i,0.0));
 	if (strategy>0)
 		permuteRandomly();
 }

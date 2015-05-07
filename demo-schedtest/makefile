@@ -9,11 +9,11 @@ endif
 include $(MHLIB)/makefile.common
 CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
-EXE=qap
+EXE=schedtest
 
-HEADERS=qapsol.h qapfeature.h qapinstance.h qaptabuattribute.h
+HEADERS=
 
-SRCS=qap.C qapsol.C qapfeature.C qapinstance.C qaptabuattribute.C
+SRCS=schedtest.C
 
 OBJS=$(SRCS:.C=.o)
 

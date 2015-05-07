@@ -28,7 +28,7 @@ extern int_param mvnbop;
 /** Abstract solution class for the metaheuristics.
 	A concrete class must be derived for a specific problem.
 	This class should be mostly, but not completely
-	independent of the used EA. */
+	independent of the used algorithm. */
 class mh_solution
 {
 protected:
@@ -64,14 +64,14 @@ public:
 	/** Constructor for unitinialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
-		(which should be 1 in case of chromosomes of arbitrary
+		(which should be 1 in case of solutions of arbitrary
 		length. */
 	mh_solution(int l, mh_base *t, const pstring &pg=(pstring)("")) : length(l), alg(t), pgroup(pg.s)
 		{ objval_valid=false; objval=0; }
 	/** Constructor for unitinialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
-		(which should be 1 in case of chromosomes of arbitrary
+		(which should be 1 in case of solutions of arbitrary
 		length. */
 	mh_solution(int l, const pstring &pg=(pstring)("") ) : length(l), alg(0), pgroup(pg.s)
 		{ objval_valid=false; objval=0; }
@@ -95,17 +95,17 @@ public:
 			p->copy(*this); return p; }
 	/** Copy a solution.
 		Must be overloaded for a concrete solution class.
-		Only two chromosomes of identical classes may be copied. */
+		Only two solutions of identical classes may be copied. */
 	virtual void copy(const mh_solution &orig)
 		{ objval=orig.objval; objval_valid=orig.objval_valid; alg=orig.alg; pgroup=orig.pgroup; }
 	/** The operator "=" simply calls the copy method. */
         const mh_solution & operator = (const mh_solution &orig)
                 { copy(orig); return *this; }
-	/** Comparison of two chromosomes of identical classes.
+	/** Comparison of two solutions of identical classes.
 		Needed e.g. for duplicate elimination. 
 		Should be implemented in an efficient way, e.g. by first
 		looking at the objective values, and only if they are
-		different then on all the genes or phenotypic properties. */
+		equal then on all the genes or phenotypic properties. */
 	virtual bool equals(mh_solution &orig)
 		{ return false; }
 	/** Returns the (phenotypic) distance between the current solution
@@ -179,11 +179,11 @@ public:
 	virtual void reproduce(const mh_solution &par)
 		{ copy(par); }
 	/** Writes the solution to an ostream.
-		The solution should be written to the given ostream in in
-		text format. "detailed" tells how detailed the description 
-		should be (0...least detailed). The objective value need
-		not to be written out. */
-	virtual void write(ostream &ostr,int detailed=0)const=0;
+		The solution is written to the given ostream in in
+		text format.
+		@param detailed tells how detailed the description
+		should be (0...least detailed). */
+	virtual void write(ostream &ostr,int detailed=0) const=0;
 	/** Saves a solution to a file. (Not necessarily needed.) */
 	virtual void save(const char *fname) {}
 	/** Saves a solution to a file. (Not necessarily needed.) */
@@ -196,8 +196,8 @@ public:
 		returns true if the current solution is fitter than that
 		given as parameter. Takes care on parameter maxi. */
 	bool isBetter(mh_solution &p)
-		{ return maxi(pgroup)?obj()>p.obj()+0.00001:
-			obj()<p.obj()-0.00001; }
+		{ return maxi(pgroup)?obj()>p.obj():
+			obj()<p.obj(); }
 	/** Compare the fitness.
 		returns true if the current solution is worse than that
 		given as parameter. Takes care on parameter maxi. */
@@ -212,9 +212,9 @@ public:
 		{ objval_valid=false; }
 	/** Hashing function.
 		This function returns a hash-value for the solution.
-		Two chromosomes that are considered as equal must return the
+		Two solutions that are considered as equal must return the
 		same value; however, identical hash-values for two
-		chromosomes do not imply that the solution are equal.
+		solutions do not imply that the solution are equal.
 		This is needed for the hash-table of the population. 
 		The default implementation derives a value from obj(). */
 	virtual unsigned long int hashvalue()
@@ -237,7 +237,7 @@ public:
 	virtual void selectImprovement(bool find_best) {}
 	/** Set the algorithm for this solution.
 	        An algorithm should call this before using a solution,
-	        to let the chromosomes know what algorithm is using them. */
+	        to let the solutions know what algorithm is using them. */
 	void setAlgorithm(mh_base *alg)
 		{ this->alg=alg; if (alg!=0) this->pgroup=alg->pgroup; }
 };
@@ -253,5 +253,11 @@ inline double mh_solution::obj()
 	  	return objval; 
 	} 
 }
+
+/** Operator << overloaded for writing solutions to an osteram. */
+inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
+	sol.write(ostr); return ostr;
+}
+
 
 #endif //MH_SOLUTION_H

@@ -59,7 +59,7 @@ void islandModelEA::run()
 	if (!terminate())
 		for(;;)
 		{
-			performGeneration();
+			performIteration();
 			sumStatistics();
 			if (terminate())
 			{
@@ -80,17 +80,17 @@ void islandModelEA::run()
 		logstr.flush();
 }
 
-void islandModelEA::performGeneration()
+void islandModelEA::performIteration()
 {
 	checkPopulation();
 	
 	saveBest();
 	for (int i=0;i<islk(pgroup);i++)
 	{
-		subEAs[i]->performGeneration();
+		subEAs[i]->performIteration();
 	}
 	checkBest();
-	nGeneration++;
+	nIteration++;
 }
 
 void islandModelEA::performMigration()
@@ -108,8 +108,8 @@ void islandModelEA::performMigration()
 			for (int iii=0;iii<islk(pgroup);iii++)
 				if (i!=iii)
 				{
-					tmpChrom->copy(*t);
-					tmpChrom=subEAs[iii]->replace(tmpChrom);
+					tmpSol->copy(*t);
+					tmpSol=subEAs[iii]->replace(tmpSol);
 				}
 		}
 	}

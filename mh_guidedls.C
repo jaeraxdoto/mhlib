@@ -12,14 +12,14 @@ int_param glsri("glsri","Interval for penalty resets.", 0, 0, LOWER_EQUAL );
 
 guidedLS::guidedLS(pop_base &p, const pstring &pg) : lsbase(p,pg), lambda(0)
 {
-	featureProvider *fp = dynamic_cast<featureProvider*>(tmpChrom);
+	featureProvider *fp = dynamic_cast<featureProvider*>(tmpSol);
 	if ( fp==NULL )
 		mherror("Chromosome is not a featureProvider");
 	else
 		f = fp->getFeature();
 	if ( pop->size() < 2 )
 		mherror("Population is to small");
-	spop = new population(*tmpChrom, 1, true, pgroupext((pstring)pgroup,"sub"));
+	spop = new population(*tmpSol, 1, true, false, pgroupext((pstring)pgroup,"sub"));
 }
 
 guidedLS::~guidedLS()
@@ -28,13 +28,13 @@ guidedLS::~guidedLS()
 	delete spop;
 }
 
-void guidedLS::performGeneration()
+void guidedLS::performIteration()
 {
 	mh_advbase *alg;
 
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	// Phase 1: apply local search 
 	alg = create_mh( *spop, pgroupext((pstring)pgroup,"sub") );
@@ -57,19 +57,19 @@ void guidedLS::performGeneration()
 	if ( lambda==0 )
 		lambda = f->tuneLambda(pop->at(1));
 
-	tmpChrom->reproduce(*spop->at(0));
-	if (pop->at(0)->isWorse(*tmpChrom))
-		tmpChrom=replace(tmpChrom);
+	tmpSol->reproduce(*spop->at(0));
+	if (pop->at(0)->isWorse(*tmpSol))
+		tmpSol=replace(tmpSol);
 
 	// Phase 2: update penalties
-	if ( glsri(pgroup) > 0 && nGeneration % glsri(pgroup) == 0 )
+	if ( glsri(pgroup) > 0 && nIteration % glsri(pgroup) == 0 )
 		f->resetPenalties();
 	else
-		f->updatePenalties(tmpChrom);
+		f->updatePenalties(tmpSol);
 	
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 double guidedLS::aobj(mh_solution *c)

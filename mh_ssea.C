@@ -12,11 +12,11 @@ double_param pmutnc("pmutnc","mutation prob. for chroms created via crossover",
 
 bool_param cntopd("cntopd","count operator duplicates",false);
 
-void steadyStateEA::performGeneration()
+void steadyStateEA::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 	
 	// create a new solution
 	int p1=select();
@@ -26,32 +26,32 @@ void steadyStateEA::performGeneration()
 		int p2=select();
 		mh_solution *pp1=pop->at(p1);
 		mh_solution *pp2=pop->at(p2);
-		performCrossover(pp1,pp2,tmpChrom);
-		performMutation(tmpChrom,pmut(pgroup));
+		performCrossover(pp1,pp2,tmpSol);
+		performMutation(tmpSol,pmut(pgroup));
 	}
 	else
 	{
 		// no recombination
-		tmpChrom->reproduce(*pop->at(p1));
+		tmpSol->reproduce(*pop->at(p1));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);
-		performMutation(tmpChrom,pm);
+		performMutation(tmpSol,pm);
 	}
 
 	// optionally locally improve the chromosome
 	if (plocim(pgroup) && random_prob(plocim(pgroup)))
 	{
-		tmpChrom->locallyImprove();
+		tmpSol->locallyImprove();
 		nLocalImprovements++;
 	}
 
 	// replace in population
-	mh_solution *r=tmpChrom;
-	tmpChrom=replace(tmpChrom);
-	if (!dcdag(pgroup) || r!=tmpChrom)
-		nGeneration++;
+	mh_solution *r=tmpSol;
+	tmpSol=replace(tmpSol);
+	if (!dcdag(pgroup) || r!=tmpSol)
+		nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 
 }

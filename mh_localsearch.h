@@ -16,10 +16,10 @@ class localSearch : public lsbase, public glsSubAlgorithm
 {
 public:
 	/** The constructor.
-		An initialized population already containing chromosomes 
+		An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		algorithm and will not be deleted by its destructor. 
-		localSearch always only uses the first chromosome. */
+		localSearch always only uses the first solution. */
 	localSearch(pop_base &p, const pstring &pg=(pstring)("")) : lsbase(p,pg) {};
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
@@ -29,7 +29,7 @@ public:
 	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
 	    { return new localSearch(p,pg); }
 	/** Performs a single generation. */
-	void performGeneration();
+	void performIteration();
 };
 
 #endif //MH_LOCALSEARCH_H

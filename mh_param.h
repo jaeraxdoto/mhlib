@@ -39,6 +39,7 @@ using namespace __gnu_cxx;
 class param;
 
 /**
+ * A simple class encapsulating a parameter name.
  */
 class pstring
 {

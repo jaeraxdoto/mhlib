@@ -17,7 +17,7 @@ class GRASP : public lsbase
 {
 protected:
 	/* The subpopulation for the inner algorithm. */
-	pop_base *spop;
+	pop_base *spop = NULL;
 
 public:
 	/** The constructor.
@@ -37,7 +37,7 @@ public:
 		{ return new GRASP(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 };
 
 #endif //MH_GRASP_H

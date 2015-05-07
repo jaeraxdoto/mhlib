@@ -10,6 +10,7 @@
 #include "mh_hash.h"
 #include "mh_random.h"
 #include "mh_util.h"
+#include "mh_c11threads.h"
 
 #ifdef __WIN32__
 #include <process.h>
@@ -47,8 +48,11 @@ static long idum=0;
 
 #include<iostream>
 
+static mutex rndmutex;
+
 void random_seed() 
 {
+	rndmutex.lock();
 	// initialize own random number generator
 	unsigned int lseed=(unsigned int)seed("");
 	if (lseed == 0) 
@@ -105,6 +109,7 @@ void random_seed()
 		#endif
 	}
 #endif //notused
+	rndmutex.unlock();
 }
 
 
@@ -132,6 +137,7 @@ static void rndseed(unsigned int seed)
 
 double random_double() 
 {
+	rndmutex.lock();
 	int j;
 	long k;
 	float temp;
@@ -148,9 +154,12 @@ double random_double()
 	iv[j] = idum;
 	if (iy < 1) 
 		iy += IMM1;
-	if ((temp=AM*iy) > RNMX) 
+	temp=AM*iy; 
+	rndmutex.unlock();
+	if (temp > RNMX) 
 		return RNMX;
-	else return temp;
+	else 
+		return temp;
 }
 
 
@@ -169,13 +178,17 @@ double random_double()
 }
 */
 
+mutex rndnormalmutex;
+
 double random_normal()
 {
+	rndnormalmutex.lock();
 	static bool cached=false;
 	static double cachevalue;
 	if(cached)
 	{
 		cached = false;
+		rndnormalmutex.unlock();
 		return cachevalue;
 	}
 	double rsquare, factor, var1, var2;
@@ -192,6 +205,7 @@ double random_normal()
 		factor = 0.0;	// should not happen, but might due to roundoff
 	cachevalue = var1 * factor;
 	cached = true;
+	rndnormalmutex.unlock();
 	return (var2 * factor);
 }
 
@@ -207,6 +221,7 @@ static void bitseed(unsigned int seed)
 
 bool random_bool() 
 {
+	rndmutex.lock();
 	// return random_int()?true:false;
 	static const int IB1=1;
 	static const int IB2=2;
@@ -216,11 +231,13 @@ bool random_bool()
 	if (iseed & IB18) 
 	{
 		iseed=((iseed ^ MASK) << 1) | IB1;
+		rndmutex.unlock();
 		return true;
 	} 
 	else 
 	{
 		iseed <<= 1;
+		rndmutex.unlock();
 		return false;
 	}
 }
@@ -271,6 +288,7 @@ unsigned int random_poisson(double mu)
 {
 	double r=random_double();
 	
+	rndmutex.lock();
 	typedef poisson_cache *ppoisson_cache;
 	static hash_map<double,ppoisson_cache,hashdouble> cache(4);
 
@@ -293,13 +311,17 @@ unsigned int random_poisson(double mu)
 	{
 		if (r<=dens[k])
 			if (k==0 || r>=dens[k-1])
+			{
+				rndmutex.unlock();
 				return k;
+			}
 			else
 				ku=k-1;
 		else
 			kl=k+1;
 		k=(kl+ku)/2;
 	}
+	rndmutex.unlock();
 	return k;
 }
 
@@ -308,6 +330,7 @@ unsigned random_intfunc(unsigned seed, unsigned x)
 // Pseudo-DES hashing of the 64-bit word (lword,irword). Both 32-bit arguments
 // are returned hashed on all bits.
 {
+	rndmutex.lock();
 	unsigned long i,ia,ib,iswap,itmph=0,itmpl=0;
 	static unsigned long c1[4]={
 		0xbaa96887L, 0x1e17d32cL, 0x03bcdc3cL, 0x0f33d1b2L};
@@ -324,6 +347,7 @@ unsigned random_intfunc(unsigned seed, unsigned x)
 		((ib & 0xffff) << 16)) ^ c2[i])+itmpl*itmph);
 		seed=iswap;
 	}
+	rndmutex.unlock();
 	return x;
 }
 

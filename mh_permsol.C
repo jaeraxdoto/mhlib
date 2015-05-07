@@ -1,22 +1,22 @@
-// mh_permchrom.C
+// mh_permsol.C
 
 #include <vector>
-#include "mh_permchrom.h"
+#include "mh_permsol.h"
 #include "mh_util.h"
 
-int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,100);
+int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,50);
 // 6:erx 7:eerx 8:mpx not yet implemented
 
-int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,100);
+int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,50);
 // 4:displacement not yet implemented
 
-void permChrom::initialize(int count)
+void permSol::initialize(int count)
 {
 	for (int i=0;i<length;i++)
-		data[i] = permChromGeneType(i);
+		data[i] = permSolVarType(i);
 	for (int i=0;i<length-1;i++)
 	{
-		permChromGeneType t=data[i];
+		permSolVarType t=data[i];
 		int x=random_int(i,length-1);
 		data[i]=data[x];
 		data[x]=t;
@@ -24,7 +24,7 @@ void permChrom::initialize(int count)
 	invalidate();
 }
 
-void permChrom::mutate(int count)
+void permSol::mutate(int count)
 {
 	int c=permmop(pgroup);
 	if (c==0) 
@@ -45,11 +45,11 @@ void permChrom::mutate(int count)
 			break;
 		*/
 
-		default: mherror("Wrong mutation operator selected."); break;
+		default: mherror("Wrong mutation operator permmop selected", tostring(c)); break;
 	}
 }
 
-void permChrom::mutate_inversion(int count)
+void permSol::mutate_inversion(int count)
 {
 	int c1,c2;
 	for (int i=0;i<count;i++)
@@ -65,26 +65,26 @@ void permChrom::mutate_inversion(int count)
 	invalidate();
 }
 
-void permChrom::mutate_exchange(int count)
+void permSol::mutate_exchange(int count)
 {
 	int c1,c2;
 	for (int i=0;i<count;i++)
 	{
 		get_cutpoints(c1,c2);
-		permChromGeneType t = data[c1];
+		permSolVarType t = data[c1];
 		data[c1] = data[c2];
 		data[c2] = t;
 	}
 	invalidate();
 }
 
-void permChrom::mutate_insertion(int count)
+void permSol::mutate_insertion(int count)
 {
 	int cs,ci;
 	for (int i=0;i<count;i++)
 	{
 		get_cutpoints(cs,ci);
-		permChromGeneType t = data[cs];
+		permSolVarType t = data[cs];
 		for (int i=cs;i<ci;i++)
 			data[i]=data[i+1];
 		data[ci]=t;
@@ -92,7 +92,7 @@ void permChrom::mutate_insertion(int count)
 	invalidate();
 }
 
-void permChrom::crossover(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover(const mh_solution &parA,const mh_solution &parB)
 {
 	int c;
 	if (permxop(pgroup)) 
@@ -125,15 +125,15 @@ void permChrom::crossover(const mh_solution &parA,const mh_solution &parB)
 		case 8: crossover_mpx(parA,parB);
 			break;
 		*/
-		default: mherror("Wrong crossover operator selected."); break;
+		default: mherror("Wrong crossover operator permxop selected", tostring(c)); break;
 	}
 }
 
 // PMX operator
-void permChrom::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	int c1,c2;      // cutpoints [0,length[
 
@@ -141,12 +141,12 @@ void permChrom::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 
 	std::vector<int> m(length,-1); // m defines the mapping
     
-	// all genes between c1-c2 are taken from parent A
+	// all variables between c1-c2 are taken from parent A
 	// and their mapping is stored in m
 	for (int i=c1;i<c2;i++)
 		m[data[i] = a.data[i]] =  b.data[i];
 
-	// all other genes are taken from parent B and checked with the mapping m
+	// all other variables are taken from parent B and checked with the mapping m
 	for (int i=0;i<c1;i++)
 	{
 		data[i]=b.data[i];
@@ -164,10 +164,10 @@ void permChrom::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 }
 
 // OX operator
-void permChrom::crossover_ox(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_ox(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	int c1,c2;      // cutpoints [0,length[
 
@@ -191,18 +191,18 @@ void permChrom::crossover_ox(const mh_solution &parA,const mh_solution &parB)
 }
 
 // CX operator
-void permChrom::crossover_cx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
-	// fill all genes from one parent
+	// fill all variables from one parent
 	for (int i=0;i<length;i++)
 		data[i] = b.data[i];
 
 	vector<int> pos(length);
 
-	// build a table with all positions in the chromosome
+	// build a table with all positions in the solution
 	for (int i=0;i<length;i++)
 		pos[a.data[i]] = i;
 
@@ -211,7 +211,7 @@ void permChrom::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 	// tc = city to take
 	int tc = a.data[0];
 
-	// fill genes until a cycle is reached
+	// fill variables until a cycle is reached
 	while (!d[tc])
 	{
 		data[pos[tc]] = a.data[pos[tc]];
@@ -222,10 +222,10 @@ void permChrom::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 }
 
 // UOBX operator
-void permChrom::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	vector<bool> s(length,false);
 	for (int i=0;i<length;i++)
@@ -246,10 +246,10 @@ void permChrom::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
 
 // C1 operator
 // a variation of the UOBX operator
-void permChrom::crossover_c1(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_c1(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	int c=random_int(1,length-1);
 
@@ -272,10 +272,10 @@ void permChrom::crossover_c1(const mh_solution &parA,const mh_solution &parB)
 #ifdef notused
 
 // ERX operator
-void permChrom::crossover_erx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_erx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	LEDA::d_array<int,LEDA::set<int> > hash;
 	LEDA::list<int> res;                    // result list
@@ -331,10 +331,10 @@ void permChrom::crossover_erx(const mh_solution &parA,const mh_solution &parB)
 
 // EERX operator
 // enhanced ERX operator
-void permChrom::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	LEDA::d_array<int,LEDA::set<int> > hash;
 	LEDA::list<int> res;                    // result list
@@ -421,10 +421,10 @@ void permChrom::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
 
 // MPX operator
 // Maximal preservative crossover
-void permChrom::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permChrom &a = toPermChrom(parA);
-	const permChrom &b = toPermChrom(parB);
+	const permSol &a = toPermSol(parA);
+	const permSol &b = toPermSol(parB);
 
 	int c1,c2,t=0,r=random_bool();
 
@@ -446,7 +446,7 @@ void permChrom::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
 
 #endif // notused
 
-void permChrom::applyMove(const nhmove &m)
+void permSol::applyMove(const nhmove &m)
 {
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
 	swap(data[qm.r],data[qm.s]);

@@ -8,7 +8,7 @@
 
 #include <vector>
 #include "mh_feature.h"
-#include "qapchrom.h"
+#include "qapsol.h"
 
 /** A quadratic assignment feature class. */
 class qapFeature : public feature
@@ -26,9 +26,9 @@ public:
 	qapFeature(const pstring &pg=(pstring)("") );
  	
 	/** Function for getting the penalty.
-		The penalty is computed with respect to a passed chromosome.
+		The penalty is computed with respect to a passed solution.
 	
-		\param c The chromosome to be penalized.
+		\param c The solution to be penalized.
 		\return The penalty.
 	*/
 	virtual double penalty(const mh_solution *c);
@@ -38,16 +38,16 @@ public:
 
 		Note: This version only works if a swapMove is passed.
 	
-		\param c The chromosome to be penalized.
+		\param c The solution to be penalized.
 		\param m The move to be evaluated.
 		\return The change of the penalty.
 	*/
 	virtual double delta_penalty(const mh_solution *c, const nhmove *m);
 	
 	/** Update penalty values.
-		With respect to a given chromosome.
+		With respect to a given solution.
 	
-		\param c The chromosome whose features are used for the penalty update.
+		\param c The solution whose features are used for the penalty update.
 	*/
 	virtual void updatePenalties(const mh_solution *c);
 	
@@ -57,7 +57,7 @@ public:
 	/** Function to compute a tuned influence of penalties.
 		The calculation is parametrized with the glsa parameter.
 	
-		\param c The chromosome 
+		\param c The solution 
 	*/
 	virtual double tuneLambda(mh_solution *c);
 };

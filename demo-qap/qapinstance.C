@@ -5,7 +5,7 @@
 #include <fstream>
 #include <map>
 #include "mh_util.h"
-#include "qapchrom.h"
+#include "qapsol.h"
 #include "qapinstance.h"
 
 /// Name of file to load qap instance.

@@ -11,7 +11,7 @@ tabuSearch::tabuSearch(pop_base &p, const pstring &pg) : lsbase(p,pg)
 	curChrom = pop->at(0)->clone();
 
 	// dynamic_cast to see if we are using a tabuProvider chromosome
-	if ( dynamic_cast<tabuProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<tabuProvider*>(tmpSol) == 0 )
 		mherror("Chromosome is not a tabuProvider");
 }
 
@@ -21,23 +21,23 @@ tabuSearch::~tabuSearch()
 	delete tl_ne;
 }
 
-void tabuSearch::performGeneration()
+void tabuSearch::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
 	curChrom->selectNeighbour();
 
-	tmpChrom->copy(*curChrom);
+	tmpSol->copy(*curChrom);
 	
-	if (tmpChrom->isBetter(*pold))
-		tmpChrom=replace(tmpChrom);
+	if (tmpSol->isBetter(*pold))
+		tmpSol=replace(tmpSol);
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 bool tabuSearch::isTabu(tabuAttribute *t)

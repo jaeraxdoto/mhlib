@@ -53,7 +53,7 @@ public:
 		{ return new simulatedAnnealing(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 	/** Cooling scheme.
 	        Is called from performGeneration; adapts current temperature;
 		defaults to geometric cooling */

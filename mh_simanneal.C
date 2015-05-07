@@ -19,36 +19,36 @@ simulatedAnnealing::simulatedAnnealing(pop_base &p, const pstring &pg) : lsbase(
 	T = satemp(pgroup);
 }
 
-void simulatedAnnealing::performGeneration()
+void simulatedAnnealing::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
-	tmpChrom->reproduce(*pold);
-	tmpChrom->selectNeighbour();
+	tmpSol->reproduce(*pold);
+	tmpSol->selectNeighbour();
 
-	if (tmpChrom->isBetter(*pold))
-		tmpChrom=replace(tmpChrom);
+	if (tmpSol->isBetter(*pold))
+		tmpSol=replace(tmpSol);
 	else
-		if ( accept( pold, tmpChrom ) )
+		if ( accept( pold, tmpSol ) )
 		{
-			tmpChrom=replace(tmpChrom);
+			tmpSol=replace(tmpSol);
 			nDeteriorations++;
 		}
 
 	cooling();
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 void simulatedAnnealing::cooling()
 {
 	// Geometric cooling.
-	if ( ( nGeneration % sacint(pgroup) ) == 0 )
+	if ( ( nIteration % sacint(pgroup) ) == 0 )
 		T *= saca(pgroup);
 }
 

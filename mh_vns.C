@@ -11,21 +11,21 @@ int_param vnsnum("vnsnum", "Maximum number of VNS neighborhood used",10000,0,100
 
 int_param vnsorder("vnsorder","VNS nb-order 0:static, 1:random, 2:adaptive",0,0,2);
 
-int_param vnsvndtgen("vnsvndtgen","tgen for VND embedded in VSN",100000,-1,100000000);
+int_param vnsvndtiter("vnsvndtgen","tgen for VND embedded in VSN",100000,-1,100000000);
 
 int_param vnsvndttime("vnsvndttime","ttime for VND embedded in VSN",-1);
 
 VNS::VNS(pop_base &p, const pstring &pg) : 
 	lsbase(p,pg), vndpg(pgroupext((pstring)pgroup,"vnd"))
 {
-	if ( dynamic_cast<VNSProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<VNSProvider*>(tmpSol) == 0 )
 		mherror("Chromosome is not an VNSProvider");
 	
-	tgen.set(vnsvndtgen(),"vnd");
+	titer.set(vnsvndtiter(),"vnd");
 	ttime.set(vnsvndttime(),"vnd");
 	if ( pop->size() < 1 )
 		mherror("Population is too small");
-	spop = new population(*pop->bestSol(), 1, false, vndpg);
+	spop = new population(*pop->bestSol(), 1, false, false, vndpg);
 	// start with best chromosome
 	// spop->at(0)->reproduce(*pop->bestSol());
 	VNSProvider *vns = dynamic_cast<VNSProvider *> (spop->at(0));
@@ -38,9 +38,9 @@ VNS::VNS(pop_base &p, const pstring &pg) :
 	nFullIter=0;
 	if (vndnum(vndpg.s)>0)
 	{
-		VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpChrom);
+		VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
-		if ( dynamic_cast<VNDProvider*>(tmpChrom) == 0 )
+		if ( dynamic_cast<VNDProvider*>(tmpSol) == 0 )
 			mherror("Solution is not a VNDProvider");
 
 		int lmax = vndsol->get_lmax(vndpg);
@@ -60,11 +60,11 @@ VNS::~VNS()
 	}
 }
 
-void VNS::performGeneration()
+void VNS::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	VNSProvider *vns = dynamic_cast<VNSProvider *> (spop->at(0));
 
@@ -95,8 +95,8 @@ void VNS::performGeneration()
 	}
 
 	/* Move or not */
-	tmpChrom->reproduce(*spop->at(0));
-	if (pop->at(0)->isWorse(*tmpChrom))
+	tmpSol->reproduce(*spop->at(0));
+	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
 		if (k>0)
@@ -105,7 +105,7 @@ void VNS::performGeneration()
 			nShakeSuccess[kidx]++;
 			sumShakeGain[kidx]+=abs(pop->at(0)->obj()-spop->at(0)->obj());
 		}
-		tmpChrom = replace(tmpChrom);
+		tmpSol = replace(tmpSol);
 		k = 1;
 	}
 	else
@@ -115,15 +115,15 @@ void VNS::performGeneration()
 		k++;
 	}
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 
 void VNS::writeLogEntry(bool inAnyCase) {
 	checkPopulation();
-	if (logstr.startEntry(nGeneration, pop->bestObj(), inAnyCase)) {
+	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
 		// 		logstr.write(pop->getMean());
 		// 		logstr.write(pop->getDev());
@@ -184,15 +184,15 @@ void VNS::printStatistics(ostream &ostr)
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in generation:\t" << genBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timGenBest );
-	ostr << "solution time for best:\t" << timGenBest << endl;
+	ostr << "best obtained in generation:\t" << iterBest << endl;
+	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);
 	ostr << endl;
 	ostr << "CPU-time:\t" << tim << endl;
-	ostr << "generations:\t" << nGeneration << endl;
-	ostr << "subgenerations:\t" << nSubGenerations << endl;
+	ostr << "generations:\t" << nIteration << endl;
+	ostr << "subgenerations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
 	ostr << "crossovers:\t" << nCrossovers << endl;
 	ostr << "mutations:\t" << nMutations << endl;

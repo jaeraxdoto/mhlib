@@ -8,11 +8,11 @@
 
 GRASP::GRASP(pop_base &p, const pstring &pg) : lsbase(p,pg)
 {
-	if ( dynamic_cast<gcProvider*>(tmpChrom) == 0 )
+	if ( dynamic_cast<gcProvider*>(tmpSol) == 0 )
 		mherror("Chromosome is not a gcProvider");
 	if ( pop->size() < 2 )
 		mherror("Population is to small");
-	spop = new population(*tmpChrom, 1, true, pgroupext((pstring)pgroup,"sub"));
+	spop = new population(*tmpSol, 1, true, false, pgroupext((pstring)pgroup,"sub"));
 }
 
 GRASP::~GRASP()
@@ -20,11 +20,11 @@ GRASP::~GRASP()
 	delete spop;
 }
 
-void GRASP::performGeneration()
+void GRASP::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	/* Phase 1: greedy construction of a chromosome */
 	gcProvider *gp = dynamic_cast<gcProvider*>(spop->at(0));
@@ -41,11 +41,11 @@ void GRASP::performGeneration()
 	
 	delete alg;
 
-	tmpChrom->reproduce(*spop->at(0));
-	if (pop->at(0)->isWorse(*tmpChrom))
-		tmpChrom=replace(tmpChrom);
+	tmpSol->reproduce(*spop->at(0));
+	if (pop->at(0)->isWorse(*tmpSol))
+		tmpSol=replace(tmpSol);
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }

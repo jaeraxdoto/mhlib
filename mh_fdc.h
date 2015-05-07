@@ -1,4 +1,4 @@
-/* \file mh_fdc.h
+/** \file mh_fdc.h
 	\brief A class for performing a fitness-distance correlation analysis. 
 	
 	To use it, create an object and call method perform(); write()

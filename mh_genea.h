@@ -34,7 +34,7 @@ public:
 	mh_advbase *clone(pop_base &p,const pstring &pg=(pstring)(""))
 	    { return new generationalEA(p,pg); }
 	/** Performs a single generation. */
-	void performGeneration();
+	void performIteration();
 	/** The selection function.
 		Calls a concrete selection technique and returns the index
 		of the selected chromosome in the population. */

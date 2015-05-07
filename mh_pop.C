@@ -7,7 +7,7 @@
 void population::determineBest()
 {
 	indexBest=0;
-	for (int i=1;i<nChroms;i++)
+	for (int i=1;i<nSolutions;i++)
 		if (chroms[i]->isBetter(*chroms[indexBest]))
 			indexBest=i;
 }
@@ -23,18 +23,18 @@ int population::determineWorst() const
 	}
 	else
 	{
-		for (int i=1;i<nChroms;i++)
+		for (int i=1;i<nSolutions;i++)
 			if (!chroms[i]->isBetter(*chroms[idx]) && i!=indexBest)
 				idx=i;
 	}
 	return idx;
 }
 
-population::population(const mh_solution &c_template, int psize, bool binit, const pstring &pg)
+population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const pstring &pg)
 	: pop_base(psize,pg)
 {
-	chroms=new mh_solution *[nChroms];
-	for (int i=0;i<nChroms;i++)
+	chroms=new mh_solution *[nSolutions];
+	for (int i=0;i<nSolutions;i++)
 		if (binit)
 			chroms[i]=c_template.createUninitialized();
 		else
@@ -47,8 +47,8 @@ population::population(const mh_solution &c_template, int psize, bool binit, con
 population::population(const mh_solution &c_template, const pstring &pg)
 	: pop_base(pg)
 {
-	chroms=new mh_solution *[nChroms];
-	for (int i=0;i<nChroms;i++) {
+	chroms=new mh_solution *[nSolutions];
+	for (int i=0;i<nSolutions;i++) {
 		chroms[i]=c_template.createUninitialized();
 	}
 	initialize();
@@ -57,7 +57,7 @@ population::population(const mh_solution &c_template, const pstring &pg)
 
 population::~population()
 {
-        for (int i=0;i<nChroms;i++)
+        for (int i=0;i<nSolutions;i++)
 		delete chroms[i];
 	delete [] chroms;
 }
@@ -65,7 +65,7 @@ population::~population()
 void population::initialize()
 {
 	int initcall=0;
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 	{
 		do
 		{
@@ -96,13 +96,28 @@ mh_solution *population::replace(int index,mh_solution *newchrom)
 	return old; 
 }
 
+void population::update(int index, mh_solution *newchrom)
+{
+	statValid=false;
+	if (phash)
+		phash->remove(chroms[index]);
+	chroms[index]->copy(*newchrom);
+	if (phash)
+		phash->add(newchrom,index);
+	if (newchrom->isBetter(*chroms[indexBest]))
+		indexBest=index;
+	else if (index==indexBest)
+		determineBest();
+}
+
+
 int population::findDuplicate(mh_solution *p)
 {
 	if (phash)
 		return phash->findDuplicate(p);
 	else
 	{
-		for (int i=0;i<nChroms;i++)
+		for (int i=0;i<nSolutions;i++)
 			if (p->equals(*chroms[i]))
 				return i;
 		return -1;
@@ -112,10 +127,11 @@ int population::findDuplicate(mh_solution *p)
 void population::write(ostream &ostr)
 {
 	ostr << "# Population:" << endl;
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 	{
 		ostr << i << ":\t" << chroms[i]->obj() << '\t';
 		chroms[i]->write(ostr,0);
+		ostr << endl;
 	}
 	ostr << endl;
 }
@@ -126,7 +142,7 @@ void population::validateStat()
 		return;
 	double sum=0,sum2=0;
 	int idxwor=0;
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 	{
 		double o=chroms[i]->obj();
 		sum+=o;
@@ -134,14 +150,14 @@ void population::validateStat()
 		if (chroms[i]->isWorse(*chroms[idxwor]))
 			idxwor=i;
 	}
-	statMean=sum/nChroms;
+	statMean=sum/nSolutions;
 	statWorst=chroms[idxwor]->obj();
-	statDev=sqrt(sum2/nChroms-statMean*statMean);
+	statDev=sqrt(sum2/nSolutions-statMean*statMean);
 	statValid=true;
 }
 
 void population::setAlgorithm(mh_base *alg)
 {
-	for (int i=0;i<nChroms;i++)
+	for (int i=0;i<nSolutions;i++)
 		chroms[i]->setAlgorithm(alg);
 }

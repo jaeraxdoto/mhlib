@@ -23,12 +23,13 @@ extern int_param popsize;
 extern int_param dupelim;
 
 
-/** The EA population.
-	This is the base class for an EA population which provides the most
+/** The optimization algorithm's population.
+	This is the base class for an optimization algorithm's
+	population which provides the most
 	elementary things for holding a number of solutions.
 	It already contains necessary methods for an efficient
-	implementation of a steady-state EA, although it does not depend on
-	a specific EA class.
+	implementation of a steady-state evol. algorithm, although it does not depend on
+	a specific algorithm class.
 	Classes with various special methods such as caching
 	and more efficient data structures for certain
 	methods can be derived. */
@@ -48,8 +49,9 @@ public:
 		The size is given as parameter psize.
 		The template solution is used to create solutions of the same type.
 		If binit is set, the new solutions are all initialized, otherwise they
-		are a copy of the template solution. */
-	population(const mh_solution &c_template, int psize, bool binit, const pstring &pg=(pstring)(""));
+		are a copy of the template solution.
+		If nohashing is set, hashing is avoided in the population; otherwise it depends on dupelim(). */
+	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const pstring &pg=(pstring)(""));
 	/** A population of solutions is created.
 		The size is taken from popsize().
 		The template solution is used to create solutions of the same type,
@@ -72,8 +74,12 @@ public:
 		{ return chroms[index]; }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
-		prior solution. */
+		prior solution. Population data is updated. */
 	mh_solution *replace(int index,mh_solution *newchrom);
+	/** Copy the given solution into the solution at position index in
+	 * the population and update population data.
+	 */
+	void update(int index, mh_solution *newchrom);
 	/** Returns pointer to best solution of population. */
 	mh_solution *bestSol() const
 		{ return chroms[indexBest]; }

@@ -180,7 +180,7 @@ void paramValidator::error(const param &par,const string pgroup) const
 	strcat(buf,"=\"");
 	strcat(buf,par.getStringValue(pgroup).c_str());
 	strcat(buf,"\"");
-	mherror("Invalid param",buf);
+	mherror("Invalid value for parameter",buf);
 }
 
 //------------------------ gen_param<T> ---------------------------

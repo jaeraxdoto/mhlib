@@ -4,27 +4,27 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
-void localSearch::performGeneration()
+void localSearch::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
 
-	tmpChrom->reproduce(*pold);
-	tmpChrom->selectNeighbour();
+	tmpSol->reproduce(*pold);
+	tmpSol->selectNeighbour();
 
-	if (pold->isWorse(*tmpChrom))
+	if (pold->isWorse(*tmpSol))
 	{
-		mh_solution *r=tmpChrom;
-		tmpChrom=replace(tmpChrom);
-		if (!dcdag(pgroup) || r!=tmpChrom)
-			nGeneration++;
+		mh_solution *r=tmpSol;
+		tmpSol=replace(tmpSol);
+		if (!dcdag(pgroup) || r!=tmpSol)
+			nIteration++;
 		return;
 	}
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }

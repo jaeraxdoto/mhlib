@@ -1,11 +1,11 @@
-/*! \file qapchrom.C
-  \include qapchrom.C */
+/*! \file qapsol.C
+  \include qapsol.C */
 
 #include <algorithm>
 #include <cmath>
 #include <fstream>
 #include "mh_util.h"
-#include "qapchrom.h"
+#include "qapsol.h"
 
 #include "../mh_nhmove.h"
 #include "qapfeature.h"
@@ -19,7 +19,7 @@ double_param graspb( "graspb", "beta for grasp", 0.5, 0.0, 1.0, UPPER_INCLUSIVE 
 
 qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 {
-	const qapSol &qapc=toQAPChrom(c);
+	const qapSol &qapc=toQAPSol(c);
 	qi=qapc.qi;
 	for (int i=0;i<length;i++)
 		data[i]=qapc.data[i];
@@ -28,7 +28,7 @@ qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 void qapSol::copy(const mh_solution &orig)
 { 
 	mh_solution::copy(orig);
-	const qapSol &qapc=toQAPChrom(orig);
+	const qapSol &qapc=toQAPSol(orig);
 	for (int i=0;i<length;i++) 
 		data[i]=qapc.data[i]; 
 }
@@ -39,7 +39,7 @@ bool qapSol::equals(mh_solution &o)
 	if (o.obj()!=obj())
 		return false;
 
-	const qapSol &qapc=toQAPChrom(o);
+	const qapSol &qapc=toQAPSol(o);
 	// and now all the genes
 	for (int i=0;i<length;i++) 
 		if (data[i]!=qapc.data[i])
@@ -49,7 +49,7 @@ bool qapSol::equals(mh_solution &o)
 
 double qapSol::dist(mh_solution &c)
 {
-	const qapSol &qapc=toQAPChrom(c);
+	const qapSol &qapc=toQAPSol(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=qapc.data[i])
@@ -118,8 +118,8 @@ void qapSol::mutate(int count)
 
 void qapSol::crossover(const mh_solution &parA,const mh_solution &parB) 
 {
-	const qapSol &a = toQAPChrom(parA);
-	const qapSol &b = toQAPChrom(parB);
+	const qapSol &a = toQAPSol(parA);
+	const qapSol &b = toQAPSol(parB);
 
 	// fill all genes from one parent
 	for (int i=0;i<length;i++)
@@ -127,7 +127,7 @@ void qapSol::crossover(const mh_solution &parA,const mh_solution &parB)
 
 	vector<int> pos(length);
 
-	// build a table with all positions in the chromosome
+	// build a table with all positions in the solution
 	for (int i=0;i<length;i++)
 		pos[a.data[i]] = i;
 

@@ -8,7 +8,14 @@ else
 CPP=g++
 endif
 
-DEFS=-std=c++11
+# If USE_AR is set use this archiver, otherwise standard ar
+ifdef USE_AR
+AR=$(USE_AR)
+else
+AR=ar
+endif
+
+DEFS=-std=c++11 -pthread # -static -static-libgcc -static-libstdc++
 
 ifndef O4
 CCFLAGS=-pipe -Wall -Wno-deprecated $(DEFS)  -g

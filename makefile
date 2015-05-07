@@ -12,7 +12,7 @@ SRCS := $(wildcard *.C)
 OBJS=$(SRCS:.C=.o)
 DEPS=$(SRCS:.C=.d)
 
-SUBDIRS=demo-onemax demo-qap
+SUBDIRS=demo-*
 
 .PHONY: all clean doc $(SUBDIRS)
 
@@ -22,7 +22,7 @@ $(SUBDIRS): $(LIB)
 	$(MAKE) -C $@
 
 $(LIB): $(OBJS)
-	ar -rv $(LIB) $(OBJS)
+	$(AR) -rsv $(LIB) $(OBJS)
 
 all: $(LIB) $(SUBDIRS)
 	for dir in ${SUBDIRS} ; do ( ${MAKE} -C $$dir all ) ; done
