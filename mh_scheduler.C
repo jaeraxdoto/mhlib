@@ -167,10 +167,10 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
-			(nIter[k] > 0 ? double(sumGain[k])/double(nIter[k]) : 0),
-			double(nSuccess[k]/double(sumSuccess)*100.0),
+			double(sumGain[k])/double(nIter[k]),
+			double(nSuccess[k])/double(sumSuccess)*100.0,
 			totTime[k],
-			double(totTime[k]/double(sumTime)*100.0));
+			double(totTime[k])/double(sumTime)*100.0);
 		ostr << tmp << endl;
 	}
 	ostr << endl;
