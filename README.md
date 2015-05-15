@@ -48,6 +48,13 @@ Please report any problems to him. Thank you.
 algorithms and an extensive example for the QAP and many minor changes or
 improvements. Further contributions are due to *Sandro Pirkwieser* and *Matthias Prandtstetter*.
 
+## Changelog: major mhanges over major releases ##
+
+### Version 4.0 ###
+
+A module mh_scheduler and corresponding demo program demo_schedtest have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading.
+
+
 ## Installing mhlib ##
 
 Unpack the .tgz or .zip file in a directory or clone the project from the git-repository. Call "make all" in the mhlib-directory.
@@ -55,6 +62,7 @@ Unpack the .tgz or .zip file in a directory or clone the project from the git-re
 mhlib has been tested with GNU g++ 4.9.2 under GNU/Linux and Cygwin, but it
 should be possible to easily adapt it for other platforms/compilers.
 It is based on the C++11 standard.
+
 
 ## Learning to use and extend mhlib ##
 
