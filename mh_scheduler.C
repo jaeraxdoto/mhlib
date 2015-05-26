@@ -254,7 +254,7 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
-		constheu(this, SchedulerMethodSelector::MSRandom) {
+		constheu(this, SchedulerMethodSelector::MSSequential) {
 	for (int t=0; t<threadsnum();t++) {
 		locimpnh.push_back(new SchedulerMethodSelector(this,
 				SchedulerMethodSelector::MSSequentialOnce));
