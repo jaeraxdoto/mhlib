@@ -45,7 +45,9 @@ void SchedulerWorker::run() {
 						}
 					}
 
+					scheduler->mutex.lock(); // Begin of atomic operation
 					scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					scheduler->mutex.unlock(); // End of atomic operation
 
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
 						wait = true;
@@ -119,7 +121,9 @@ void Scheduler::run() {
 	// spawn the worker threads
 	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
+		mutex.lock(); // Begin of atomic operation
 		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0));
+		mutex.unlock(); // End of atomic operation
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
@@ -254,7 +258,7 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
-		constheu(this, SchedulerMethodSelector::MSSequential) {
+		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
 	for (int t=0; t<threadsnum();t++) {
 		locimpnh.push_back(new SchedulerMethodSelector(this,
 				SchedulerMethodSelector::MSSequentialOnce));
