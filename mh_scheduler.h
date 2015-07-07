@@ -367,9 +367,8 @@ public:
 	 * the worker's population.
 	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
-	 * Care must be taken to appropriately synchronize different workers
-	 * via Scheduler::mutex.lock() in this function, i.e. no locking is d
-	 * one outside.
+	 * This method has to be always called in an exclusive way,
+	 * i.e., mutex.lock() must be done outside.
 	 */
 	virtual void getNextMethod(SchedulerWorker *worker) = 0;
 
