@@ -96,7 +96,9 @@ public:
 	unsigned int id;				///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
-	double startTime;				///< Time when the last method call has been started
+	double startTime;				///< Time when the last method call has been started.
+
+	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -127,6 +129,7 @@ public:
 		startTime = 0;
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
+		shakingStartTime = 0;
 	}
 
 	/** Destructor of SchedulerWorker */
@@ -419,7 +422,6 @@ protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
 	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
 	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
-	double shakingStartTime;	///< CPUtime when the last shaking operation has been started
 
 	/**
 	 * An improved solution has been obtained by a method and is stored in tmpSol.

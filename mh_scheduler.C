@@ -274,8 +274,6 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
 		for (int t=0; t<threadsnum();t++)
 			shakingnh[t]->add(i);
-
-	shakingStartTime = 0;
 }
 
 void GVNSScheduler::copyBetter(SchedulerWorker *worker) {
@@ -306,7 +304,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	if (!shakingnh[0]->empty()) {
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != NULL) {
-			shakingStartTime = CPUtime();
+			worker->shakingStartTime = CPUtime();
 			return;
 		}
 	}
@@ -403,7 +401,7 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
 	if (sm != NULL) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += CPUtime() - shakingStartTime;
+		totTime[idx] += CPUtime() - worker->shakingStartTime;
 		nIter[idx]++;
 		// if the applied method was successful, update the success-counter and the total obj-gain
 		if (improved) {
