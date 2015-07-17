@@ -29,4 +29,8 @@ template < typename T > string tostring( const T& n )
     return stm.str() ;
 }
 
+/** Returns a string stating the git version of the mhlib source. */
+string mhversion(); 
+
 #endif // MH_UTIL_H
+

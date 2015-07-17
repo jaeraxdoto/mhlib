@@ -139,3 +139,8 @@ double CPUtime()
 	return clock()/double(CLOCKS_PER_SEC);
 }
 #endif // NEVER
+
+
+string mhversion() {
+	return string("mhlib version: ")+string(VERSION);
+}

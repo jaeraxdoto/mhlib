@@ -231,6 +231,7 @@ int main(int argc, char *argv[])
 		out() << endl;
 		out() << "#--------------------------------------------------" 
 			<< endl;
+		out () << "# " << mhversion() << endl;
 		param::printAll(out());
 		out() << endl;
 
