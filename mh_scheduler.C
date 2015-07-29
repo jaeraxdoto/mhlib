@@ -17,6 +17,8 @@
 
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
+bool_param synchronize_threads("synchronize_threads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
+
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
@@ -35,6 +37,19 @@ void SchedulerWorker::run() {
 				bool wait = false;				// indicates if the thread needs to wait for another thread to finish
 				bool terminateThread = false;	// indicates if the termination has been initiated
 
+				// if the threads should be synchronized, the scheduler is currently not in the
+				// running phase, and this is not the first thread, then wait!
+				if(scheduler->_synchronize_threads && !scheduler->isInRunningPhase) {
+					if(id != 0)
+						wait = true;
+				}
+
+				// TODO: the first thread gets assigned a method in any way.
+				// for the remaining threads the budget needs to be checked.
+				// idea: if the budget is exceeded, schedule the method (do not return NULL) and
+				// set method-flag to "suspended"
+				// if "suspended" is true
+
 				do {
 					if(wait) { // need to wait for other threads, block until notified
 						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
@@ -46,7 +61,13 @@ void SchedulerWorker::run() {
 					}
 
 					scheduler->mutex.lock(); // Begin of atomic operation
-					scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					// TODO: continue here!
+					// set budget for all threads, when first thread is scheduled (in getNextMethod())
+					// if thread synchronization is active, verify that there is still some time available
+					if(scheduler->_synchronize_threads && timeBudget > 0)
+						scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					else
+						method = NULL;
 					scheduler->mutex.unlock(); // End of atomic operation
 
 					if(method == NULL)	// no method could be scheduled -> wait for other threads
@@ -58,6 +79,13 @@ void SchedulerWorker::run() {
 #ifdef DEBUGMETH
 				cout << *tmpSol << endl;
 #endif
+
+				// if the threads should be synchronized and the scheduler is currently not in the
+				// wait until all threads are at this point
+				/*if(scheduler->_synchronize_threads && !scheduler->isInRunningPhase) {
+					wait = true;
+				}*/
+
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
@@ -110,6 +138,9 @@ void SchedulerWorker::run() {
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
 	initialSolutionExists = false;
+
+	_synchronize_threads = synchronize_threads();
+	isInRunningPhase = false;
 }
 
 void Scheduler::run() {

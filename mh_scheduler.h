@@ -18,6 +18,15 @@
  */
 extern int_param threadsnum;
 
+/** \ingroup param
+ * If set to true, the synchronization of the threads in the scheduler is active (default: false).
+ * In particular, the optimization will consist of two repeating phases:
+ * The actual working phase, during which the threads are assigned a predefined amount of time for
+ * running scheduled methods and the synchronization phase where threads wait until every thread is
+ * finished before starting the next working phase. Only if all threads are in the synchronization
+ * phase, the scheduler'data is updated. No updates happen during the working phase.
+ */
+extern bool_param synchronize_threads;
 
 //--------------------------- SchedulerMethod ------------------------------
 
@@ -100,6 +109,8 @@ public:
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
 
+	double timeBudget;				///< Time budget that is left for the current run phase (only meaningful, if _synchronize_threads is set to true).
+
 	/**
 	 * Population of solutions associated with this worker.
 	 * The exact meaning depends on the specific, derived scheduler class.
@@ -130,6 +141,8 @@ public:
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
 		shakingStartTime = 0;
+
+		timeBudget = 0;
 	}
 
 	/** Destructor of SchedulerWorker */
@@ -296,6 +309,14 @@ protected:
 	 * exists.
 	 */
 	bool initialSolutionExists;
+
+	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
+
+	/**
+	 * Indicating if the scheduler is currently in the running phase (true) or not (false).
+	 * Only meaningful if _synchronize_threads is set to true.
+	 */
+	bool isInRunningPhase;
 
 public:
 	/**
