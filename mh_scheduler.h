@@ -290,6 +290,13 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
+	/**
+	 * Indicates whether a construction method has already been scheduled and executed before,
+	 * i.e. some solution that can be used as an initial solution for improvement methods already
+	 * exists.
+	 */
+	bool initialSolutionExists;
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
@@ -456,7 +463,14 @@ public:
 
 	/**
 	 * Schedules the next method according to the general VNS scheme, i.e., with the VND embedded
-	 * in the VNS. If multiple construction heuristics exist, one is chosen at random.
+	 * in the VNS. If multiple construction heuristics exist, it is ensured that first all of them are
+	 * applied in the order they are defined. After each construction heuristic has been executed,
+	 * the selection follows the order of the shaking and local improvement methods defined in the VNS
+	 * and the embedded VND.
+	 * If currently nothing further can be done, possibly because other threads have to
+	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
+	 * This method has to be always called in an exclusive way,
+	 * i.e., mutex.lock() must be done outside.
      */
 	void getNextMethod(SchedulerWorker *worker);
 

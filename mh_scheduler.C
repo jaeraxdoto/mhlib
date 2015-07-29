@@ -61,7 +61,9 @@ void SchedulerWorker::run() {
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
+				//cout << "running " << method->name << endl;	//DEBUG
 				bool tmpSolChanged = method->run(tmpSol);
+				//cout << "finished " << method->name << " with an objective of: " << tmpSol->obj() << endl;	//DEBUG
 				double methodTime = CPUtime() - startTime;
 
 				if (tmpSolChanged)
@@ -107,6 +109,7 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
+	initialSolutionExists = false;
 }
 
 void Scheduler::run() {
@@ -286,10 +289,20 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// must have the exact number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
-	if (worker->method == NULL && !constheu.empty()) {
-		// Worker has just been created, apply construction method first if one exists
+	// perform a construction method
+	if (!constheu.empty() && (worker->method == NULL || constheu.hasFurtherMethod())) {
+		// either, because there is still a method available that has not been applied, yet.
+		if(worker->method != NULL) {
+			mh_solution* tmp = worker->tmpSol;
+			worker->tmpSol = tmp->createUninitialized();
+			worker->tmpSol->initialize(0);
+			delete tmp;
+		}
+
+		// or because the worker has just been created, apply construction method first.
 		worker->method = constheu.select();
-		return;
+		if(worker->method != NULL)
+			return;
 	}
 	if (!locimpnh[0]->empty()) {
 		// choose next local improvement method
@@ -302,6 +315,14 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	}
 	// perform next shaking method
 	if (!shakingnh[0]->empty()) {
+		// if the worker's method is NULL, i.e. no construction method has been scheduled before
+		// for this worker, check if globally a solution has already been constructed by some worker.
+		if(worker->method == NULL) {
+			if(!initialSolutionExists)
+				return;	// no, then there is no need to schedule an improvement method, yet.
+			else
+				worker->pop.update(0, pop->at(0)); // yes, then we assign the best known solution and schedule a method to be applied to it.
+		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != NULL) {
 			worker->shakingStartTime = CPUtime();
@@ -315,10 +336,14 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
 }
 
+
 void GVNSScheduler::updateData(SchedulerWorker *worker) {
 	if (worker->method->idx < constheu.size()) {
 		// construction method has been applied
-		copyBetter(worker);	// save new best solution
+		if(worker->tmpSolImproved == 1) {
+			copyBetter(worker);	// save new best solution
+			initialSolutionExists = true;
+		}
 		return;
 	}
 
