@@ -33,22 +33,17 @@ void SchedulerWorker::run() {
 			for(;;) {
 				scheduler->checkPopulation();
 
+				// if thread synchronization is active and not all threads
+				// having a lower id are runinng, yet, then wait
+				if(scheduler->_synchronize_threads && id > 0) {
+					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
+					while(!scheduler->workers[id-1]->hasStarted)
+						scheduler->cvOrderThreads.wait(lck);
+				}
+
 				// 	schedule the next method
 				bool wait = false;				// indicates if the thread needs to wait for another thread to finish
 				bool terminateThread = false;	// indicates if the termination has been initiated
-
-				// if the threads should be synchronized, the scheduler is currently not in the
-				// running phase, and this is not the first thread, then wait!
-				if(scheduler->_synchronize_threads && !scheduler->isInRunningPhase) {
-					if(id != 0)
-						wait = true;
-				}
-
-				// TODO: the first thread gets assigned a method in any way.
-				// for the remaining threads the budget needs to be checked.
-				// idea: if the budget is exceeded, schedule the method (do not return NULL) and
-				// set method-flag to "suspended"
-				// if "suspended" is true
 
 				do {
 					if(wait) { // need to wait for other threads, block until notified
@@ -61,17 +56,22 @@ void SchedulerWorker::run() {
 					}
 
 					scheduler->mutex.lock(); // Begin of atomic operation
-					// TODO: continue here!
-					// set budget for all threads, when first thread is scheduled (in getNextMethod())
-					// if thread synchronization is active, verify that there is still some time available
-					if(scheduler->_synchronize_threads && timeBudget > 0)
-						scheduler->getNextMethod(this);	// try to find an available method for scheduling
-					else
-						method = NULL;
+					scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					// if thread synchronization is active and this thread has not started, yet,
+					// set the hasStarted flag to true and notify possibly waiting threads
+					if(scheduler->_synchronize_threads && !hasStarted) {
+						scheduler->mutexOrderThreads.lock();
+						hasStarted = true;
+						scheduler->cvOrderThreads.notify_all();
+						scheduler->mutexOrderThreads.unlock();
+					}
 					scheduler->mutex.unlock(); // End of atomic operation
 
-					if(method == NULL)	// no method could be scheduled -> wait for other threads
-						wait = true;
+					if(method == NULL) {	// no method could be scheduled
+						if(scheduler->_synchronize_threads)	// if thread synchronization is active, do not block here
+							break;
+						wait = true; // else, wait for other threads
+					}
 				} while (method == NULL);
 
 				if (terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
@@ -80,18 +80,48 @@ void SchedulerWorker::run() {
 				cout << *tmpSol << endl;
 #endif
 
-				// if the threads should be synchronized and the scheduler is currently not in the
-				// wait until all threads are at this point
-				/*if(scheduler->_synchronize_threads && !scheduler->isInRunningPhase) {
-					wait = true;
-				}*/
+				// if the threads should be synchronized and this thread's time budget has been used up...
+				if(scheduler->_synchronize_threads && timeBudget <= 0) {
+					scheduler->mutexNotAllWorkersInPrepPhase.lock();
+					// possibly update the global time budget for the next working phase
+					if(method != NULL && method->expectedRuntime > scheduler->globalTimeBudget)
+						scheduler->globalTimeBudget = method->expectedRuntime;
+					scheduler->workersWaiting++; // increment the counter for the waiting workers
+					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+
+					// and this is not the last thread to reach this point, block it
+					if(scheduler->workersWaiting < scheduler->workers.size()) {
+						std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
+						scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
+					}
+					// the last thread has reached this point
+					else {
+						// set the time budget for all worker threads and reset the global variables
+						scheduler->updateDataFromResultsVectors(true);
+						scheduler->writeLogEntry();
+						for(unsigned int i=0; i < scheduler->workers.size(); i++) {
+							if(scheduler->workers[i]->method != NULL)
+								scheduler->workers[i]->timeBudget = scheduler->globalTimeBudget;
+						}
+
+						scheduler->globalTimeBudget = 0;
+						scheduler->workersWaiting = 0;
+
+						scheduler->mutexNotAllWorkersInPrepPhase.lock();
+						scheduler->cvNotAllWorkersInPrepPhase.notify_all(); // notify the possibly waiting threads
+						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+					}
+					if(method == NULL)
+						continue;
+				}
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
-				//cout << "running " << method->name << endl;	//DEBUG
 				bool tmpSolChanged = method->run(tmpSol);
-				//cout << "finished " << method->name << " with an objective of: " << tmpSol->obj() << endl;	//DEBUG
+				// if thread synchronization is active, reduce the time budget for this worker, accordingly
+				if(scheduler->_synchronize_threads)
+					timeBudget -= method->expectedRuntime;
 				double methodTime = CPUtime() - startTime;
 
 				if (tmpSolChanged)
@@ -105,13 +135,24 @@ void SchedulerWorker::run() {
 				// update statistics and scheduler data
 				scheduler->mutex.lock(); // Begin of atomic operation
 				scheduler->updateMethodStatistics(this, methodTime);
-				scheduler->updateData(this);
+				scheduler->updateData(this, !scheduler->_synchronize_threads, scheduler->_synchronize_threads);
 
+				scheduler->mutexNoMethodAvailable.lock();
 				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
+				scheduler->mutexNoMethodAvailable.unlock();
 
 				// scheduler->perfGenEndCallback();
 
 				if (scheduler->terminate()) {
+					// if synchronization of threads is active, ensure that threads potentially
+					// blocked at the mutexNotAllWorkersReadyForRunning - mutex are freed
+					if(scheduler->_synchronize_threads) {
+						scheduler->mutexNotAllWorkersInPrepPhase.lock();
+						scheduler->cvNotAllWorkersInPrepPhase.notify_all();
+						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+					}
+
+
 					// write last generation info in any case
 					scheduler->writeLogEntry(true);
 					scheduler->mutex.unlock(); // End of atomic operation
@@ -140,7 +181,8 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 	initialSolutionExists = false;
 
 	_synchronize_threads = synchronize_threads();
-	isInRunningPhase = false;
+	workersWaiting = 0;
+	globalTimeBudget = 0;
 }
 
 void Scheduler::run() {
@@ -167,6 +209,7 @@ void Scheduler::run() {
 		w->thread.join();
 		delete w;
 	}
+
 	// handle possibly transferred exceptions
 	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
@@ -310,9 +353,9 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 			shakingnh[t]->add(i);
 }
 
-void GVNSScheduler::copyBetter(SchedulerWorker *worker) {
+void GVNSScheduler::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
 	worker->pop.update(0, worker->tmpSol);
-	if (worker->pop[0]->isBetter(*(pop->at(0))))
+	if (updateSchedulerData && worker->pop[0]->isBetter(*(pop->at(0))))
 		update(0, worker->pop[0]);
 }
 
@@ -368,11 +411,11 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 }
 
 
-void GVNSScheduler::updateData(SchedulerWorker *worker) {
+void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
 	if (worker->method->idx < constheu.size()) {
 		// construction method has been applied
 		if(worker->tmpSolImproved == 1) {
-			copyBetter(worker);	// save new best solution
+			copyBetter(worker, updateSchedulerData);	// save new best solution
 			initialSolutionExists = true;
 		}
 		return;
@@ -382,7 +425,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 		// local improvement neighborhood has been applied
 		if (worker->tmpSolImproved == 1) {
 			// improvement achieved, restart with first local improvement method
-			copyBetter(worker);	// save new best solution within local improvement
+			copyBetter(worker, updateSchedulerData);	// save new best solution within local improvement
 			locimpnh[worker->id]->resetLastMethod();
 			return;
 		}
@@ -421,7 +464,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 			if (worker->tmpSolImproved == 1) {
 				// improvement achieved:
 				worker->pop.update(1,worker->pop[0]);
-				copyBetter(worker);	// save new best solution
+				copyBetter(worker, updateSchedulerData);	// save new best solution
 				updateShakingMethodStatistics(worker,true);
 				shakingnh[worker->id]->resetLastMethod();
 			}
@@ -436,7 +479,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 			// do not update statistics for that method (will be done after local improvement)
 			// start available local improvement neighborhoods
 			if (worker->tmpSolImproved == 1)
-				copyBetter(worker);	// save new best solution
+				copyBetter(worker, updateSchedulerData);	// save new best solution
 			else
 				// nevertheless store solution after shaking as incumbent of local improvement
 				worker->pop.update(0, worker->tmpSol);
@@ -444,6 +487,15 @@ void GVNSScheduler::updateData(SchedulerWorker *worker) {
 	}
 }
 
+void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
+	mh_solution* best = workers[0]->pop[0];
+	for(unsigned int i=1; i < workers.size(); i++) {
+		if (workers[i]->pop[0]->isBetter(*best))
+			best = workers[i]->pop[0];
+	}
+	if (best->isBetter(*(pop->at(0))))
+		update(0, best);
+}
 
 void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	if (worker->method->idx < constheu.size() + locimpnh[0]->size())

@@ -44,12 +44,14 @@ public:
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
 
+	const double expectedRuntime;	///< The expected runtime of this method on the given instance (only necessary if the synchronization of threads is active).
+
 	/**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 */
-	SchedulerMethod(const std::string &_name, int _par, int _arity) :
-				name(_name), arity(_arity)  {
+	SchedulerMethod(const std::string &_name, int _par, int _arity, double _expectedRuntime) :
+				name(_name), arity(_arity), expectedRuntime(_expectedRuntime)  {
 		idx = -1;
 		// weight = 1;
 		// score = 0;
@@ -59,7 +61,7 @@ public:
 
 	/** Applies the method to the given solution. The method returns true if the solution
 	 * has been changed and false otherwise. */
-	virtual bool run(mh_solution *sol) = 0;
+	virtual bool run(mh_solution *sol) const = 0;
 
 	/**
 	 * Virtual Destructor.
@@ -81,16 +83,50 @@ public:
 
 	/** Constructor initializing data. */
 	SolMemberSchedulerMethod(const std::string &_name, bool (SpecSol::* _pmeth)(int),
-			int _par, int _arity) :
-		SchedulerMethod(_name,_par,_arity), pmeth(_pmeth), par(_par) {
+			int _par, int _arity, double _expectedRuntime = -1) :
+		SchedulerMethod(_name,_par,_arity, _expectedRuntime), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. */
-	bool run(mh_solution *sol) {
+	bool run(mh_solution *sol) const {
 		return ((dynamic_cast<SpecSol *>(sol))->*pmeth)(par);
 	}
 };
 
+//--------------------------- MethodApplicationResult ------------------------------
+
+/**
+ * This struct stores all the relevant data in the context of the application of a specific method
+ * in order to have access to the result later.
+ */
+struct MethodApplicationResult {
+
+	/**
+	 * Stores the method that has been applied.
+	 */
+	SchedulerMethod* method;
+
+	/** Indicates the result of the last method call w.r.t. tmpSol:
+	 * - -1: solution not changed
+	 * -  0: solution not improved but changed
+	 * -  1  solution improved */
+	int solImproved;
+
+	/**
+	 * Stores the absolute difference in the objective values between the incumbent solution and
+	 * the one obtained by the application of this method.
+	 */
+	double objDiff;
+
+	/**
+	 * Constructor initializing data.
+	 */
+	MethodApplicationResult(SchedulerMethod* _method, int _solImproved, double _objDiff) {
+		method = _method;
+		solImproved = _solImproved;
+		objDiff = _objDiff;
+	}
+};
 
 //--------------------------- SchedulerWorker ------------------------------
 
@@ -98,6 +134,9 @@ public:
  * SchedulerWorker that runs as own thread spawned by the scheduler.
  * The class contains in particular pointers to the Scheduler, SchedulerMethod and
  * the workers own population to which the method is to be applied.
+ * Furthermore, the class maintains a vector for storing MethodApplicationResult entries.
+ * Currently, this vector is only used in the context of thread synchronization to keep track
+ * of all results until the update of the global data structures is performed for all threads.
  */
 class SchedulerWorker {
 public:
@@ -110,6 +149,8 @@ public:
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
 
 	double timeBudget;				///< Time budget that is left for the current run phase (only meaningful, if _synchronize_threads is set to true).
+	bool hasStarted;				///< Indicates if the thread has started, i.e. the first method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
+	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -143,6 +184,7 @@ public:
 		shakingStartTime = 0;
 
 		timeBudget = 0;
+		hasStarted = false;
 	}
 
 	/** Destructor of SchedulerWorker */
@@ -161,7 +203,6 @@ public:
 	 */
 	void run();
 };
-
 
 //--------------------------- SchedulerMethodSelector ------------------------------
 
@@ -313,10 +354,51 @@ protected:
 	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
 
 	/**
-	 * Indicating if the scheduler is currently in the running phase (true) or not (false).
-	 * Only meaningful if _synchronize_threads is set to true.
+	 * Counts the number of threads that are currently waiting for the working phase to begin.
+	 * Note: Only meaningful if _synchronize_threads is set to true.
 	 */
-	bool isInRunningPhase;
+	unsigned int workersWaiting;
+
+	/**
+	 * Stores the globalTimeBudget for the next working phase.
+	 * Once a worker runs out of budget during the current working phase and the expected time
+	 * for the method that worker should execute next is greater than the currently stored value,
+	 * the value is updated to that time.
+	 * In the end, after all workers have run out of budget, this variable stores the greatest
+	 * expected runtime over all threads according to their currently scheduled methods.
+	 * Note: Only meaningful if _synchronize_threads is set to true.
+	 */
+	double globalTimeBudget;
+
+	/**
+	 * Mutex used for blocking threads (together with the condition variable cvNotAllWorkersInPrepPhase)
+	 * if the synchronization of threads is active to wait after methods have been scheduled for all threads
+	 * and before these methods are actually run.
+	 * If the last thread reaches this point it sends a notification so that all threads can start the
+	 * next working phase.
+	 */
+	std::mutex mutexNotAllWorkersInPrepPhase;
+
+	/**
+	 * Condition variable used for blocking threads (together with the mutex mutexNotAllWorkersInPrepPhase)
+	 * if the synchronization of threads is active to wait after methods have been scheduled for all threads
+	 * and before these methods are actually run.
+	 * If the last thread reaches this point it sends a notification so that all threads can start the
+	 * next working phase.
+	 */
+	std::condition_variable cvNotAllWorkersInPrepPhase;
+
+	/**
+	 * Mutex used for ensuring an ordering of threads (together with the condition variable cvOrderThreads)
+	 * by which they have to start the optimization, i.e. by which a first method is assigned to them.
+	 */
+	std::mutex mutexOrderThreads;
+
+	/**
+	 * Condition variable used for ensuring an ordering of threads (together with the mutex mutexOrderThreads)
+	 * by which they have to start the optimization, i.e. by which a first method is assigned to them.
+	 */
+	std::condition_variable cvOrderThreads;
 
 public:
 	/**
@@ -353,6 +435,8 @@ public:
 	 * be deleted by its destructor.
 	 */
 	void addSchedulerMethod(SchedulerMethod* method) {
+		if(_synchronize_threads && method->expectedRuntime == -1)
+			mherror("If thread synchronization is active, each method must have a specified expected runtime");
 		method->idx = methodPool.size();
 		methodPool.push_back(method);
 		nIter.push_back(0);
@@ -404,11 +488,24 @@ public:
 	virtual void getNextMethod(SchedulerWorker *worker) = 0;
 
 	/**
-	 * Updates the worker->tmpSol, worker->pop and the schedulers population and possibly
-	 * other data according to the result of the last method application.
+	 * Updates the worker->tmpSol, worker->pop and the schedulers population.
+	 * If the flag updateSchedulerData is set to true, global data, such as the scheduler's
+	 * population, is possibly updated as well, according to the result of the last method application.
+	 * If it is false, only the worker's population and no global data is updated.
+	 * If storeResult is true, a new MethodApplicationResult object storing the result of the last
+	 * method application is appended to the SchedulerWorker's result list.
 	 * This method is called with mutex locked.
 	 */
-	virtual void updateData(SchedulerWorker* worker) = 0;
+	virtual void updateData(SchedulerWorker* worker, bool updateSchedulerData, bool storeResult) = 0;
+
+	/**
+	 * Updates the global data based on the entries in the results vectors of the workers.
+	 * It needs to be ensured that the result of this update is always the same independent from the
+	 * order of the workers.
+	 * If clearResults is set to true, the vector is cleared after the results have been processed.
+	 * Otherwise, the results remain in the vector.
+	 */
+	virtual void updateDataFromResultsVectors(bool clearResults) = 0;
 
 	/**
 	 * Updates the statistics data after applying a method in worker.
@@ -453,10 +550,10 @@ protected:
 
 	/**
 	 * An improved solution has been obtained by a method and is stored in tmpSol.
-	 * This method updates worker->pop[0] holding the worker's so far best solution and
-	 * possibly the Scheduler's global best solution at pop[0].
+	 * This method updates worker->pop[0] holding the worker's so far best solution and,
+	 * if updateSchedulerData is set to true, possibly the Scheduler's global best solution at pop[0].
 	 */
-	void copyBetter(SchedulerWorker *worker);
+	void copyBetter(SchedulerWorker *worker, bool updateSchedulerData);
 
 public:
 	/**
@@ -496,10 +593,21 @@ public:
 	void getNextMethod(SchedulerWorker *worker);
 
 	/**
-	 * Updates the tmpSol, worker->pop and the schedulers population according to
-	 * the result of the last method application.
+	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
+	 * population according to the result of the last method application.
+	 * As the exact history of results is irrelevant to the GVNSScheduler, the value of storeResult
+	 * is ignored and no result information is appended to the vector's result list.
+	 * This method is called with mutex locked.
 	 */
-	void updateData(SchedulerWorker *worker);
+	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult);
+
+	/**
+	 * Updates the the scheduler's population in case the best incumbent solution among all workers
+	 * is better than the best solution stored in the scheduler's population.
+	 * As the exact history of results is irrelevant to the GVNSScheduler and no results are ever stored,
+	 * the value of clearResults is ignored and the results vectors are not cleared.
+	 */
+	void updateDataFromResultsVectors(bool clearResults);
 
 	/**
 	 * Updates the statistics data after applying a method in worker.
