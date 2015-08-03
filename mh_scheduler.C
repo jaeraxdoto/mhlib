@@ -1,6 +1,7 @@
 // mh_scheduler.C
 
 #include <float.h>
+#include <cstdint>
 #include <stdio.h>
 #include <vector>
 #include <exception>
@@ -19,7 +20,6 @@ int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1,
 
 bool_param synchronize_threads("synchronize_threads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
 
-
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
 /** Central stack of exceptions possibly occurring in threads,
@@ -29,6 +29,8 @@ static std::vector<std::exception_ptr> worker_exceptions;
 void SchedulerWorker::run() {
 	try {
 		pop.update(1,pop[0]);	// Initialize pop[1] with a copy of pop[0]
+		random_seed(threadSeed); // initialize thread's random seed
+
 		if (!scheduler->terminate())
 			for(;;) {
 				scheduler->checkPopulation();
@@ -198,7 +200,7 @@ void Scheduler::run() {
 	unsigned int nthreads=threadsnum();
 	for(unsigned int i=0; i < nthreads; i++) {
 		mutex.lock(); // Begin of atomic operation
-		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0));
+		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), random_int(UINT32_MAX));
 		mutex.unlock(); // End of atomic operation
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);

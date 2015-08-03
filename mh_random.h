@@ -21,8 +21,14 @@ extern int_param seed;
 	The current seed parameter is used for this purpose.
 	A seed of 0 implies the initialization based on the time and pid.
 	The LEDA random number generator is also initialized accordingly
-	(whereby an error in the seeding is circumvented. */
+	(whereby an error in the seeding is circumvented). */
 void random_seed();
+
+/** Set seed value for random number generator to the passed value.
+	The LEDA random number generator is also initialized accordingly
+	(whereby an error in the seeding is circumvented). */
+void random_seed(unsigned int lseed);
+
 
 /** Random value (0,1).
 	Returns a double random uniformly distributed with 

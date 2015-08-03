@@ -108,6 +108,45 @@ void random_seed()
 #endif //notused
 }
 
+void random_seed(unsigned int lseed)
+{
+	// initialize own random number generator
+	rndseed(lseed);
+	bitseed(lseed);
+	/*
+	// since many seed values map to the same series of random numbers,
+	// use the seed value also to skip some numbers at the beginning
+	lseed^=lseed>>16;
+	lseed&=0xffff;
+	for (unsigned int i=0;i<lseed;i++)
+	{
+		random_double();
+	}
+	*/
+
+#ifdef notused
+	// initialize also LEDA default random generator
+	// since many seed values map to the same series of random
+	// numbers, use the seed value also to skip some numbers
+	// at the beginning
+	#ifdef LEDA_NAMESPACE
+	leda::rand_int.set_seed(lseed);
+	#else
+	rand_int.set_seed(lseed);
+	#endif
+	lseed^=lseed>>16;
+	lseed&=0xffff;
+	for (unsigned int i=0;i<lseed;i++)
+	{
+		#ifdef LEDA_NAMESPACE
+		leda::rand_int.get_rand31();
+		#else
+		rand_int.get_rand31();
+		#endif
+	}
+#endif //notused
+}
+
 
 static void rndseed(unsigned int seed) 
 {

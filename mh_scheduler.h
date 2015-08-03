@@ -148,6 +148,8 @@ public:
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
 
+	unsigned int threadSeed;		///< The random seed used for random numbers generated in this thread.
+
 	double timeBudget;				///< Time budget that is left for the current run phase (only meaningful, if _synchronize_threads is set to true).
 	bool hasStarted;				///< Indicates if the thread has started, i.e. the first method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
 	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
@@ -172,8 +174,10 @@ public:
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
 	 * will executable by the run() method.
+	 * The thread running this worker will use the value of threadSeed as random seed for
+	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, unsigned int _threadSeed, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
@@ -182,6 +186,7 @@ public:
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
 		shakingStartTime = 0;
+		threadSeed = _threadSeed;
 
 		timeBudget = 0;
 		hasStarted = false;
