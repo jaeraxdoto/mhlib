@@ -356,6 +356,7 @@ protected:
 	 */
 	bool initialSolutionExists;
 
+	unsigned int _threadsnum;	///< Mirrored mhlib parameter threadsnum for performance reasons.
 	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
 
 	/**

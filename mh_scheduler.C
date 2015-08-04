@@ -92,7 +92,7 @@ void SchedulerWorker::run() {
 					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 
 					// and this is not the last thread to reach this point, block it
-					if(scheduler->workersWaiting < scheduler->workers.size()) {
+					if(scheduler->workersWaiting < scheduler->_threadsnum) {
 						std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
 						scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
 					}
@@ -101,7 +101,7 @@ void SchedulerWorker::run() {
 						// set the time budget for all worker threads and reset the global variables
 						scheduler->updateDataFromResultsVectors(true);
 						scheduler->writeLogEntry();
-						for(unsigned int i=0; i < scheduler->workers.size(); i++) {
+						for(unsigned int i=0; i < scheduler->_threadsnum; i++) {
 							if(scheduler->workers[i]->method != NULL)
 								scheduler->workers[i]->timeBudget = scheduler->globalTimeBudget;
 						}
@@ -113,6 +113,8 @@ void SchedulerWorker::run() {
 						scheduler->cvNotAllWorkersInPrepPhase.notify_all(); // notify the possibly waiting threads
 						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 					}
+					if(scheduler->terminate())
+						break;
 					if(method == NULL)
 						continue;
 				}
@@ -154,15 +156,16 @@ void SchedulerWorker::run() {
 						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 					}
 
-
 					// write last generation info in any case
-					scheduler->writeLogEntry(true);
+					if(!scheduler->_synchronize_threads)
+						scheduler->writeLogEntry(true);
 					scheduler->mutex.unlock(); // End of atomic operation
 					break;	// ... and stop
 				}
 				else {
 					// write generation info
-					scheduler->writeLogEntry();
+					if(!scheduler->_synchronize_threads)
+						scheduler->writeLogEntry();
 					scheduler->mutex.unlock(); // End of atomic operation
 				}
 			}
@@ -182,6 +185,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
 	initialSolutionExists = false;
 
+	_threadsnum = threadsnum();
 	_synchronize_threads = synchronize_threads();
 	workersWaiting = 0;
 	globalTimeBudget = 0;
@@ -197,8 +201,7 @@ void Scheduler::run() {
 	logstr.flush();
 
 	// spawn the worker threads
-	unsigned int nthreads=threadsnum();
-	for(unsigned int i=0; i < nthreads; i++) {
+	for(unsigned int i=0; i < _threadsnum; i++) {
 		mutex.lock(); // Begin of atomic operation
 		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), random_int(UINT32_MAX));
 		mutex.unlock(); // End of atomic operation
@@ -207,10 +210,15 @@ void Scheduler::run() {
 	}
 
 	// wait for the threads to finish and delete them
-	for(auto w : workers) {
+	for(auto w : workers)
 		w->thread.join();
-		delete w;
+	// if thread synchronization is active, perform final update of the scheduler's population and write final log entry
+	if(_synchronize_threads) {
+		updateDataFromResultsVectors(true);
+		writeLogEntry(true);
 	}
+	for(auto w : workers)
+		delete w;
 
 	// handle possibly transferred exceptions
 	for (const exception_ptr &ep : worker_exceptions)
@@ -338,7 +346,7 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 		unsigned int nshakingnh, const pstring &pg) :
 		Scheduler(p, pg),
 		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
-	for (int t=0; t<threadsnum();t++) {
+	for (unsigned int t=0; t<_threadsnum; t++) {
 		locimpnh.push_back(new SchedulerMethodSelector(this,
 				SchedulerMethodSelector::MSSequentialOnce));
 		shakingnh.push_back(new SchedulerMethodSelector(this,
@@ -348,10 +356,10 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 	for (; i < nconstheu; i++)
 			constheu.add(i);
 	for (; i < nconstheu + nlocimpnh; i++)
-		for (int t=0; t<threadsnum();t++)
+		for (unsigned int t=0; t<_threadsnum; t++)
 			locimpnh[t]->add(i);
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		for (int t=0; t<threadsnum();t++)
+		for (unsigned int t=0; t<_threadsnum; t++)
 			shakingnh[t]->add(i);
 }
 
