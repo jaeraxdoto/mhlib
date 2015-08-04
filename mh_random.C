@@ -41,17 +41,25 @@ static const int NTAB=32;
 static const long NDIV=(1+IMM1/NTAB);
 static const double EPS=1.2e-7;
 static const double RNMX=(1.0-EPS);
+/* TODO: Diese thread_local static Variablen halte ich für unsauber:
+Zum Einen ist es (wenn auch ein kleiner) unnötiger Overhead für alle Threads, die vielleicht gar keinen eigenen Zufallszahlengenerator benötigen, auch immer eigene Instanzen dieser Variablen anzulegen. Zum anderen aber kann das auch leicht zu Fehlern führen, wenn man threads anlegt ohne daran zu denken, dass man deren Zufallszahlengeneratoren dann jeweils auch separat seed muss - dann liefern nämlich alle diese Threads, wenn ich das richtig sehe, die gleichen Zufallszahlen zurück, was fatal sein kann!
+Eine saubere Lösung erscheint mir, für den Zufallszahlengenerator eine Klasse zu definieren, die alle diese Variablen und alle existierenden Funktionen als Methoden beinhaltet. Dann sollte es ein globales Default-Zufallszahlenobjekt geben. Die Threads, die eigene Zufallszahlengeneratoren brauchen müssen ihre eigenen Instanzen der Klasse anlegen. Um weiters nicht alle existierenden Aufrufe von Zufallszahlenfunktionen auf Methodenaufrufe ändern zu müssen sollten weiters einfache inline-Funktionen definiert werden, die bisher existierenden entsprechen und die entsprechende Methode für den Default-Zufallszahlengenerator aufrufen.*/
 thread_local static long idum2=123456789L;
 thread_local static long iy=0;
 thread_local static long iv[NTAB];
 thread_local static long idum=0;
 
+/* TODO: Bitte wieder das bisherige rndmutex einfügen, wie es vorher war, sodass mh_random grundsätzlich thread-safe ist, sodass es auch nicht zu Problemen kommt, wenn Threads keine eigenen Zufallszahlengeneratoren verwenden. Das mutex kann dann natürlich auch in die Randomnumbergenerator-Klasse kommen. */
+
 #include<iostream>
 
-void random_seed() 
+/* TODO: Bitte überprüfen: Habe die neue random_seed Methode mit dem
+  seed-Parameter mit der existierenden vereint. */
+void random_seed(unsigned int lseed) 
 {
-	// initialize own random number generator
-	unsigned int lseed=(unsigned int)seed("");
+	// when lseed==0 use seed parameter; if also 0 use time & pid
+	if (lseed == 0)
+	    lseed = unsigned(seed(""));
 	if (lseed == 0) 
 	{
 		while(lseed == 0) 
@@ -73,78 +81,6 @@ void random_seed()
 	}
 	rndseed(lseed); 
 	bitseed(lseed);
-	/*
-	// since many seed values map to the same series of random numbers,
-	// use the seed value also to skip some numbers at the beginning
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		random_double();
-	}
-	*/
-
-#ifdef notused
-	// initialize also LEDA default random generator
-	// since many seed values map to the same series of random 
-	// numbers, use the seed value also to skip some numbers 
-	// at the beginning
-	lseed=int(seed(""));
-	#ifdef LEDA_NAMESPACE
-	leda::rand_int.set_seed(lseed);
-	#else
-	rand_int.set_seed(lseed);
-	#endif
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		#ifdef LEDA_NAMESPACE
-		leda::rand_int.get_rand31();
-		#else
-		rand_int.get_rand31();
-		#endif
-	}
-#endif //notused
-}
-
-void random_seed(unsigned int lseed)
-{
-	// initialize own random number generator
-	rndseed(lseed);
-	bitseed(lseed);
-	/*
-	// since many seed values map to the same series of random numbers,
-	// use the seed value also to skip some numbers at the beginning
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		random_double();
-	}
-	*/
-
-#ifdef notused
-	// initialize also LEDA default random generator
-	// since many seed values map to the same series of random
-	// numbers, use the seed value also to skip some numbers
-	// at the beginning
-	#ifdef LEDA_NAMESPACE
-	leda::rand_int.set_seed(lseed);
-	#else
-	rand_int.set_seed(lseed);
-	#endif
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		#ifdef LEDA_NAMESPACE
-		leda::rand_int.get_rand31();
-		#else
-		rand_int.get_rand31();
-		#endif
-	}
-#endif //notused
 }
 
 

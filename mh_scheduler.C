@@ -132,6 +132,7 @@ void SchedulerWorker::run() {
 					tmpSolImproved = tmpSol->isBetter(*pop[0]);
 				else
 					tmpSolImproved = -1;
+/* TODO: For Integration in master entfernen. */
 #ifdef DEBUGMETH
 				cout << *tmpSol << "<-" << method->name << " " << tmpSolChanged << "/" << tmpSolImproved << endl;
 #endif
@@ -377,6 +378,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	if (!constheu.empty() && (worker->method == NULL || constheu.hasFurtherMethod())) {
 		// either, because there is still a method available that has not been applied, yet.
 		if(worker->method != NULL) {
+		/* TODO: Diesen Teil finde ich zweifelhaft: Wozu eine neue Lösung erzeugen und nicht nicht die existierende verwenden? Generell sollte das Erzeugen und Freigeben von solution-Objekten möglichst vermieden werden, da dies durchaus zeitkritisch sein kann! Weiters: Wozu die neue Lösung initialisieren wenn dann ohnedies eine Konstruktionsmethode aufgerufen wird? */
 			mh_solution* tmp = worker->tmpSol;
 			worker->tmpSol = tmp->createUninitialized();
 			worker->tmpSol->initialize(0);

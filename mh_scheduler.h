@@ -44,6 +44,7 @@ public:
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
 
+/* TODO: Die ganze Sache mit der expected Runtime finde ich äußerst zweifelhaft in der allgemeinen mhlib und bitte ich dringend zu entfernen. Man kann einfach nicht verlangen, dass diese im allgemeinen irgendwie abgeschätzt werden kann! */
 	const double expectedRuntime;	///< The expected runtime of this method on the given instance (only necessary if the synchronization of threads is active).
 
 	/**
@@ -106,6 +107,7 @@ struct MethodApplicationResult {
 	 */
 	SchedulerMethod* method;
 
+/* TODO: Bin nicht ganz überzeugt, dass diese Differenzierung wirklich notwendig ist. Wenn ja, ist der saubere Weg jedenfalls ein enum, nicht -1/0/1. */
 	/** Indicates the result of the last method call w.r.t. tmpSol:
 	 * - -1: solution not changed
 	 * -  0: solution not improved but changed
@@ -148,8 +150,10 @@ public:
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
 
+/* TODO: Anstattdessen ein random number generator object verwenden (siehe mein Kommentar im random-Modul. */
 	unsigned int threadSeed;		///< The random seed used for random numbers generated in this thread.
 
+/* TODO Bitte nicht mit time budgets arbeiten, siehe Kommentar oben. */
 	double timeBudget;				///< Time budget that is left for the current run phase (only meaningful, if _synchronize_threads is set to true).
 	bool hasStarted;				///< Indicates if the thread has started, i.e. the first method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
 	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
@@ -349,6 +353,7 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
+/* TODO: Bin mir nicht sicher, ob das sinnvoll ist bzw. die Funktionsweise des Schedulers nicht unnötig einschränkt! Es sollen existierende Konstruktionsheuristiken gescheduled werden, solange welche existieren, danach die Verbesserungsmethoden. Beispielsweise soll auch ein GRASP leicht realisiert werdne können, und da gibt es dann nicht eine Initiallösung! */
 	/**
 	 * Indicates whether a construction method has already been scheduled and executed before,
 	 * i.e. some solution that can be used as an initial solution for improvement methods already
@@ -366,6 +371,7 @@ protected:
 	unsigned int workersWaiting;
 
 	/**
+	TODO: Wie geschrieben, bitte weg damit.
 	 * Stores the globalTimeBudget for the next working phase.
 	 * Once a worker runs out of budget during the current working phase and the expected time
 	 * for the method that worker should execute next is greater than the currently stored value,

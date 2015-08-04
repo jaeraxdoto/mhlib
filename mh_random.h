@@ -24,11 +24,10 @@ extern int_param seed;
 	(whereby an error in the seeding is circumvented). */
 void random_seed();
 
-/** Set seed value for random number generator to the passed value.
-	The LEDA random number generator is also initialized accordingly
-	(whereby an error in the seeding is circumvented). */
+/** Set seed value for the random number generator. If lseed!=0, use this    
+    value; otherwise, use the global parameter seed(). If it is also 0,
+    derive a seed value from the current time and pid. */
 void random_seed(unsigned int lseed);
-
 
 /** Random value (0,1).
 	Returns a double random uniformly distributed with 
