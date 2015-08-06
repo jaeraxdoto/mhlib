@@ -10,7 +10,6 @@
 #include "mh_hash.h"
 #include "mh_random.h"
 #include "mh_util.h"
-#include "mh_c11threads.h"
 
 #ifdef __WIN32__
 #include <process.h>
@@ -23,9 +22,6 @@
 using namespace __gnu_cxx;
 
 int_param seed("seed","seed value for the random number generator",0);
-
-static void bitseed(unsigned int seed);
-static void rndseed(unsigned int seed);
 
 static const long IM1=2147483563L;
 static const long IM2=2147483399L;
@@ -41,22 +37,24 @@ static const int NTAB=32;
 static const long NDIV=(1+IMM1/NTAB);
 static const double EPS=1.2e-7;
 static const double RNMX=(1.0-EPS);
-/* TODO: Diese thread_local static Variablen halte ich für unsauber:
-Zum Einen ist es (wenn auch ein kleiner) unnötiger Overhead für alle Threads, die vielleicht gar keinen eigenen Zufallszahlengenerator benötigen, auch immer eigene Instanzen dieser Variablen anzulegen. Zum anderen aber kann das auch leicht zu Fehlern führen, wenn man threads anlegt ohne daran zu denken, dass man deren Zufallszahlengeneratoren dann jeweils auch separat seed muss - dann liefern nämlich alle diese Threads, wenn ich das richtig sehe, die gleichen Zufallszahlen zurück, was fatal sein kann!
-Eine saubere Lösung erscheint mir, für den Zufallszahlengenerator eine Klasse zu definieren, die alle diese Variablen und alle existierenden Funktionen als Methoden beinhaltet. Dann sollte es ein globales Default-Zufallszahlenobjekt geben. Die Threads, die eigene Zufallszahlengeneratoren brauchen müssen ihre eigenen Instanzen der Klasse anlegen. Um weiters nicht alle existierenden Aufrufe von Zufallszahlenfunktionen auf Methodenaufrufe ändern zu müssen sollten weiters einfache inline-Funktionen definiert werden, die bisher existierenden entsprechen und die entsprechende Methode für den Default-Zufallszahlengenerator aufrufen.*/
-thread_local static long idum2=123456789L;
-thread_local static long iy=0;
-thread_local static long iv[NTAB];
-thread_local static long idum=0;
 
-/* TODO: Bitte wieder das bisherige rndmutex einfügen, wie es vorher war, sodass mh_random grundsätzlich thread-safe ist, sodass es auch nicht zu Problemen kommt, wenn Threads keine eigenen Zufallszahlengeneratoren verwenden. Das mutex kann dann natürlich auch in die Randomnumbergenerator-Klasse kommen. */
+RandomNumberGenerator* defaultRNG = new RandomNumberGenerator();
 
 #include<iostream>
 
+RandomNumberGenerator::RandomNumberGenerator(){
+	idum2=123456789L;
+	iy=0;
+	iv = new long[NTAB];
+	idum=0;
+	iseed = 0;
+}
+
 /* TODO: Bitte überprüfen: Habe die neue random_seed Methode mit dem
   seed-Parameter mit der existierenden vereint. */
-void random_seed(unsigned int lseed) 
+void RandomNumberGenerator::random_seed(unsigned int lseed)
 {
+	rndmutex.lock();
 	// when lseed==0 use seed parameter; if also 0 use time & pid
 	if (lseed == 0)
 	    lseed = unsigned(seed(""));
@@ -81,10 +79,11 @@ void random_seed(unsigned int lseed)
 	}
 	rndseed(lseed); 
 	bitseed(lseed);
+	rndmutex.unlock();
 }
 
 
-static void rndseed(unsigned int seed) 
+void RandomNumberGenerator::rndseed(unsigned int seed)
 {
 	int j;
 	long k;
@@ -106,8 +105,9 @@ static void rndseed(unsigned int seed)
 }
 
 
-double random_double() 
+double RandomNumberGenerator::random_double()
 {
+	rndmutex.lock();
 	int j;
 	long k;
 	float temp;
@@ -125,6 +125,7 @@ double random_double()
 	if (iy < 1) 
 		iy += IMM1;
 	temp=AM*iy; 
+	rndmutex.unlock();
 	if (temp > RNMX) 
 		return RNMX;
 	else 
@@ -147,9 +148,7 @@ double random_double()
 }
 */
 
-mutex rndnormalmutex;
-
-double random_normal()
+double RandomNumberGenerator::random_normal()
 {
 	rndnormalmutex.lock();
 	static bool cached=false;
@@ -181,15 +180,14 @@ double random_normal()
 
 //---------- a separate, faster random number generator for bits -----------
 
-static unsigned long iseed;
-
-static void bitseed(unsigned int seed) 
+void RandomNumberGenerator::bitseed(unsigned int seed)
 {
 	iseed = seed;
 }
 
-bool random_bool() 
+bool RandomNumberGenerator::random_bool()
 {
+	rndmutex.lock();
 	// return random_int()?true:false;
 	static const int IB1=1;
 	static const int IB2=2;
@@ -199,11 +197,13 @@ bool random_bool()
 	if (iseed & IB18) 
 	{
 		iseed=((iseed ^ MASK) << 1) | IB1;
+		rndmutex.unlock();
 		return true;
 	} 
 	else 
 	{
 		iseed <<= 1;
+		rndmutex.unlock();
 		return false;
 	}
 }
@@ -250,10 +250,11 @@ poisson_cache::poisson_cache(double mu):
 	dens[maxidx]=1;
 }
 
-unsigned int random_poisson(double mu)
+unsigned int RandomNumberGenerator::random_poisson(double mu)
 {
 	double r=random_double();
-	
+
+	rndmutex.lock();
 	typedef poisson_cache *ppoisson_cache;
 	static hash_map<double,ppoisson_cache,hashdouble> cache(4);
 
@@ -277,7 +278,7 @@ unsigned int random_poisson(double mu)
 		if (r<=dens[k])
 			if (k==0 || r>=dens[k-1])
 			{
-				//rndmutex.unlock();
+				rndmutex.unlock();
 				return k;
 			}
 			else
@@ -286,14 +287,16 @@ unsigned int random_poisson(double mu)
 			kl=k+1;
 		k=(kl+ku)/2;
 	}
+	rndmutex.unlock();
 	return k;
 }
 
-unsigned random_intfunc(unsigned seed, unsigned x)
+unsigned RandomNumberGenerator::random_intfunc(unsigned seed, unsigned x)
 //static void psdes(unsigned long *lword, unsigned long *irword)
 // Pseudo-DES hashing of the 64-bit word (lword,irword). Both 32-bit arguments
 // are returned hashed on all bits.
 {
+	rndmutex.lock();
 	unsigned long i,ia,ib,iswap,itmph=0,itmpl=0;
 	static unsigned long c1[4]={
 		0xbaa96887L, 0x1e17d32cL, 0x03bcdc3cL, 0x0f33d1b2L};
@@ -310,6 +313,7 @@ unsigned random_intfunc(unsigned seed, unsigned x)
 		((ib & 0xffff) << 16)) ^ c2[i])+itmpl*itmph);
 		seed=iswap;
 	}
+	rndmutex.unlock();
 	return x;
 }
 
@@ -347,7 +351,7 @@ unsigned random_intfunc(unsigned seed, unsigned x)
 //	return (*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 //}
 
-double random_doublefunc(unsigned seed, unsigned x)
+double RandomNumberGenerator::random_doublefunc(unsigned seed, unsigned x)
 {
 	union
 	{
