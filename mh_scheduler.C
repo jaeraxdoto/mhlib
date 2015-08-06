@@ -176,8 +176,8 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 	initialSolutionExists = false;
 
 	_threadsnum = threadsnum();
-	_synchronize_threads = synchronize_threads();
-	workersWaiting = 0;
+	_synchronize_threads = _threadsnum > 1 && synchronize_threads(); // only meaningful for more than one thread
+ 	workersWaiting = 0;
 }
 
 void Scheduler::run() {
@@ -362,18 +362,9 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// must have the exact number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
-	// perform a construction method
+	// perform a construction method, either, because there is still a method available that
+	// has not been applied, yet, or because the worker has just been created.
 	if (!constheu.empty() && (worker->method == NULL || constheu.hasFurtherMethod())) {
-		// either, because there is still a method available that has not been applied, yet.
-		if(worker->method != NULL) {
-		/* TODO: Diesen Teil finde ich zweifelhaft: Wozu eine neue Lösung erzeugen und nicht nicht die existierende verwenden? Generell sollte das Erzeugen und Freigeben von solution-Objekten möglichst vermieden werden, da dies durchaus zeitkritisch sein kann! Weiters: Wozu die neue Lösung initialisieren wenn dann ohnedies eine Konstruktionsmethode aufgerufen wird? */
-			mh_solution* tmp = worker->tmpSol;
-			worker->tmpSol = tmp->createUninitialized();
-			worker->tmpSol->initialize(0);
-			delete tmp;
-		}
-
-		// or because the worker has just been created, apply construction method first.
 		worker->method = constheu.select();
 		if(worker->method != NULL)
 			return;
