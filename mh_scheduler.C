@@ -82,31 +82,23 @@ void SchedulerWorker::run() {
 				cout << *tmpSol << endl;
 #endif
 
-				// if the threads should be synchronized and this thread's time budget has been used up...
-				if(scheduler->_synchronize_threads && timeBudget <= 0) {
+				// if the threads should be synchronized ...
+				if(scheduler->_synchronize_threads) {
 					scheduler->mutexNotAllWorkersInPrepPhase.lock();
-					// possibly update the global time budget for the next working phase
-					if(method != NULL && method->expectedRuntime > scheduler->globalTimeBudget)
-						scheduler->globalTimeBudget = method->expectedRuntime;
 					scheduler->workersWaiting++; // increment the counter for the waiting workers
 					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 
-					// and this is not the last thread to reach this point, block it
+					// ... and if this is not the last thread to reach this point, then block it
 					if(scheduler->workersWaiting < scheduler->_threadsnum) {
 						std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
 						scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
 					}
-					// the last thread has reached this point
+					// ... else, the last thread has reached this point
 					else {
 						// set the time budget for all worker threads and reset the global variables
 						scheduler->updateDataFromResultsVectors(true);
 						scheduler->writeLogEntry();
-						for(unsigned int i=0; i < scheduler->_threadsnum; i++) {
-							if(scheduler->workers[i]->method != NULL)
-								scheduler->workers[i]->timeBudget = scheduler->globalTimeBudget;
-						}
 
-						scheduler->globalTimeBudget = 0;
 						scheduler->workersWaiting = 0;
 
 						scheduler->mutexNotAllWorkersInPrepPhase.lock();
@@ -123,9 +115,6 @@ void SchedulerWorker::run() {
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
 				bool tmpSolChanged = method->run(tmpSol);
-				// if thread synchronization is active, reduce the time budget for this worker, accordingly
-				if(scheduler->_synchronize_threads)
-					timeBudget -= method->expectedRuntime;
 				double methodTime = CPUtime() - startTime;
 
 				if (tmpSolChanged)
@@ -189,7 +178,6 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 	_threadsnum = threadsnum();
 	_synchronize_threads = synchronize_threads();
 	workersWaiting = 0;
-	globalTimeBudget = 0;
 }
 
 void Scheduler::run() {

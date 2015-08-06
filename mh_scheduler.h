@@ -21,10 +21,11 @@ extern int_param threadsnum;
 /** \ingroup param
  * If set to true, the synchronization of the threads in the scheduler is active (default: false).
  * In particular, the optimization will consist of two repeating phases:
- * The actual working phase, during which the threads are assigned a predefined amount of time for
- * running scheduled methods and the synchronization phase where threads wait until every thread is
- * finished before starting the next working phase. Only if all threads are in the synchronization
- * phase, the scheduler'data is updated. No updates happen during the working phase.
+ * The actual working phase, where the threads run the currently scheduled methods in parallel,
+ * and the synchronization phase, where threads wait until every thread is finished before starting
+ * the next working phase.
+ * Only if all threads are in the synchronization phase,the scheduler'data is updated.
+ * No (global) updates happen during the working phase.
  */
 extern bool_param synchronize_threads;
 
@@ -44,15 +45,12 @@ public:
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
 
-/* TODO: Die ganze Sache mit der expected Runtime finde ich äußerst zweifelhaft in der allgemeinen mhlib und bitte ich dringend zu entfernen. Man kann einfach nicht verlangen, dass diese im allgemeinen irgendwie abgeschätzt werden kann! */
-	const double expectedRuntime;	///< The expected runtime of this method on the given instance (only necessary if the synchronization of threads is active).
-
 	/**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 */
-	SchedulerMethod(const std::string &_name, int _par, int _arity, double _expectedRuntime) :
-				name(_name), arity(_arity), expectedRuntime(_expectedRuntime)  {
+	SchedulerMethod(const std::string &_name, int _par, int _arity) :
+				name(_name), arity(_arity) {
 		idx = -1;
 		// weight = 1;
 		// score = 0;
@@ -84,8 +82,8 @@ public:
 
 	/** Constructor initializing data. */
 	SolMemberSchedulerMethod(const std::string &_name, bool (SpecSol::* _pmeth)(int),
-			int _par, int _arity, double _expectedRuntime = -1) :
-		SchedulerMethod(_name,_par,_arity, _expectedRuntime), pmeth(_pmeth), par(_par) {
+			int _par, int _arity) :
+		SchedulerMethod(_name,_par,_arity), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. */
@@ -153,8 +151,6 @@ public:
 /* TODO: Anstattdessen ein random number generator object verwenden (siehe mein Kommentar im random-Modul. */
 	unsigned int threadSeed;		///< The random seed used for random numbers generated in this thread.
 
-/* TODO Bitte nicht mit time budgets arbeiten, siehe Kommentar oben. */
-	double timeBudget;				///< Time budget that is left for the current run phase (only meaningful, if _synchronize_threads is set to true).
 	bool hasStarted;				///< Indicates if the thread has started, i.e. the first method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
 	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
@@ -192,7 +188,6 @@ public:
 		shakingStartTime = 0;
 		threadSeed = _threadSeed;
 
-		timeBudget = 0;
 		hasStarted = false;
 	}
 
@@ -371,18 +366,6 @@ protected:
 	unsigned int workersWaiting;
 
 	/**
-	TODO: Wie geschrieben, bitte weg damit.
-	 * Stores the globalTimeBudget for the next working phase.
-	 * Once a worker runs out of budget during the current working phase and the expected time
-	 * for the method that worker should execute next is greater than the currently stored value,
-	 * the value is updated to that time.
-	 * In the end, after all workers have run out of budget, this variable stores the greatest
-	 * expected runtime over all threads according to their currently scheduled methods.
-	 * Note: Only meaningful if _synchronize_threads is set to true.
-	 */
-	double globalTimeBudget;
-
-	/**
 	 * Mutex used for blocking threads (together with the condition variable cvNotAllWorkersInPrepPhase)
 	 * if the synchronization of threads is active to wait after methods have been scheduled for all threads
 	 * and before these methods are actually run.
@@ -447,8 +430,6 @@ public:
 	 * be deleted by its destructor.
 	 */
 	void addSchedulerMethod(SchedulerMethod* method) {
-		if(_synchronize_threads && method->expectedRuntime == -1)
-			mherror("If thread synchronization is active, each method must have a specified expected runtime");
 		method->idx = methodPool.size();
 		methodPool.push_back(method);
 		nIter.push_back(0);
