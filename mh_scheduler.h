@@ -92,6 +92,16 @@ public:
 	}
 };
 
+/**
+ * Enumeration of the different outcomes for the objective of a modified solution in comparison
+ * to the original objective value.
+ */
+enum SolutionObjectiveChange {
+	OBJ_WORSE = -1,
+	OBJ_NONE = 0,
+	OBJ_BETTER = 1
+};
+
 //--------------------------- MethodApplicationResult ------------------------------
 
 /**
@@ -105,12 +115,8 @@ struct MethodApplicationResult {
 	 */
 	SchedulerMethod* method;
 
-/* TODO: Bin nicht ganz überzeugt, dass diese Differenzierung wirklich notwendig ist. Wenn ja, ist der saubere Weg jedenfalls ein enum, nicht -1/0/1. */
-	/** Indicates the result of the last method call w.r.t. tmpSol:
-	 * - -1: solution not changed
-	 * -  0: solution not improved but changed
-	 * -  1  solution improved */
-	int solImproved;
+	/** Indicates the result of the last method call w.r.t. tmpSol */
+	SolutionObjectiveChange solObjChange;
 
 	/**
 	 * Stores the absolute difference in the objective values between the incumbent solution and
@@ -121,9 +127,9 @@ struct MethodApplicationResult {
 	/**
 	 * Constructor initializing data.
 	 */
-	MethodApplicationResult(SchedulerMethod* _method, int _solImproved, double _objDiff) {
+	MethodApplicationResult(SchedulerMethod* _method, SolutionObjectiveChange _solObjChange, double _objDiff) {
 		method = _method;
-		solImproved = _solImproved;
+		solObjChange = _solObjChange;
 		objDiff = _objDiff;
 	}
 };
@@ -164,11 +170,8 @@ public:
 	 */
 	mh_solution *tmpSol;
 
-	/** Indicates the result of the last method call w.r.t. tmpSol:
-	 * - -1: solution not changed
-	 * -  0: solution not improved but changed
-	 * -  1  solution improved */
-	int tmpSolImproved;
+	/** Indicates the result of the last method call w.r.t. tmpSol */
+	SolutionObjectiveChange tmpSolObjChange;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -183,7 +186,7 @@ public:
 		method = NULL;
 		startTime = 0;
 		tmpSol = sol->clone();
-		tmpSolImproved = -1;
+		tmpSolObjChange = OBJ_NONE;
 		shakingStartTime = 0;
 		rng = _rng;
 
@@ -203,6 +206,9 @@ public:
 	 * to which it is applied, running it, and updating relevant data.
 	 * Additionally, the termination criteria are checked after each iteration by calling the
 	 * terminate() method.
+	 * Before a solution is modified by applying a certain method to it,
+	 * it needs to be ensured that this worker is associated with the solution via
+	 * SchedulerProvider::setWorker().
 	 * mutex is used to ensure synchronization of the access to the optimization data
 	 * structures shared by the worker threads.
 	 */
@@ -217,7 +223,7 @@ public:
  * redirecting them to the scheduler's random number generator. */
 class SchedulerProvider {
 protected:
-	SchedulerWorker* worker;	///> The worker this solution is used in, or NULL if it is currently not used in a worker.
+	SchedulerWorker* worker;	///< The worker this solution is used in, or NULL if it is currently not used in a worker.
 
 	//* Inline methods calling the respective methods of the default random number generator object *//
 
@@ -447,6 +453,7 @@ public:
  * multithreaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
  * called. The scheduler is in particular responsible for deciding at which point in the optimization which
  * specific method is applied.
+ * The solution for this algorithm must be derived from the abstract SchedulerProvider class.
  */
 class Scheduler : public mh_advbase {
 	friend class SchedulerWorker;
@@ -503,14 +510,6 @@ protected:
 	 * finishes its current method and sends a notification.
 	 */
 	std::condition_variable cvNoMethodAvailable;
-
-/* TODO: Bin mir nicht sicher, ob das sinnvoll ist bzw. die Funktionsweise des Schedulers nicht unnötig einschränkt! Es sollen existierende Konstruktionsheuristiken gescheduled werden, solange welche existieren, danach die Verbesserungsmethoden. Beispielsweise soll auch ein GRASP leicht realisiert werdne können, und da gibt es dann nicht eine Initiallösung! */
-	/**
-	 * Indicates whether a construction method has already been scheduled and executed before,
-	 * i.e. some solution that can be used as an initial solution for improvement methods already
-	 * exists.
-	 */
-	bool initialSolutionExists;
 
 	unsigned int _threadsnum;	///< Mirrored mhlib parameter threadsnum for performance reasons.
 	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
@@ -705,6 +704,13 @@ protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
 	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
 	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
+
+	/**
+	 * Indicates whether a construction method has already been scheduled and executed before,
+	 * i.e. some solution that can be used as an initial solution for improvement methods already
+	 * exists.
+	 */
+	bool initialSolutionExists;
 
 	/**
 	 * An improved solution has been obtained by a method and is stored in tmpSol.
