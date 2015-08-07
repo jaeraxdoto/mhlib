@@ -38,11 +38,11 @@ static const long NDIV=(1+IMM1/NTAB);
 static const double EPS=1.2e-7;
 static const double RNMX=(1.0-EPS);
 
-RandomNumberGenerator* defaultRNG = new RandomNumberGenerator();
+mh_random_number_generator defaultRNG;
 
 #include<iostream>
 
-RandomNumberGenerator::RandomNumberGenerator(){
+mh_random_number_generator::mh_random_number_generator(){
 	idum2=123456789L;
 	iy=0;
 	iv = new long[NTAB];
@@ -50,9 +50,7 @@ RandomNumberGenerator::RandomNumberGenerator(){
 	iseed = 0;
 }
 
-/* TODO: Bitte überprüfen: Habe die neue random_seed Methode mit dem
-  seed-Parameter mit der existierenden vereint. */
-void RandomNumberGenerator::random_seed(unsigned int lseed)
+void mh_random_number_generator::random_seed(unsigned int lseed)
 {
 	rndmutex.lock();
 	// when lseed==0 use seed parameter; if also 0 use time & pid
@@ -83,7 +81,7 @@ void RandomNumberGenerator::random_seed(unsigned int lseed)
 }
 
 
-void RandomNumberGenerator::rndseed(unsigned int seed)
+void mh_random_number_generator::rndseed(unsigned int seed)
 {
 	int j;
 	long k;
@@ -105,7 +103,7 @@ void RandomNumberGenerator::rndseed(unsigned int seed)
 }
 
 
-double RandomNumberGenerator::random_double()
+double mh_random_number_generator::random_double()
 {
 	rndmutex.lock();
 	int j;
@@ -126,9 +124,9 @@ double RandomNumberGenerator::random_double()
 		iy += IMM1;
 	temp=AM*iy; 
 	rndmutex.unlock();
-	if (temp > RNMX) 
+	if (temp > RNMX)
 		return RNMX;
-	else 
+	else
 		return temp;
 }
 
@@ -148,7 +146,7 @@ double random_double()
 }
 */
 
-double RandomNumberGenerator::random_normal()
+double mh_random_number_generator::random_normal()
 {
 	rndnormalmutex.lock();
 	static bool cached=false;
@@ -180,12 +178,12 @@ double RandomNumberGenerator::random_normal()
 
 //---------- a separate, faster random number generator for bits -----------
 
-void RandomNumberGenerator::bitseed(unsigned int seed)
+void mh_random_number_generator::bitseed(unsigned int seed)
 {
 	iseed = seed;
 }
 
-bool RandomNumberGenerator::random_bool()
+bool mh_random_number_generator::random_bool()
 {
 	rndmutex.lock();
 	// return random_int()?true:false;
@@ -250,7 +248,7 @@ poisson_cache::poisson_cache(double mu):
 	dens[maxidx]=1;
 }
 
-unsigned int RandomNumberGenerator::random_poisson(double mu)
+unsigned int mh_random_number_generator::random_poisson(double mu)
 {
 	double r=random_double();
 
@@ -291,7 +289,7 @@ unsigned int RandomNumberGenerator::random_poisson(double mu)
 	return k;
 }
 
-unsigned RandomNumberGenerator::random_intfunc(unsigned seed, unsigned x)
+unsigned mh_random_number_generator::random_intfunc(unsigned seed, unsigned x)
 //static void psdes(unsigned long *lword, unsigned long *irword)
 // Pseudo-DES hashing of the 64-bit word (lword,irword). Both 32-bit arguments
 // are returned hashed on all bits.
@@ -351,7 +349,7 @@ unsigned RandomNumberGenerator::random_intfunc(unsigned seed, unsigned x)
 //	return (*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 //}
 
-double RandomNumberGenerator::random_doublefunc(unsigned seed, unsigned x)
+double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
 {
 	union
 	{
@@ -375,7 +373,3 @@ double RandomNumberGenerator::random_doublefunc(unsigned seed, unsigned x)
 	//return double(*(float *)&itemp)-1.0;
 	//return double(*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 }
-
-
-
-

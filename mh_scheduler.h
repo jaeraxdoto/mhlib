@@ -88,7 +88,7 @@ public:
 
 	/** Apply the method for the given solution, passing par. */
 	bool run(mh_solution *sol) const {
-		return ((dynamic_cast<SpecSol *>(sol))->*pmeth)(par);
+		return ((static_cast<SpecSol *>(sol))->*pmeth)(par);
 	}
 };
 
@@ -147,11 +147,10 @@ public:
 	double startTime;				///< Time when the last method call has been started.
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
+	mh_random_number_generator* rng;///< The random number generator used in this thread.
 
-/* TODO: Anstattdessen ein random number generator object verwenden (siehe mein Kommentar im random-Modul. */
-	unsigned int threadSeed;		///< The random seed used for random numbers generated in this thread.
-
-	bool hasStarted;				///< Indicates if the thread has started, i.e. the first method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
+	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if _synchronize_threads is set to true).
+	bool terminate;				///< Indicates if this thread specifically is to be terminated.
 	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
 	/**
@@ -177,7 +176,7 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, unsigned int _threadSeed, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_random_number_generator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
@@ -186,14 +185,16 @@ public:
 		tmpSol = sol->clone();
 		tmpSolImproved = -1;
 		shakingStartTime = 0;
-		threadSeed = _threadSeed;
+		rng = _rng;
 
-		hasStarted = false;
+		isWorking = false;
+		terminate = false;
 	}
 
 	/** Destructor of SchedulerWorker */
 	virtual ~SchedulerWorker() {
 		delete tmpSol;
+		delete rng;
 	}
 
 	/**
@@ -206,6 +207,161 @@ public:
 	 * structures shared by the worker threads.
 	 */
 	void run();
+};
+
+//--------------------------- SchedulerProvider ------------------------------
+
+/** An abstract class for solutions used with the scheduler.
+ * Provides the solution with information about the thread by which it is run.
+ * In particular, methods for intercepting calls to the random functions are provided,
+ * redirecting them to the scheduler's random number generator. */
+class SchedulerProvider {
+protected:
+	SchedulerWorker* worker;	///> The worker this solution is used in, or NULL if it is currently not used in a worker.
+
+	//* Inline methods calling the respective methods of the default random number generator object *//
+
+	/** Set seed value for the random number generator. If lseed!=0, use this
+	    value; otherwise, use the global parameter seed(). If it is also 0,
+	    derive a seed value from the current time and pid. */
+	inline void random_seed(unsigned int lseed=0) {
+		if(worker != NULL)
+			worker->rng->random_seed(lseed);
+		::random_seed(lseed);
+	}
+
+	/** Random value (0,1).
+		Returns a double random uniformly distributed with
+		stdandard deviation 1. */
+	inline double random_double() {
+		if(worker != NULL)
+			return worker->rng->random_double();
+		return ::random_double();
+	}
+
+	/** Returns true with with given probability. */
+	inline bool random_prob(double prob) {
+		if(worker != NULL)
+			return worker->rng->random_prob(prob);
+		return ::random_prob(prob);
+	}
+
+	/** Returns random boolean.
+		Returns either true or false with equal probability */
+	inline bool random_bool() {
+		if(worker != NULL)
+			return worker->rng->random_bool();
+		return ::random_bool();
+	}
+
+	/** Returns randomly 0 or 1.
+		Each value is returned with probability 1/2. */
+	inline int random_int() {
+		if(worker != NULL)
+			return worker->rng->random_int();
+		return ::random_int();
+	}
+
+	/** Returns a random integer in [0,high-1]. */
+	inline int random_int(int high) {
+		if(worker != NULL)
+			return worker->rng->random_int(high);
+		return ::random_int(high);
+	}
+
+	/** returns an int random number in [low,high] */
+	inline int random_int(int low, int high) {
+		if(worker != NULL)
+			return worker->rng->random_int(low, high);
+		return ::random_int(low, high);
+	}
+
+	/** returns a double random number uniformly distributed in (low,high) */
+	inline double random_double(double low, double high) {
+		if(worker != NULL)
+			return worker->rng->random_double(low, high);
+		return ::random_double(low, high);
+	}
+
+	/** returns a double random normally distributed with stdandard deviation 1 */
+	inline double random_normal() {
+		if(worker != NULL)
+			return worker->rng->random_normal();
+		return ::random_normal();
+	}
+
+	/** returns a normally distributed double random number with given deviation */
+	inline double random_normal(double dev) {
+		if(worker != NULL)
+			return worker->rng->random_normal(dev);
+		return ::random_normal(dev);
+	}
+
+	/** returns a Poisson-distributed random number for a given mu in [0,inf] */
+	inline unsigned int random_poisson(double mu) {
+		if(worker != NULL)
+			return worker->rng->random_poisson(mu);
+		return ::random_poisson(mu);
+	}
+
+	/** returns a Poisson-distributed random number for a given mu in [0,maxi-1] */
+	inline unsigned int random_poisson(double mu,unsigned maxi) {
+		if(worker != NULL)
+			return worker->rng->random_poisson(mu, maxi);
+		return ::random_poisson(mu, maxi);
+	}
+
+	/** A pseudo-random function mapping an unsigned value x to another
+	 unsigned value. Returns always the same value when called with the same
+	 parameters. Implemented via the pseudo-DES function as described in the book
+	 "Numerical Recipes", section 7.5. */
+	inline unsigned random_intfunc(unsigned seed, unsigned x) {
+		if(worker != NULL)
+			return worker->rng->random_intfunc(seed, x);
+		return ::random_intfunc(seed, x);
+	}
+
+	/** A pseudo-random function mapping an unsigned value x to a double value in [0,1).
+	  Returns always the same value when called with the same parameters.
+	  Implemented via the pseudo-DES function as described in the book "Numerical Recipes",
+	  section 7.5. */
+	inline double random_doublefunc(unsigned seed, unsigned x) {
+		if(worker != NULL)
+			return worker->rng->random_doublefunc(seed, x);
+		return ::random_doublefunc(seed, x);
+	}
+
+public:
+
+	/**
+	 * Default constructor, sets the associated worker to NULL.
+	 */
+	SchedulerProvider() : worker(NULL) {}
+
+	/**
+	 * Copy constructor.
+	 */
+	SchedulerProvider(const SchedulerProvider &sp) {
+		worker = sp.worker;
+	}
+
+	/**
+	 * Constructor that also sets the associated worker.
+	 */
+	SchedulerProvider(SchedulerWorker* _worker) : worker(_worker) {}
+
+	/**
+	 *  (Pure) virtual destructor.
+	 *  Is implemented and does nothing in order to make this class abstract.
+	 */
+	virtual ~SchedulerProvider() = 0;
+
+	/**
+	 * Sets the worker for this SchedulerProvider.
+	 */
+	void setWorker(SchedulerWorker* _worker) {
+		worker = _worker;
+	}
 };
 
 //--------------------------- SchedulerMethodSelector ------------------------------
@@ -358,6 +514,7 @@ protected:
 
 	unsigned int _threadsnum;	///< Mirrored mhlib parameter threadsnum for performance reasons.
 	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
+	int _titer;					///< Mirrored mhlib parameter titer for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -457,15 +614,23 @@ public:
 	 * Returns true, if the external application has requested the optimization to terminate,
 	 * if the scheduler's terminate flag has been set to true,
 	 * or if any of the given termination criteria applies.
-	 * Is called from run() after each call to performGeneration().
+	 * Is called within the SchedulerWorker's run method to stop the respective thread when
+	 * termination is requested.
+	 * As this method is called rather often and to avoid unnecessary, potentially expensive checks
+	 * for all termination criteria, the scheduler's termination flag is set to true,
+	 * if any criterion applies.
 	 */
 	bool terminate() {
 		if (finish)
 			return true;
-		if (callback != NULL && callback(pop->bestObj()))
+		if (callback != NULL && callback(pop->bestObj())) {
+			finish = true;
 			return true;
-		if (mh_advbase::terminate())
+		}
+		if (mh_advbase::terminate()) {
+			finish = true;
 			return true;
+		}
 		return false;
 	}
 

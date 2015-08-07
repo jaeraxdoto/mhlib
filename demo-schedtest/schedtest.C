@@ -54,7 +54,7 @@ string_param sfile("sfile","name of file to save solution to","");
 /** This is the solution class for the OneMax problem.
 	In larger applications, it should be implemented in a separate
 	module. */
-class oneMaxSol : public binStringSol  //, public gcProvider
+class oneMaxSol : public binStringSol, public SchedulerProvider  //, public gcProvider
 {
 public:
 	oneMaxSol() : binStringSol(vars())

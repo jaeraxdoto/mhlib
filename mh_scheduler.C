@@ -14,8 +14,6 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
-// #define DEBUGMETH 1		// Enable for writing out debug info on applied methods
-
 int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
 
 bool_param synchronize_threads("synchronize_threads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
@@ -29,7 +27,6 @@ static std::vector<std::exception_ptr> worker_exceptions;
 void SchedulerWorker::run() {
 	try {
 		pop.update(1,pop[0]);	// Initialize pop[1] with a copy of pop[0]
-		random_seed(threadSeed); // initialize thread's random seed
 
 		if (!scheduler->terminate())
 			for(;;) {
@@ -39,31 +36,27 @@ void SchedulerWorker::run() {
 				// having a lower id are runinng, yet, then wait
 				if(scheduler->_synchronize_threads && id > 0) {
 					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
-					while(!scheduler->workers[id-1]->hasStarted)
+					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
 						scheduler->cvOrderThreads.wait(lck);
 				}
 
 				// 	schedule the next method
-				bool wait = false;				// indicates if the thread needs to wait for another thread to finish
-				bool terminateThread = false;	// indicates if the termination has been initiated
-
+				bool wait = false;	// indicates if the thread needs to wait for another thread to finish
 				do {
 					if(wait) { // need to wait for other threads, block until notified
 						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
 						scheduler->cvNoMethodAvailable.wait(lck);
-						if(scheduler->terminate()) {	// if the termination is in progress, terminate also this thread!
-							terminateThread = true;
+						if(scheduler->terminate())	// if termination is in progress, terminate also this thread!
 							break;
-						}
 					}
 
 					scheduler->mutex.lock(); // Begin of atomic operation
 					scheduler->getNextMethod(this);	// try to find an available method for scheduling
 					// if thread synchronization is active and this thread has not started, yet,
-					// set the hasStarted flag to true and notify possibly waiting threads
-					if(scheduler->_synchronize_threads && !hasStarted) {
+					// set the isWorking flag to true and notify possibly waiting threads
+					if(scheduler->_synchronize_threads && !isWorking) {
 						scheduler->mutexOrderThreads.lock();
-						hasStarted = true;
+						isWorking = true;
 						scheduler->cvOrderThreads.notify_all();
 						scheduler->mutexOrderThreads.unlock();
 					}
@@ -76,44 +69,59 @@ void SchedulerWorker::run() {
 					}
 				} while (method == NULL);
 
-				if (terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
+				if (scheduler->finish) // if in the meanwhile, termination has been started, terminate this thread as well
 					break;
-#ifdef DEBUGMETH
-				cout << *tmpSol << endl;
-#endif
 
 				// if the threads should be synchronized ...
 				if(scheduler->_synchronize_threads) {
+					scheduler->mutex.lock();
 					scheduler->mutexNotAllWorkersInPrepPhase.lock();
 					scheduler->workersWaiting++; // increment the counter for the waiting workers
 					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 
 					// ... and if this is not the last thread to reach this point, then block it
 					if(scheduler->workersWaiting < scheduler->_threadsnum) {
-						std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
-						scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
+						if(!scheduler->terminate()) {
+							std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
+							scheduler->mutex.unlock();
+							scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
+						}
+						else
+							scheduler->mutex.unlock();
 					}
 					// ... else, the last thread has reached this point
 					else {
-						// set the time budget for all worker threads and reset the global variables
+						// update the global scheduler data and notify the waiting workers
 						scheduler->updateDataFromResultsVectors(true);
 						scheduler->writeLogEntry();
 
-						scheduler->workersWaiting = 0;
+						// ensure that only exactly titer updates are performed and that possibly
+						// superfluous iterations are not considered in a deterministic way
+						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many
+						int diff = scheduler->_titer - scheduler->nIteration;
+						for(unsigned int i=0; i < scheduler->_threadsnum; i++) {
+							scheduler->workers[i]->isWorking = false;
+							if((signed)scheduler->workers[i]->id > diff-1)
+								scheduler->workers[i]->terminate = true;
+						}
 
 						scheduler->mutexNotAllWorkersInPrepPhase.lock();
+						scheduler->workersWaiting = 0;
 						scheduler->cvNotAllWorkersInPrepPhase.notify_all(); // notify the possibly waiting threads
 						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+						scheduler->mutex.unlock();
 					}
-					if(scheduler->terminate())
-						break;
+
 					if(method == NULL)
 						continue;
+					if(terminate)
+						break;
 				}
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
+				dynamic_cast<SchedulerProvider*>(tmpSol)->setWorker(this);	// set this worker to be the SchedulerProvider's worker
 				bool tmpSolChanged = method->run(tmpSol);
 				double methodTime = CPUtime() - startTime;
 
@@ -121,42 +129,48 @@ void SchedulerWorker::run() {
 					tmpSolImproved = tmpSol->isBetter(*pop[0]);
 				else
 					tmpSolImproved = -1;
-/* TODO: For Integration in master entfernen. */
-#ifdef DEBUGMETH
-				cout << *tmpSol << "<-" << method->name << " " << tmpSolChanged << "/" << tmpSolImproved << endl;
-#endif
 
 				// update statistics and scheduler data
-				scheduler->mutex.lock(); // Begin of atomic operation
-				scheduler->updateMethodStatistics(this, methodTime);
-				scheduler->updateData(this, !scheduler->_synchronize_threads, scheduler->_synchronize_threads);
+				scheduler->mutex.lock();
+				if(!scheduler->terminate()) {
+					scheduler->updateMethodStatistics(this, methodTime);
+					scheduler->updateData(this, !scheduler->_synchronize_threads, scheduler->_synchronize_threads);
 
-				scheduler->mutexNoMethodAvailable.lock();
-				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
-				scheduler->mutexNoMethodAvailable.unlock();
+					// notify threads that are waiting for an available method
+					scheduler->mutexNoMethodAvailable.lock();
+					scheduler->cvNoMethodAvailable.notify_all();
+					scheduler->mutexNoMethodAvailable.unlock();
+				}
+				scheduler->mutex.unlock();
 
 				// scheduler->perfGenEndCallback();
 
 				if (scheduler->terminate()) {
 					// if synchronization of threads is active, ensure that threads potentially
-					// blocked at the mutexNotAllWorkersReadyForRunning - mutex are freed
+					// still blocked at mutexNotAllWorkersReadyForRunning or mutexOrderThreads are freed
 					if(scheduler->_synchronize_threads) {
 						scheduler->mutexNotAllWorkersInPrepPhase.lock();
 						scheduler->cvNotAllWorkersInPrepPhase.notify_all();
 						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+						scheduler->mutexOrderThreads.lock();
+						scheduler->cvOrderThreads.notify_all();
+						scheduler->mutexOrderThreads.unlock();
 					}
-
-					// write last generation info in any case
-					if(!scheduler->_synchronize_threads)
+					// else, write last generation info in any case
+					else {
+						scheduler->mutex.lock();
 						scheduler->writeLogEntry(true);
-					scheduler->mutex.unlock(); // End of atomic operation
+						scheduler->mutex.unlock();
+					}
 					break;	// ... and stop
 				}
 				else {
 					// write generation info
-					if(!scheduler->_synchronize_threads)
+					if(!scheduler->_synchronize_threads) {
+						scheduler->mutex.lock();
 						scheduler->writeLogEntry();
-					scheduler->mutex.unlock(); // End of atomic operation
+						scheduler->mutex.unlock();
+					}
 				}
 			}
 	}
@@ -168,6 +182,9 @@ void SchedulerWorker::run() {
 	}
 }
 
+//--------------------------------- SchedulerProvider--------------------------------------
+SchedulerProvider::~SchedulerProvider() {}
+
 
 //--------------------------------- Scheduler ---------------------------------------------
 
@@ -175,8 +192,13 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
 	initialSolutionExists = false;
 
-	_threadsnum = threadsnum();
-	_synchronize_threads = _threadsnum > 1 && synchronize_threads(); // only meaningful for more than one thread
+	if (dynamic_cast<SchedulerProvider*>(tmpSol) == 0)
+		mherror("Solution is not an SchedulerProvider");
+
+	_threadsnum = threadsnum(pgroup);
+	_synchronize_threads = _threadsnum > 1 && synchronize_threads(pgroup); // only meaningful for more than one thread
+	_titer = titer(pgroup);
+
  	workersWaiting = 0;
 }
 
@@ -189,10 +211,12 @@ void Scheduler::run() {
 	writeLogEntry();
 	logstr.flush();
 
-	// spawn the worker threads
+	// spawn the worker threads, each with its own random number generator having an own seed
 	for(unsigned int i=0; i < _threadsnum; i++) {
+		mh_random_number_generator* rng = new mh_random_number_generator();
+		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
-		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), random_int(UINT32_MAX));
+		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), rng);
 		mutex.unlock(); // End of atomic operation
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
