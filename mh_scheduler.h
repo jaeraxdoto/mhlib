@@ -206,169 +206,12 @@ public:
 	 * to which it is applied, running it, and updating relevant data.
 	 * Additionally, the termination criteria are checked after each iteration by calling the
 	 * terminate() method.
-	 * Before a solution is modified by applying a certain method to it,
-	 * it needs to be ensured that this worker is associated with the solution via
-	 * SchedulerProvider::setWorker().
 	 * mutex is used to ensure synchronization of the access to the optimization data
 	 * structures shared by the worker threads.
 	 */
 	void run();
 };
 
-//--------------------------- SchedulerProvider ------------------------------
-
-/** An abstract class for solutions used with the scheduler.
- * Provides the solution with information about the thread by which it is run.
- * In particular, methods for intercepting calls to the random functions are provided,
- * redirecting them to the scheduler's random number generator. */
-class SchedulerProvider {
-protected:
-	SchedulerWorker* worker;	///< The worker this solution is used in, or NULL if it is currently not used in a worker.
-
-	//* Inline methods calling the respective methods of the default random number generator object *//
-
-	/** Set seed value for the random number generator. If lseed!=0, use this
-	    value; otherwise, use the global parameter seed(). If it is also 0,
-	    derive a seed value from the current time and pid. */
-	inline void random_seed(unsigned int lseed=0) {
-		if(worker != NULL)
-			worker->rng->random_seed(lseed);
-		::random_seed(lseed);
-	}
-
-	/** Random value (0,1).
-		Returns a double random uniformly distributed with
-		stdandard deviation 1. */
-	inline double random_double() {
-		if(worker != NULL)
-			return worker->rng->random_double();
-		return ::random_double();
-	}
-
-	/** Returns true with with given probability. */
-	inline bool random_prob(double prob) {
-		if(worker != NULL)
-			return worker->rng->random_prob(prob);
-		return ::random_prob(prob);
-	}
-
-	/** Returns random boolean.
-		Returns either true or false with equal probability */
-	inline bool random_bool() {
-		if(worker != NULL)
-			return worker->rng->random_bool();
-		return ::random_bool();
-	}
-
-	/** Returns randomly 0 or 1.
-		Each value is returned with probability 1/2. */
-	inline int random_int() {
-		if(worker != NULL)
-			return worker->rng->random_int();
-		return ::random_int();
-	}
-
-	/** Returns a random integer in [0,high-1]. */
-	inline int random_int(int high) {
-		if(worker != NULL)
-			return worker->rng->random_int(high);
-		return ::random_int(high);
-	}
-
-	/** returns an int random number in [low,high] */
-	inline int random_int(int low, int high) {
-		if(worker != NULL)
-			return worker->rng->random_int(low, high);
-		return ::random_int(low, high);
-	}
-
-	/** returns a double random number uniformly distributed in (low,high) */
-	inline double random_double(double low, double high) {
-		if(worker != NULL)
-			return worker->rng->random_double(low, high);
-		return ::random_double(low, high);
-	}
-
-	/** returns a double random normally distributed with stdandard deviation 1 */
-	inline double random_normal() {
-		if(worker != NULL)
-			return worker->rng->random_normal();
-		return ::random_normal();
-	}
-
-	/** returns a normally distributed double random number with given deviation */
-	inline double random_normal(double dev) {
-		if(worker != NULL)
-			return worker->rng->random_normal(dev);
-		return ::random_normal(dev);
-	}
-
-	/** returns a Poisson-distributed random number for a given mu in [0,inf] */
-	inline unsigned int random_poisson(double mu) {
-		if(worker != NULL)
-			return worker->rng->random_poisson(mu);
-		return ::random_poisson(mu);
-	}
-
-	/** returns a Poisson-distributed random number for a given mu in [0,maxi-1] */
-	inline unsigned int random_poisson(double mu,unsigned maxi) {
-		if(worker != NULL)
-			return worker->rng->random_poisson(mu, maxi);
-		return ::random_poisson(mu, maxi);
-	}
-
-	/** A pseudo-random function mapping an unsigned value x to another
-	 unsigned value. Returns always the same value when called with the same
-	 parameters. Implemented via the pseudo-DES function as described in the book
-	 "Numerical Recipes", section 7.5. */
-	inline unsigned random_intfunc(unsigned seed, unsigned x) {
-		if(worker != NULL)
-			return worker->rng->random_intfunc(seed, x);
-		return ::random_intfunc(seed, x);
-	}
-
-	/** A pseudo-random function mapping an unsigned value x to a double value in [0,1).
-	  Returns always the same value when called with the same parameters.
-	  Implemented via the pseudo-DES function as described in the book "Numerical Recipes",
-	  section 7.5. */
-	inline double random_doublefunc(unsigned seed, unsigned x) {
-		if(worker != NULL)
-			return worker->rng->random_doublefunc(seed, x);
-		return ::random_doublefunc(seed, x);
-	}
-
-public:
-
-	/**
-	 * Default constructor, sets the associated worker to NULL.
-	 */
-	SchedulerProvider() : worker(NULL) {}
-
-	/**
-	 * Copy constructor.
-	 */
-	SchedulerProvider(const SchedulerProvider &sp) {
-		worker = sp.worker;
-	}
-
-	/**
-	 * Constructor that also sets the associated worker.
-	 */
-	SchedulerProvider(SchedulerWorker* _worker) : worker(_worker) {}
-
-	/**
-	 *  (Pure) virtual destructor.
-	 *  Is implemented and does nothing in order to make this class abstract.
-	 */
-	virtual ~SchedulerProvider() = 0;
-
-	/**
-	 * Sets the worker for this SchedulerProvider.
-	 */
-	void setWorker(SchedulerWorker* _worker) {
-		worker = _worker;
-	}
-};
 
 //--------------------------- SchedulerMethodSelector ------------------------------
 
@@ -453,7 +296,6 @@ public:
  * multithreaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
  * called. The scheduler is in particular responsible for deciding at which point in the optimization which
  * specific method is applied.
- * The solution for this algorithm must be derived from the abstract SchedulerProvider class.
  */
 class Scheduler : public mh_advbase {
 	friend class SchedulerWorker;

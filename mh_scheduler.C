@@ -26,7 +26,8 @@ static std::vector<std::exception_ptr> worker_exceptions;
 
 void SchedulerWorker::run() {
 	try {
-		pop.update(1,pop[0]);	// Initialize pop[1] with a copy of pop[0]
+		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
+		randomNumberGenerator = rng;	// set random number generator pointer to the one of this thread
 
 		if (!scheduler->terminate())
 			for(;;) {
@@ -121,7 +122,6 @@ void SchedulerWorker::run() {
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
 				startTime = CPUtime();
-				dynamic_cast<SchedulerProvider*>(tmpSol)->setWorker(this);	// set this worker to be the SchedulerProvider's worker
 				bool tmpSolChanged = method->run(tmpSol);
 				double methodTime = CPUtime() - startTime;
 
@@ -129,10 +129,10 @@ void SchedulerWorker::run() {
 					if(tmpSol->isBetter(*pop[0]))
 						tmpSolObjChange = OBJ_BETTER;
 					else
-						tmpSolObjChange = OBJ_NONE;
+						tmpSolObjChange = OBJ_WORSE;
 				}
 				else
-					tmpSolObjChange = OBJ_WORSE;
+					tmpSolObjChange = OBJ_NONE;
 
 				// update statistics and scheduler data
 				scheduler->mutex.lock();
@@ -186,17 +186,11 @@ void SchedulerWorker::run() {
 	}
 }
 
-//--------------------------------- SchedulerProvider--------------------------------------
-SchedulerProvider::~SchedulerProvider() {}
-
 
 //--------------------------------- Scheduler ---------------------------------------------
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
-	if (dynamic_cast<SchedulerProvider*>(tmpSol) == 0)
-		mherror("Solution is not an SchedulerProvider");
-
 	_threadsnum = threadsnum(pgroup);
 	_synchronize_threads = _threadsnum > 1 && synchronize_threads(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
@@ -413,8 +407,11 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		if(worker->method == NULL) {
 			if(!initialSolutionExists)
 				return;	// no, then there is no need to schedule an improvement method, yet.
-			else
-				worker->pop.update(0, pop->at(0)); // yes, then we assign the best known solution and schedule a method to be applied to it.
+			else {
+				// yes, then we assign the best known solution and schedule a method to be applied to it.
+				worker->pop.update(0, pop->at(0));
+				worker->tmpSol->copy(*worker->pop[0]);
+			}
 		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != NULL) {
@@ -435,7 +432,8 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 		// construction method has been applied
 		if(worker->tmpSolObjChange == OBJ_BETTER) {
 			copyBetter(worker, updateSchedulerData);	// save new best solution
-			initialSolutionExists = true;
+			if(!_synchronize_threads)
+				initialSolutionExists = true;
 		}
 		return;
 	}
@@ -512,8 +510,10 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 		if (workers[i]->pop[0]->isBetter(*best))
 			best = workers[i]->pop[0];
 	}
-	if (best->isBetter(*(pop->at(0))))
+	if (best->isBetter(*(pop->at(0)))) {
+		initialSolutionExists = true;
 		update(0, best);
+	}
 }
 
 void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {

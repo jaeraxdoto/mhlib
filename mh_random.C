@@ -40,6 +40,8 @@ static const double RNMX=(1.0-EPS);
 
 mh_random_number_generator defaultRNG;
 
+thread_local mh_random_number_generator* randomNumberGenerator = &defaultRNG;
+
 #include<iostream>
 
 mh_random_number_generator::mh_random_number_generator(){
