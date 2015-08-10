@@ -450,8 +450,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			// unsuccessful local improvement method call
 			if (locimpnh[worker->id]->hasFurtherMethod()) {
 				// continue VND with next neighborhood and incumbent VND solution
-				if (worker->tmpSolObjChange == OBJ_NONE)
-					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 				return;
 			}
 			else {
@@ -461,8 +460,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 					updateShakingMethodStatistics(worker,true);
 					worker->pop.update(1,worker->pop[0]);
 					shakingnh[worker->id]->resetLastMethod();
-					if (worker->tmpSolObjChange == OBJ_NONE)
-						worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 				}
 				else {
 					// Go back to best solution before last shaking
@@ -488,8 +486,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			else {
 				// unsuccessful neighborhood method call
 				updateShakingMethodStatistics(worker,false);
-				if (worker->tmpSolObjChange == OBJ_NONE)
-					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 			}
 		}
 		else {
