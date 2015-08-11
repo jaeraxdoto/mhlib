@@ -150,18 +150,8 @@ void SchedulerWorker::run() {
 				// scheduler->perfGenEndCallback();
 
 				if (scheduler->terminate()) {
-					// if synchronization of threads is active, ensure that threads potentially
-					// still blocked at mutexNotAllWorkersReadyForRunning or mutexOrderThreads are freed
-					if(scheduler->_synchronize_threads) {
-						scheduler->mutexNotAllWorkersInPrepPhase.lock();
-						scheduler->cvNotAllWorkersInPrepPhase.notify_all();
-						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
-						scheduler->mutexOrderThreads.lock();
-						scheduler->cvOrderThreads.notify_all();
-						scheduler->mutexOrderThreads.unlock();
-					}
-					// else, write last generation info in any case
-					else {
+					// write last generation info in any case
+					if(!scheduler->_synchronize_threads) {
 						scheduler->mutex.lock();
 						scheduler->writeLogEntry(true);
 						scheduler->mutex.unlock();
@@ -176,6 +166,16 @@ void SchedulerWorker::run() {
 						scheduler->mutex.unlock();
 					}
 				}
+			}
+			// if synchronization of threads is active, ensure that threads potentially
+			// still blocked at mutexNotAllWorkersReadyForRunning or mutexOrderThreads are freed
+			if(scheduler->_synchronize_threads) {
+				scheduler->mutexNotAllWorkersInPrepPhase.lock();
+				scheduler->cvNotAllWorkersInPrepPhase.notify_all();
+				scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+				scheduler->mutexOrderThreads.lock();
+				scheduler->cvOrderThreads.notify_all();
+				scheduler->mutexOrderThreads.unlock();
 			}
 	}
 	catch (...) {
