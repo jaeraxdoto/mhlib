@@ -18,6 +18,8 @@ int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1,
 
 bool_param synchronize_threads("synchronize_threads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
 
+bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
+
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
 /** Central stack of exceptions possibly occurring in threads,
@@ -121,9 +123,9 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				startTime = CPUtime();
+				startTime = (scheduler->_wall_clock_time ? (WallClockTime() - scheduler->timStart) : CPUtime());
 				bool tmpSolChanged = method->run(tmpSol);
-				double methodTime = CPUtime() - startTime;
+				double methodTime = (scheduler->_wall_clock_time ? WallClockTime() : CPUtime()) - startTime;
 
 				if (tmpSolChanged) {
 					if(tmpSol->isBetter(*pop[0]))
@@ -191,9 +193,13 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
+
+	wallClockTime = 0.0;
+
 	_threadsnum = threadsnum(pgroup);
 	_synchronize_threads = _threadsnum > 1 && synchronize_threads(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
+	_wall_clock_time = wall_clock_time(pgroup);
 
  	workersWaiting = 0;
 }
@@ -201,7 +207,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 void Scheduler::run() {
 	checkPopulation();
 
-	timStart=CPUtime();
+	timStart = (_wall_clock_time ? WallClockTime() : CPUtime());
 
 	writeLogHeader();
 	writeLogEntry();
@@ -281,7 +287,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 	char s[60];
 
-	double tim=CPUtime();
+	double tim = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
@@ -292,12 +298,20 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU-time:\t" << tim << endl;
+	ostr << (_wall_clock_time ? "Wall clock time:\t" : "CPU-time:\t") << tim << endl;
 	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
 }
 
+void Scheduler::checkBest() {
+	double nb=pop->bestObj();
+	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
+	{
+		iterBest=nIteration;
+		timIterBest = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
+	}
+}
 
 //--------------------------------- SchedulerMethodSelector ---------------------------------------------
 
@@ -415,7 +429,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != NULL) {
-			worker->shakingStartTime = CPUtime();
+			worker->shakingStartTime = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 			return;
 		}
 	}
@@ -525,7 +539,7 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
 	if (sm != NULL) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += CPUtime() - worker->shakingStartTime;
+		totTime[idx] += ((_wall_clock_time ? WallClockTime() : CPUtime()) - worker->shakingStartTime);
 		nIter[idx]++;
 		// if the applied method was successful, update the success-counter and the total obj-gain
 		if (improved) {

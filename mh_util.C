@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <sys/time.h>
 #include "mh_util.h"
 
 void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
@@ -140,6 +141,16 @@ double CPUtime()
 }
 #endif // NEVER
 
+
+
+double WallClockTime() {
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        mherror("Could not obtain wall clock time.");
+        return -1;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
 
 string mhversion() {
 	return string("mhlib version: ")+string(VERSION);
