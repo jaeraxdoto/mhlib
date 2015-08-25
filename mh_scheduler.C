@@ -125,7 +125,8 @@ void SchedulerWorker::run() {
 				// scheduler->perfGenBeginCallback();
 				startTime = (scheduler->_wall_clock_time ? (WallClockTime() - scheduler->timStart) : CPUtime());
 				bool tmpSolChanged = method->run(tmpSol);
-				double methodTime = (scheduler->_wall_clock_time ? WallClockTime() : CPUtime()) - startTime;
+				double methodTime = (scheduler->_wall_clock_time ? (WallClockTime() - scheduler->timStart) : CPUtime()) - startTime;
+
 
 				if (tmpSolChanged) {
 					if(tmpSol->isBetter(*pop[0]))
@@ -539,7 +540,7 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
 	if (sm != NULL) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += ((_wall_clock_time ? WallClockTime() : CPUtime()) - worker->shakingStartTime);
+		totTime[idx] += ((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()) - worker->shakingStartTime);
 		nIter[idx]++;
 		// if the applied method was successful, update the success-counter and the total obj-gain
 		if (improved) {
