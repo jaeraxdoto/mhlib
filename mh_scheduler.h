@@ -32,6 +32,8 @@ extern bool_param synchronize_threads;
 /**
  * If set to true, the times measured for the statistics of the scheduler are measured in wall clock time.
  * Otherwise, they refer to the CPU time.
+ * Note that if this parameter is set to true, a termination specified by the ttime parameter
+ * will also be interpreted as wall clock time.
  */
 extern bool_param wall_clock_time;
 
@@ -473,19 +475,7 @@ public:
 	 * for all termination criteria, the scheduler's termination flag is set to true,
 	 * if any criterion applies.
 	 */
-	bool terminate() {
-		if (finish)
-			return true;
-		if (callback != NULL && callback(pop->bestObj())) {
-			finish = true;
-			return true;
-		}
-		if (mh_advbase::terminate()) {
-			finish = true;
-			return true;
-		}
-		return false;
-	}
+	bool terminate();
 
 	/**
 	 * Determines the next method to be applied and sets it in the given worker.

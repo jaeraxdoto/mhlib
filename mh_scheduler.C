@@ -244,6 +244,28 @@ void Scheduler::run() {
 	logstr.flush();
 }
 
+bool Scheduler::terminate() {
+	if (finish)
+		return true;
+	if (callback != NULL && callback(pop->bestObj())) {
+		finish = true;
+		return true;
+	}
+
+	// "standard" termination criteria, modified to allow for termination after a certain
+	// wall clock time, rather than cpu time, if _wall_clock_time == 1
+	checkPopulation();
+	if((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
+		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
+		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
+					getBestSol()->obj()<=tobj(pgroup))) ||
+		(ttime(pgroup)>=0 && ttime(pgroup)<=((_wall_clock_time ? WallClockTime() : CPUtime()) - timStart))) {
+		finish = true;
+		return true;
+	}
+	return false;
+}
+
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
 	totTime[idx] += methodTime;
