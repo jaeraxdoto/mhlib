@@ -327,6 +327,22 @@ void Scheduler::printStatistics(ostream &ostr) {
 	printMethodStatistics(ostr);
 }
 
+void Scheduler::writeLogEntry(bool inAnyCase) {
+	checkPopulation();
+
+	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
+	{
+		logstr.write(pop->getWorst());
+		logstr.write(pop->getMean());
+		logstr.write(pop->getDev());
+		if (logdups(pgroup))
+			logstr.write(nDupEliminations);
+		if (logcputime(pgroup))
+			logstr.write((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()));
+		logstr.finishEntry();
+	}
+}
+
 void Scheduler::checkBest() {
 	double nb=pop->bestObj();
 	if (maxi(pgroup)?nb>bestObj:nb<bestObj)

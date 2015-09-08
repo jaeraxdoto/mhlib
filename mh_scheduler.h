@@ -530,6 +530,12 @@ public:
 	virtual void printStatistics(ostream &ostr);
 
 	/**
+	 * Writes the log entry for the current iteration.
+	 * If inAnyCase is set, then the entry is written in any case.
+	 */
+	void writeLogEntry(bool inAnyCase=false);
+
+	/**
 	 * Checks to see whether the best objective value has changed
 	 * and updated iterBest and timIterBest if so.
 	 */
