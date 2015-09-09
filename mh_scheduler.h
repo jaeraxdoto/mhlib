@@ -29,6 +29,13 @@ extern int_param threadsnum;
  */
 extern bool_param synchronize_threads;
 
+/**
+ * Determines the probability for a thread to update its incumbent solution after a major iteration
+ * (shaking and subsequent VND). If the best global solution is better than the incumbent solution,
+ * it becomes the thread's new incumbent solution.
+ */
+extern double_param solution_update_prob;
+
 //--------------------------- SchedulerMethod ------------------------------
 
 /**
@@ -201,6 +208,12 @@ public:
 	}
 
 	/**
+	 * Checks the globally best solution in the scheduler's population.
+	 * If it is better, the worker's incumbent solution is updated with probability solution_update_prob.
+	 */
+	void checkGlobalBest();
+
+	/**
 	 * This method is the main procedure of a worker, which is spawned as an own thread.
 	 * It contains the main loop consisting of the selection of the next method and solutions
 	 * to which it is applied, running it, and updating relevant data.
@@ -353,9 +366,10 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	unsigned int _threadsnum;	///< Mirrored mhlib parameter threadsnum for performance reasons.
-	bool _synchronize_threads;	///< Mirrored mhlib parameter synchronize_threads for performance reasons.
-	int _titer;					///< Mirrored mhlib parameter titer for performance reasons.
+	unsigned int _threadsnum;		///< Mirrored mhlib parameter threadsnum for performance reasons.
+	bool _synchronize_threads;		///< Mirrored mhlib parameter synchronize_threads for performance reasons.
+	int _titer;						///< Mirrored mhlib parameter titer for performance reasons.
+	double _solution_update_prob; 	///< Mirrored mhlib parameter solution_update_prob for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -487,10 +501,12 @@ public:
 	virtual void getNextMethod(SchedulerWorker *worker) = 0;
 
 	/**
-	 * Updates the worker->tmpSol, worker->pop and the schedulers population.
+	 * Updates the worker->tmpSol, worker->pop and the scheduler's population.
 	 * If the flag updateSchedulerData is set to true, global data, such as the scheduler's
 	 * population, is possibly updated as well, according to the result of the last method application.
-	 * If it is false, only the worker's population and no global data is updated.
+	 * Furthermore, the worker's incumbent is updated to the global best one with probability solution_update_prob.
+	 * If it is false, only the worker's population and no data is exchanged between the scheduler's and the
+	 * worker's populations.
 	 * If storeResult is true, a new MethodApplicationResult object storing the result of the last
 	 * method application is appended to the SchedulerWorker's result list.
 	 * This method is called with mutex locked.
@@ -501,6 +517,8 @@ public:
 	 * Updates the global data based on the entries in the results vectors of the workers.
 	 * It needs to be ensured that the result of this update is always the same independent from the
 	 * order of the workers.
+	 * Furthermore, each worker's incumbent solution is updated to the globally best one by
+	 * probability solution_update_prob.
 	 * If clearResults is set to true, the vector is cleared after the results have been processed.
 	 * Otherwise, the results remain in the vector.
 	 */
@@ -601,6 +619,7 @@ public:
 	/**
 	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
 	 * population according to the result of the last method application.
+	 * Furthermore, the worker's incumbent is updated to the global best one with probability solution_update_prob.
 	 * As the exact history of results is irrelevant to the GVNSScheduler, the value of storeResult
 	 * is ignored and no result information is appended to the vector's result list.
 	 * This method is called with mutex locked.
