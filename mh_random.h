@@ -210,5 +210,10 @@ inline double random_doublefunc(unsigned seed, unsigned x) {
 	return randomNumberGenerator->random_doublefunc(seed, x);
 }
 
+/**
+ * Resets the mh_random_number_generator pointer to the default RNG.
+ */
+void random_resetRNG();
+
 #endif //MH_RANDOM_H
 

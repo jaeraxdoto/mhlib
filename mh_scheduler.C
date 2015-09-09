@@ -20,11 +20,20 @@ bool_param synchronize_threads("synchronize_threads", "If set to true, the synch
 
 bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
 
+double_param solution_update_prob("solution_update_prob", "Determines the probability for a thread to update its incumbent solution after a major iteration (shaking and subsequent VND)", 0.5, 0, 1);
+
+
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
 /** Central stack of exceptions possibly occurring in threads,
  * which are passed to the main thread. */
 static std::vector<std::exception_ptr> worker_exceptions;
+
+void SchedulerWorker::checkGlobalBest() {
+	if (pop[0]->isWorse(*scheduler->pop->at(0)) &&
+			random_double() <= scheduler->_solution_update_prob)
+		pop.update(0, scheduler->pop->at(0));
+}
 
 void SchedulerWorker::run() {
 	try {
@@ -95,7 +104,9 @@ void SchedulerWorker::run() {
 					// ... else, the last thread has reached this point
 					else {
 						// update the global scheduler data and notify the waiting workers
+						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
+						randomNumberGenerator = rng; // reset to thread's rng
 						scheduler->writeLogEntry();
 
 						// ensure that only exactly titer updates are performed and that possibly
@@ -201,6 +212,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 	_synchronize_threads = _threadsnum > 1 && synchronize_threads(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
 	_wall_clock_time = wall_clock_time(pgroup);
+	_solution_update_prob = solution_update_prob(pgroup);
 
  	workersWaiting = 0;
 }
@@ -488,6 +500,10 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			if(!_synchronize_threads)
 				initialSolutionExists = true;
 		}
+		else {
+			if(updateSchedulerData)
+				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
+		}
 		return;
 	}
 
@@ -513,6 +529,8 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 					updateShakingMethodStatistics(worker,true);
 					worker->pop.update(1,worker->pop[0]);
 					shakingnh[worker->id]->resetLastMethod();
+					if(updateSchedulerData)
+						worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 				}
 				else {
@@ -539,6 +557,8 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			else {
 				// unsuccessful neighborhood method call
 				updateShakingMethodStatistics(worker,false);
+				if(updateSchedulerData)
+					worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 			}
 		}
@@ -555,6 +575,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 }
 
 void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
+	// update best solution in scheduler's population
 	mh_solution* best = workers[0]->pop[0];
 	for(unsigned int i=1; i < workers.size(); i++) {
 		if (workers[i]->pop[0]->isBetter(*best))
@@ -564,6 +585,10 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 		initialSolutionExists = true;
 		update(0, best);
 	}
+	// possibly replace threads' incumbents by best global solution
+	if(_solution_update_prob > 0)
+		for(unsigned int i=0; i < workers.size(); i++)
+			workers[i]->checkGlobalBest();
 }
 
 void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
