@@ -143,7 +143,7 @@ double CPUtime()
 
 
 double WallClockTime() {
-	chrono::high_resolution_clock::time_point t = chrono::high_resolution_clock::now();
+	chrono::steady_clock::time_point t = chrono::steady_clock::now();
 	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count();
 }
 
