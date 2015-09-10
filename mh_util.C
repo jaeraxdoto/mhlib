@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <sys/time.h>
 #include "mh_util.h"
+#include <chrono>
 
 void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
 		const std::string &par3)
@@ -142,14 +142,9 @@ double CPUtime()
 #endif // NEVER
 
 
-
 double WallClockTime() {
-    struct timeval time;
-    if (gettimeofday(&time,NULL)){
-        mherror("Could not obtain wall clock time.");
-        return -1;
-    }
-    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+	chrono::high_resolution_clock::time_point t = chrono::high_resolution_clock::now();
+	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count();
 }
 
 string mhversion() {

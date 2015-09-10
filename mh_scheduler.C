@@ -134,10 +134,9 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				startTime = (scheduler->_wall_clock_time ? (WallClockTime() - scheduler->timStart) : CPUtime());
+				startTime = CPUtime();
 				bool tmpSolChanged = method->run(tmpSol);
-				double methodTime = (scheduler->_wall_clock_time ? (WallClockTime() - scheduler->timStart) : CPUtime()) - startTime;
-
+				double methodTime = CPUtime() - startTime;
 
 				if (tmpSolChanged) {
 					if(tmpSol->isBetter(*pop[0]))
