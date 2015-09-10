@@ -29,15 +29,7 @@ extern int_param threadsnum;
  */
 extern bool_param synchronize_threads;
 
-/**
- * If set to true, the times measured for the statistics of the scheduler are measured in wall clock time.
- * Otherwise, they refer to the CPU time.
- * Note that if this parameter is set to true, a termination specified by the ttime parameter
- * will also be interpreted as wall clock time.
- */
-extern bool_param wall_clock_time;
-
-/*
+/** \ingroup param
  * Determines the probability for a thread to update its incumbent solution after a major iteration
  * (shaking and subsequent VND). If the best global solution is better than the incumbent solution,
  * it becomes the thread's new incumbent solution.
@@ -379,7 +371,6 @@ protected:
 	bool _synchronize_threads;		///< Mirrored mhlib parameter synchronize_threads for performance reasons.
 	int _titer;						///< Mirrored mhlib parameter titer for performance reasons.
 	double _solution_update_prob; 	///< Mirrored mhlib parameter solution_update_prob for performance reasons.
-	bool _wall_clock_time;			///< Mirrored mhlib parameter wall_clock_time for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -416,11 +407,6 @@ protected:
 	 * by which they have to start the optimization, i.e. by which a first method is assigned to them.
 	 */
 	std::condition_variable cvOrderThreads;
-
-	/**
-	 * The wall clock time that has passed since initializing the scheduler.
-	 */
-	double wallClockTime;
 
 public:
 	/**
@@ -547,18 +533,6 @@ public:
 	 * in which iteration and after how much time it was found.
 	 */
 	virtual void printStatistics(ostream &ostr);
-
-	/**
-	 * Writes the log entry for the current iteration.
-	 * If inAnyCase is set, then the entry is written in any case.
-	 */
-	void writeLogEntry(bool inAnyCase=false);
-
-	/**
-	 * Checks to see whether the best objective value has changed
-	 * and updated iterBest and timIterBest if so.
-	 */
-	void checkBest();
 };
 
 

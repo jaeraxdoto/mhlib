@@ -43,6 +43,8 @@ bool_param logdups("logdups","log number of elim. dups.?",false);
 
 bool_param logcputime("logcputime","log elapsed cpu time?",false);
 
+bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
+
 
 mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 {
@@ -72,6 +74,8 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 	// (replace worst)
 	if (repl(pgroup)!=1)
 		wheap.set(false,pgroup);
+
+	_wall_clock_time = wall_clock_time(pgroup);
 }
 
 mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
@@ -94,6 +98,8 @@ mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 	timIterBest=0.0;
 	timStart=0.0;
 	bestObj=0;
+
+	_wall_clock_time = wall_clock_time(pgroup);
 }
 
 mh_advbase *mh_advbase::clone(pop_base &p, const pstring &pg)
@@ -111,7 +117,7 @@ void mh_advbase::run()
 {
 	checkPopulation();
 
-	timStart=CPUtime();
+	timStart = (_wall_clock_time ? WallClockTime() : CPUtime());
 	
 	writeLogHeader();
 	writeLogEntry();
@@ -195,7 +201,7 @@ bool mh_advbase::terminate()
 				(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
 				(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
 						    getBestSol()->obj()<=tobj(pgroup))) ||
-				(ttime(pgroup)>=0 && ttime(pgroup)<=(CPUtime()-timStart)));
+						    (ttime(pgroup)>=0 && ttime(pgroup)<=((_wall_clock_time ? WallClockTime() : CPUtime()) - timStart)));
 		// DEPRECATED:
 		case 0: // terminate after titer (not tciter!) iterations
 			return nIteration>=titer(pgroup);
@@ -289,7 +295,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	
 	char s[40];
 	
-	double tim=CPUtime();
+	double tim = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
@@ -300,7 +306,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU-time:\t" << tim << endl;
+	ostr << (_wall_clock_time ? "wall clock time:\t" : "CPU-time:\t") << tim << endl;
 	ostr << "iterations:\t" << nIteration << endl;
 	ostr << "subiterations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
@@ -330,7 +336,7 @@ void mh_advbase::writeLogEntry(bool inAnyCase)
 		if (logdups(pgroup)) 
 			logstr.write(nDupEliminations);
 		if (logcputime(pgroup))
-			logstr.write(CPUtime());
+			logstr.write((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()));
 		logstr.finishEntry();
 	}
 }
@@ -346,7 +352,7 @@ void mh_advbase::writeLogHeader()
 	if (logdups(pgroup)) 
 		logstr.write("dupelim");
 	if (logcputime(pgroup))
-		logstr.write("cputime");
+		logstr.write(_wall_clock_time ? "wallclocktime" : "cputime");
 	logstr.finishEntry();
 }
 
@@ -367,7 +373,7 @@ void mh_advbase::checkBest()
 	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
 	{
 		iterBest=nIteration;
-		timIterBest = CPUtime();
+		timIterBest = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	}
 }
 

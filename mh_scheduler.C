@@ -18,8 +18,6 @@ int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1,
 
 bool_param synchronize_threads("synchronize_threads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
 
-bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
-
 double_param solution_update_prob("solution_update_prob", "Determines the probability for a thread to update its incumbent solution after a major iteration (shaking and subsequent VND)", 0.5, 0, 1);
 
 
@@ -204,13 +202,9 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
-
-	wallClockTime = 0.0;
-
 	_threadsnum = threadsnum(pgroup);
 	_synchronize_threads = _threadsnum > 1 && synchronize_threads(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
-	_wall_clock_time = wall_clock_time(pgroup);
 	_solution_update_prob = solution_update_prob(pgroup);
 
  	workersWaiting = 0;
@@ -336,31 +330,6 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
-}
-
-void Scheduler::writeLogEntry(bool inAnyCase) {
-	checkPopulation();
-
-	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
-	{
-		logstr.write(pop->getWorst());
-		logstr.write(pop->getMean());
-		logstr.write(pop->getDev());
-		if (logdups(pgroup))
-			logstr.write(nDupEliminations);
-		if (logcputime(pgroup))
-			logstr.write((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()));
-		logstr.finishEntry();
-	}
-}
-
-void Scheduler::checkBest() {
-	double nb=pop->bestObj();
-	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
-	{
-		iterBest=nIteration;
-		timIterBest = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
-	}
 }
 
 //--------------------------------- SchedulerMethodSelector ---------------------------------------------

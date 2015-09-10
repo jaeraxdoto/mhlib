@@ -58,7 +58,7 @@ extern int_param tselk;
 	- -k: The solution to be replaced is selected via a tournament
 		selection of group size k (with replacement of actual).
 
-	In addition, duplicate eliminiation takes place according to
+	In addition, duplicate elimination takes place according to
 	parameter #dupelim. */ 
 extern int_param repl;
 
@@ -108,6 +108,15 @@ extern double_param plocim;
 	crossover and mutation creates only duplicates of the parents
 	(nCrossoverDups, nMutationDups). */
 extern bool_param cntopd;
+
+/** \ingroup param
+ * If set to true, the runtime measured for the statistics of the metaheuristic is measured in wall clock time.
+ * Otherwise, they refer to the CPU time. This does, however, not affect the runtimes measured
+ * for specific neighborhoods in e.g. a VNS.
+ * Note that if this parameter is set to true, a termination specified by the ttime parameter
+ * will also be interpreted as wall clock time.
+ */
+extern bool_param wall_clock_time;
 
 /** The abstract base class for metaheuristics.
 	This abstract base contains methods and attributes that are needed in
@@ -233,7 +242,7 @@ public:
 	int nAspirations;
 	/** Number of solutions that were accepted due to the acceptance criterion. */
 	int nDeteriorations;
-	
+
 protected:
 	int iterBest;	    ///< Iteration in which best solution was generated.
 	double timIterBest;  ///< Time at which best solution was generated.
@@ -243,6 +252,8 @@ protected:
 	
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called
+
+	bool _wall_clock_time;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
 };
 
 #endif //MH_ADVBASE_H
