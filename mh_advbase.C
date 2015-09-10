@@ -41,7 +41,7 @@ int_param repl("repl","replacement scheme (0:random, 1:worst, -k:TS)",
 
 bool_param logdups("logdups","log number of elim. dups.?",false);
 
-bool_param logcputime("logcputime","log elapsed cpu time?",false);
+bool_param logcputime("logcputime","log elapsed cpu time?",true);
 
 bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
 
