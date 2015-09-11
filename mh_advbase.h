@@ -15,28 +15,28 @@
 /** \ingroup param 
 	The termination condition (DEPRECATED).
 	Decides the strategy used as termination criterion:
-	- -1: terminate when #tgen>0 && #tgen generations are
-	  reached or when #tcgen>0 && #tcgen generations without
+	- -1: terminate when #titer>0 && #titer iterations are
+	  reached or when #tciter>0 && #tciter iterations without
 	  improvement or when #tobj>0 && best solution reaches #tobj
 	  or when #ttime>0 && effective runtime reaches #ttime.
 
 	Depracated values:
-	- 0: terminate after #tgen generations.
+	- 0: terminate after #titer iterations.
 	- 1: terminate after convergence, which is defined as:
 		the objective value of the best solution in the population
-		did not change within the last tgen (not #tcgen!) 
-		generations. 
+		did not change within the last titer (not #tciter!)
+		iterations.
 	- 2: terminate when the given objective value limit (tobj()) is 
 		reached. */
 extern int_param tcond;
 
 /** \ingroup param
-	The number of generations until termination. Active if >=0. */
-extern int_param tgen;
+	The number of iterations until termination. Active if >=0. */
+extern int_param titer;
 
 /** \ingroup param 
-	The number of generations for termination according to convergence. Active if >=0. */
-extern int_param tcgen;
+	The number of iterations for termination according to convergence. Active if >=0. */
+extern int_param tciter;
 
 /** \ingroup param
 	The objective value for termination when #tcond==2. Active if >=0. */
@@ -58,7 +58,7 @@ extern int_param tselk;
 	- -k: The solution to be replaced is selected via a tournament
 		selection of group size k (with replacement of actual).
 
-	In addition, duplicate eliminiation takes place according to
+	In addition, duplicate elimination takes place according to
 	parameter #dupelim. */ 
 extern int_param repl;
 
@@ -109,6 +109,15 @@ extern double_param plocim;
 	(nCrossoverDups, nMutationDups). */
 extern bool_param cntopd;
 
+/** \ingroup param
+ * If set to true, the runtime measured for the statistics of the metaheuristic is measured in wall clock time.
+ * Otherwise, they refer to the CPU time. This does, however, not affect the runtimes measured
+ * for specific neighborhoods in e.g. a VNS.
+ * Note that if this parameter is set to true, a termination specified by the ttime parameter
+ * will also be interpreted as wall clock time.
+ */
+extern bool_param wall_clock_time;
+
 /** The abstract base class for metaheuristics.
 	This abstract base contains methods and attributes that are needed in
 	order to use an algorithm as sub-algorithm in an island model.
@@ -137,13 +146,13 @@ public:
 		new EA object of the same class as the called object. */
 	virtual mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""));
 	/** The EA's main loop.
-		Performs generations until the termination criterion is
-		fullfilled.
+		Performs iterations until the termination criterion is
+		fulfilled.
 		Called for a stand-alone EA, but never if used as island. */
 	virtual void run();
-	/** Performs a single generation.
+	/** Performs a single iteration.
 		Is called from run(); is also called if used as island. */
-	virtual void performGeneration() = 0;
+	virtual void performIteration() = 0;
 	/** Performs crossover on the given solutions and updates
 		statistics. */
 	void performCrossover(mh_solution *p1,mh_solution *p2,
@@ -152,7 +161,7 @@ public:
 		probability and updates statistics. */
 	void performMutation(mh_solution *c,double prob);
 	/** The termination criterion.
-		Calls a concerete termination functions and returns true
+		Calls a concrete termination functions and returns true
 		if the algorithm should terminate. */
 	virtual bool terminate();
 	/** Returns an index for a solution to be replaced.
@@ -172,25 +181,25 @@ public:
 		Prints out various statistic informations including
 		the best solution of the population.. */
 	virtual void printStatistics(ostream &ostr);
-	/** Writes the log entry for the current generation.
+	/** Writes the log entry for the current iteration.
 		If inAnyCase is set, then the entry is written in any case. */
 	virtual void writeLogEntry(bool inAnyCase=false);
 	/** Writes the log header */
 	virtual void writeLogHeader();
 	/** Returns pointer to best solution obtained so far. */
-	mh_solution *getBestChrom() const
+	mh_solution *getBestSol() const
 		{ return pop->bestSol(); }
-	/** Returns number of generation */
-	virtual int getGen(void)
-		{ return nGeneration; }      
-	/** Returns generation in which best chrom was generated */
-	virtual int getGenBest(void)
-		{ return genBest; }
-	/** Returns time at which best chrom was generated */
-	virtual double getTimeGenBest(void)
-		{ return timGenBest; }       
+	/** Returns number of the current iteration. */
+	virtual int getIter(void)
+		{ return nIteration; }
+	/** Returns iteration in which best solution was generated. */
+	virtual int getIterBest(void)
+		{ return iterBest; }
+	/** Returns time at which best solution was generated. */
+	virtual double getTimeIterBest(void)
+		{ return timIterBest; }
 	/** Performs a classical tournament.
-		The group size is tournk and randomly chosen chromosoms can
+		The group size is tournk and randomly chosen solutions can
 		be chose multiple times. */
 	int tournamentSelection();
 
@@ -199,21 +208,21 @@ protected:
 	void checkPopulation();
 	/** Saves the best objective value. */
 	virtual void saveBest();
-	/** Checks to see wether the best objective value has changed
-		and updated genBest and timGenBest if so. */
+	/** Checks to see whether the best objective value has changed
+		and updated iterBest and timIterBest if so. */
 	virtual void checkBest();
 	/** Adds statistics from a subalgorithm. */
 	void addStatistics(const mh_advbase *a);
 	
-	/** Method called at the begin of performGeneration(). */
-	virtual void perfGenBeginCallback(){};
+	/** Method called at the begin of performIteration(). */
+	virtual void perfIterBeginCallback(){};
 	
-	/** Method called at the end of performGeneration(). */
-	virtual void perfGenEndCallback(){};
+	/** Method called at the end of performIteration(). */
+	virtual void perfIterEndCallback(){};
 	
 public:
-	int nGeneration;	///< Number of generations
-	int nSubGenerations;	///< Number of generations in subalgorithms
+	int nIteration;	///< Number of current iteration.
+	int nSubIterations;	///< Number of iterations in subalgorithms.
 	int nSelections;	///< Number of performed selections
 	int nCrossovers;	///< Number of performed crossovers
 	int nMutations;		///< Number of performed mutations
@@ -229,20 +238,22 @@ public:
 	int nLocalImprovements;
 	/** Number of solutions that were tabu. */
 	int nTabus;
-	/** Number of solutions that were acception due to an aspiration criterion. */
+	/** Number of solutions that were accepted due to an aspiration criterion. */
 	int nAspirations;
-	/** Number of solutions that were acception due to the acceptance criterion. */
+	/** Number of solutions that were accepted due to the acceptance criterion. */
 	int nDeteriorations;
-	
+
 protected:
-	int genBest;	    ///< Generation in which best chrom was generated
-	double timGenBest;  ///< Time at which best chrom was generated
+	int iterBest;	    ///< Iteration in which best solution was generated.
+	double timIterBest;  ///< Time at which best solution was generated.
 	
 	// other class variables
 	mh_solution *tmpSol;	///< a temporary solution in which the result of operations is stored
 	
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called
+
+	bool _wall_clock_time;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
 };
 
 #endif //MH_ADVBASE_H

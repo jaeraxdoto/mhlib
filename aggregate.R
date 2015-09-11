@@ -5,6 +5,12 @@
 # If two csv files are given as parameter, they are assumed to be results
 # from two different algorithms on the same instances, and they are compared
 # including a Wilcoxon rank sum test
+#
+# Consider this R script more as an example or template. It is adopted
+# from the BBSS project and contains some quite specific functions for 
+# this particular project which are not meaningful for other
+# projects.
+
 
 options(width=10000) # default line width for print, i.e., do not break lines
 
@@ -50,8 +56,8 @@ aggregate <- function(rawdata,categfactor=factor(sapply(as.vector(rawdata$file),
     runs=tapply(rawdata$obj,categfactor,length),
     obj_mean=tapply(rawdata$obj,categfactor,mean),
     obj_sd=tapply(rawdata$obj,categfactor,sd),
-    gtot_med=tapply(rawdata$gtot,categfactor,median),
-    gbest_med=tapply(rawdata$gbest,categfactor,median),
+    ittot_med=tapply(rawdata$ittot,categfactor,median),
+    itbest_med=tapply(rawdata$itbest,categfactor,median),
     ttot_med=tapply(rawdata$ttot,categfactor,median),
     tbest_med=tapply(rawdata$tbest,categfactor,median)
     # tbest_sd=tapply(rawdata$tbest,categfactor,sd),
@@ -93,13 +99,13 @@ totalagg <- function(agg) {
     row.names="total",
     runs=sum(agg$runs),
     obj_mean=mean(agg$obj_mean),
-    gtot_mean=mean(agg$gtot_med),
-    gbest_mean=mean(agg$gbest_med),
+    ittot_mean=mean(agg$ittot_med),
+    itbest_mean=mean(agg$itbest_med),
     ttot_mean=mean(agg$ttot_med),
     tbest_mean=mean(agg$tbest_med),
     obj_gmean=geometric_mean(agg$obj_mean),
-    gtot_gmean=geometric_mean(agg$gtot_med),
-    gbest_gmean=geometric_mean(agg$gbest_med),
+    ittot_gmean=geometric_mean(agg$ittot_med),
+    itbest_gmean=geometric_mean(agg$itbest_med),
     ttot_gmean=geometric_mean(agg$ttot_med,0.01),
     tbest_gmean=geometric_mean(agg$tbest_med,0.01)
     )
@@ -116,8 +122,8 @@ totalagg <- function(agg) {
 roundagg <- function(a) {
   a$obj_mean <- round(a$obj_mean,6)
   a$obj_sd <- round(a$obj_sd,6)
-  a$gtot_med <- round(a$gtot_med,1)
-  a$gbest_med <- round(a$gbest_med,1)
+  a$ittot_med <- round(a$ittot_med,1)
+  a$itbest_med <- round(a$itbest_med,1)
   a$ttot_med <- round(a$ttot_med,1)
   a$tbest_med <- round(a$tbest_med,1)
   if ('obj0_mean' %in% colnames(a)) {
@@ -172,8 +178,8 @@ doaggregate2 <- function(raw,fact) {
     p_AlessB=tapply(1:length(raw$class),fact,wtest,col1=raw$obj.x,col2=raw$obj.y), 
     p_BlessA=tapply(1:length(raw$class),fact,wtest,col1=raw$obj.y,col2=raw$obj.x) 
     # obj_sd=tapply(rawdata$obj,fact,sd),
-    # gtot_med=tapply(rawdata$gtot,fact,median),
-    # gbest_med=tapply(rawdata$gbest,fact,median),
+    # ittot_med=tapply(rawdata$ittot,fact,median),
+    # itbest_med=tapply(rawdata$itbest,fact,median),
     # ttot_med=tapply(rawdata$ttot,fact,median),
     # tbest_med=tapply(rawdata$tbest,fact,median)
     # tbest_sd=tapply(rawdata$tbest,fact,sd),
@@ -364,7 +370,7 @@ jogotablevartimeiter <- function(raw,idx) {
   agg<-roundagg(aggregate(raw))
   data.frame(row.names=rownames(agg),
     ttot_med=agg$ttot_med,
-    gtot_med=agg$gtot_med)
+    ittot_med=agg$ittot_med)
     #best=hmbestcount[,idx],
     #obj_mean=agg$obj_mean,
     #obj_sd=agg$obj_sd,

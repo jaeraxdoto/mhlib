@@ -20,9 +20,9 @@ void qapFeature::updatePenalties(const mh_solution *c)
 	
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 
-	// check if a valid qapChrom* was provided
+	// check if a valid qapSol* was provided
 	if ( qapc==NULL )
-		mherror("Chromosome is not a qapChrom");
+		mherror("Solution is not a qapSol");
 	
 	for (int i=0; i<qi->n; i++)
 	{
@@ -59,7 +59,7 @@ double qapFeature::penalty(const mh_solution *c)
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 
 	if ( qapc==NULL )
-		mherror("Chromosome is not a qapChrom");
+		mherror("Solution is not a qapSol");
 
 	double p = 0.0;
 
@@ -77,7 +77,7 @@ double qapFeature::delta_penalty(const mh_solution *c, const nhmove *m)
 	const swapMove *qm = dynamic_cast<const swapMove*>(m);
 
 	if ( qapc==NULL )
-		mherror("Chromosome is not a qapChrom");
+		mherror("Solution is not a qapSol");
 
 	if ( qm==NULL )
 		mherror("Move is not a swapMove");

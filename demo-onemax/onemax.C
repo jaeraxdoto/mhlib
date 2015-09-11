@@ -24,38 +24,38 @@
 #include "mh_log.h"
 #include "mh_interfaces.h"
 // #include "mh_fdc.h"
-#include "mh_binstringchrom.h"
-#include "mh_permchrom.h"
+#include "mh_binstringsol.h"
+#include "mh_permsol.h"
 
 
 
-/** Problem specific parameters (the number of genes). */
-int_param genes("genes","number of genes",20,1,10000);
+/** Problem specific parameters (the number of variables). */
+int_param vars("vars","number of variables",20,1,10000);
 
-/** Name of file to save best chromosome. */
+/** Name of file to save best solution. */
 string_param sfile("sfile","name of file to save solution to","");
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
-/** This is the chromosome class for the OneMax problem.
+/** This is the solution class for the OneMax problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class oneMaxChrom : public binStringChrom, public gcProvider
+class oneMaxSol : public binStringSol, public gcProvider
 {
 public:
-	oneMaxChrom() : binStringChrom(genes())
+	oneMaxSol() : binStringSol(vars())
 		{}
 	virtual mh_solution *createUninitialized() const
-		{ return new oneMaxChrom; }
+		{ return new oneMaxSol; }
 	virtual mh_solution *clone() const
-		{ return new oneMaxChrom(*this); }
+		{ return new oneMaxSol(*this); }
 	double objective();
 	void greedyConstruct();
 	double delta_obj(const nhmove &m);
 };
 
-/// The actual objective function counts the number of genes set to 1.
-double oneMaxChrom::objective()
+/// The actual objective function counts the number of variables set to 1.
+double oneMaxSol::objective()
 {
 	int sum=0;
 	for (int i=0;i<length;i++) 
@@ -65,14 +65,14 @@ double oneMaxChrom::objective()
 }
 
 /** The actual greedy construction heuristik.
-        This simply sets each gene of the chromosome to 1. */
-void oneMaxChrom::greedyConstruct()
+        This simply sets each gene of the solution to 1. */
+void oneMaxSol::greedyConstruct()
 {
 	for (int i=0;i<length;i++) 
 		data[i] = 1;
 }
 
-double oneMaxChrom::delta_obj(const nhmove &m)
+double oneMaxSol::delta_obj(const nhmove &m)
 {
 	const bitflipMove &bfm = dynamic_cast<const bitflipMove &>(m);
 	return (data[bfm.r]?-1:1);
@@ -80,25 +80,25 @@ double oneMaxChrom::delta_obj(const nhmove &m)
 
 //-- 2. example problem: ONEPERM -----------------------------------------
 
-/** This is the chromosome class for the OnePerm problem.
+/** This is the solution class for the OnePerm problem.
 	In larger appications, it should be implemented in a separate
 	module. */
-class onePermChrom : public permChrom, public gcProvider
+class onePermSol : public permSol, public gcProvider
 {
 public:
-	onePermChrom() : permChrom(genes())
+	onePermSol() : permSol(vars())
 		{}
 	virtual mh_solution *createUninitialized() const
-		{ return new onePermChrom; }
+		{ return new onePermSol; }
 	virtual mh_solution *clone() const
-		{ return new onePermChrom(*this); }
+		{ return new onePermSol(*this); }
 	double objective();
 	void greedyConstruct();
 };
 
-/** The actual objective function counts the number of genes equal to the
- permutation 0,1,...genes()-1. */
-double onePermChrom::objective()
+/** The actual objective function counts the number of variables equal to the
+ permutation 0,1,...vars()-1. */
+double onePermSol::objective()
 {
 	int sum=0;
 	for (int i=0;i<length;i++) 
@@ -108,8 +108,8 @@ double onePermChrom::objective()
 }
 
 /** The actual greedy construction heuristik.
-        This simply sets each gene of the chromosome to its index. */
-void onePermChrom::greedyConstruct()
+        This simply sets each gene of the solution to its index. */
+void onePermSol::greedyConstruct()
 {
 	for (int i=0;i<length;i++) 
 		data[i] = i;
@@ -145,14 +145,15 @@ int main(int argc, char *argv[])
 		out() << endl;
 		out() << "#--------------------------------------------------" 
 			<< endl;
+		out () << "# " << mhversion() << endl;
 		param::printAll(out());
 		out() << endl;
 
-		// generate a template chromosome of the problem specific class
-		onePermChrom tchrom;
-		//oneMaxChrom tchrom;
+		// generate a template solution of the problem specific class
+		onePermSol tchrom;
+		//oneMaxSol tchrom;
 
-		// generate a population of these chromosomes
+		// generate a population of these solutions
 		population p(tchrom);
 		// p.write(out()); 	// write out initial population
 		// generate the EA
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;
-		// fdc.perform(p.bestChrom(),"");
+		// fdc.perform(p.bestSol(),"");
 		// fdc.write(out,"fdc.tsv");
 
 		delete alg;

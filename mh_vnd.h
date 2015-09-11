@@ -1,5 +1,5 @@
 /*! \file mh_vnd.h
-A general class Variable Neighborhood Descent VND.
+\brief A general class Variable Neighborhood Descent VND.
 */
 
 #ifndef MH_VND_H
@@ -116,7 +116,7 @@ public:
 	virtual void run();
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 	/** Write only meaningful information into log. */
 	virtual void writeLogHeader();
 	/** Write only meaningful information into log. */

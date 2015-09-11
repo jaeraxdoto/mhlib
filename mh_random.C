@@ -10,7 +10,6 @@
 #include "mh_hash.h"
 #include "mh_random.h"
 #include "mh_util.h"
-#include "mh_c11threads.h"
 
 #ifdef __WIN32__
 #include <process.h>
@@ -23,9 +22,6 @@
 using namespace __gnu_cxx;
 
 int_param seed("seed","seed value for the random number generator",0);
-
-static void bitseed(unsigned int seed);
-static void rndseed(unsigned int seed);
 
 static const long IM1=2147483563L;
 static const long IM2=2147483399L;
@@ -41,20 +37,27 @@ static const int NTAB=32;
 static const long NDIV=(1+IMM1/NTAB);
 static const double EPS=1.2e-7;
 static const double RNMX=(1.0-EPS);
-static long idum2=123456789L;
-static long iy=0;
-static long iv[NTAB];
-static long idum=0;
+
+mh_random_number_generator defaultRNG;
+
+thread_local mh_random_number_generator* randomNumberGenerator = &defaultRNG;
 
 #include<iostream>
 
-static mutex rndmutex;
+mh_random_number_generator::mh_random_number_generator(){
+	idum2=123456789L;
+	iy=0;
+	iv = new long[NTAB];
+	idum=0;
+	iseed = 0;
+}
 
-void random_seed() 
+void mh_random_number_generator::random_seed(unsigned int lseed)
 {
 	rndmutex.lock();
-	// initialize own random number generator
-	unsigned int lseed=(unsigned int)seed("");
+	// when lseed==0 use seed parameter; if also 0 use time & pid
+	if (lseed == 0)
+	    lseed = unsigned(seed(""));
 	if (lseed == 0) 
 	{
 		while(lseed == 0) 
@@ -76,44 +79,11 @@ void random_seed()
 	}
 	rndseed(lseed); 
 	bitseed(lseed);
-	/*
-	// since many seed values map to the same series of random numbers,
-	// use the seed value also to skip some numbers at the beginning
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		random_double();
-	}
-	*/
-
-#ifdef notused
-	// initialize also LEDA default random generator
-	// since many seed values map to the same series of random 
-	// numbers, use the seed value also to skip some numbers 
-	// at the beginning
-	lseed=int(seed(""));
-	#ifdef LEDA_NAMESPACE
-	leda::rand_int.set_seed(lseed);
-	#else
-	rand_int.set_seed(lseed);
-	#endif
-	lseed^=lseed>>16;
-	lseed&=0xffff;
-	for (unsigned int i=0;i<lseed;i++)
-	{
-		#ifdef LEDA_NAMESPACE
-		leda::rand_int.get_rand31();
-		#else
-		rand_int.get_rand31();
-		#endif
-	}
-#endif //notused
 	rndmutex.unlock();
 }
 
 
-static void rndseed(unsigned int seed) 
+void mh_random_number_generator::rndseed(unsigned int seed)
 {
 	int j;
 	long k;
@@ -135,7 +105,7 @@ static void rndseed(unsigned int seed)
 }
 
 
-double random_double() 
+double mh_random_number_generator::random_double()
 {
 	rndmutex.lock();
 	int j;
@@ -154,10 +124,12 @@ double random_double()
 	iv[j] = idum;
 	if (iy < 1) 
 		iy += IMM1;
+	temp=AM*iy; 
 	rndmutex.unlock();
-	if ((temp=AM*iy) > RNMX) 
+	if (temp > RNMX)
 		return RNMX;
-	else return temp;
+	else
+		return temp;
 }
 
 
@@ -176,9 +148,7 @@ double random_double()
 }
 */
 
-mutex rndnormalmutex;
-
-double random_normal()
+double mh_random_number_generator::random_normal()
 {
 	rndnormalmutex.lock();
 	static bool cached=false;
@@ -210,14 +180,12 @@ double random_normal()
 
 //---------- a separate, faster random number generator for bits -----------
 
-static unsigned long iseed;
-
-static void bitseed(unsigned int seed) 
+void mh_random_number_generator::bitseed(unsigned int seed)
 {
 	iseed = seed;
 }
 
-bool random_bool() 
+bool mh_random_number_generator::random_bool()
 {
 	rndmutex.lock();
 	// return random_int()?true:false;
@@ -282,10 +250,10 @@ poisson_cache::poisson_cache(double mu):
 	dens[maxidx]=1;
 }
 
-unsigned int random_poisson(double mu)
+unsigned int mh_random_number_generator::random_poisson(double mu)
 {
 	double r=random_double();
-	
+
 	rndmutex.lock();
 	typedef poisson_cache *ppoisson_cache;
 	static hash_map<double,ppoisson_cache,hashdouble> cache(4);
@@ -323,7 +291,7 @@ unsigned int random_poisson(double mu)
 	return k;
 }
 
-unsigned random_intfunc(unsigned seed, unsigned x)
+unsigned mh_random_number_generator::random_intfunc(unsigned seed, unsigned x)
 //static void psdes(unsigned long *lword, unsigned long *irword)
 // Pseudo-DES hashing of the 64-bit word (lword,irword). Both 32-bit arguments
 // are returned hashed on all bits.
@@ -383,7 +351,7 @@ unsigned random_intfunc(unsigned seed, unsigned x)
 //	return (*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 //}
 
-double random_doublefunc(unsigned seed, unsigned x)
+double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
 {
 	union
 	{
@@ -408,6 +376,6 @@ double random_doublefunc(unsigned seed, unsigned x)
 	//return double(*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 }
 
-
-
-
+void random_resetRNG() {
+	randomNumberGenerator = &defaultRNG;
+}

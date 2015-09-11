@@ -37,7 +37,7 @@ public:
 		{ return new GRASP(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 };
 
 #endif //MH_GRASP_H

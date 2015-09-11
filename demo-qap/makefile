@@ -11,9 +11,9 @@ CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
 EXE=qap
 
-HEADERS=qapchrom.h qapfeature.h qapinstance.h qaptabuattribute.h
+HEADERS=qapsol.h qapfeature.h qapinstance.h qaptabuattribute.h
 
-SRCS=qap.C qapchrom.C qapfeature.C qapinstance.C qaptabuattribute.C
+SRCS=qap.C qapsol.C qapfeature.C qapinstance.C qaptabuattribute.C
 
 OBJS=$(SRCS:.C=.o)
 

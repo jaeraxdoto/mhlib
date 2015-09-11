@@ -1,17 +1,17 @@
-/*! \file mh_permchrom.h 
-	\brief A permutation string chromosom with values 0...length-1.
+/*! \file mh_permsol.h 
+	\brief A permutation string solution with values 0...length-1.
 	*/
 
-#ifndef MH_PERMCHROM_H
-#define MH_PERMCHROM_H
+#ifndef MH_PERMSOL_H
+#define MH_PERMSOL_H
 
 #include <iostream>
 
 #include "mh_nhmove.h"
-#include "mh_stringchrom.h"
+#include "mh_stringsol.h"
 
 /** \ingroup param
-	Used crossover operator for permChrom:
+	Used crossover operator for permSol:
 	- 0: random choice,
 	- 1: PMX,
 	- 2: OX,
@@ -21,22 +21,22 @@
 extern int_param permxop;
 
 /** \ingroup param
-	Used mutation operator for permChrom:
+	Used mutation operator for permSol:
 	- 0: random choice,
 	- 1: inversion,
 	- 2: reciprocal exchange,
 	- 3: insertion. */
 extern int_param permmop;
 
-/** Type of individual genes in permChrom. */
-typedef unsigned int permChromGeneType;
+/** Type of individual variables in permSol. */
+typedef unsigned int permSolVarType;
 
-/** A chromosome class for permutation problems with values 0...length-1. */
-class permChrom : public stringChrom<permChromGeneType>
+/** A solution class for permutation problems with values 0...length-1. */
+class permSol : public stringSol<permSolVarType>
 {
 protected:
-	static const permChrom &toPermChrom(const mh_solution &ref)
-	{ return (dynamic_cast<const permChrom &>(ref)); }
+	static const permSol &toPermSol(const mh_solution &ref)
+	{ return (dynamic_cast<const permSol &>(ref)); }
 
 	/** Performs inversion. */
 	void mutate_inversion(int count);
@@ -53,21 +53,15 @@ protected:
 	void crossover_cx(const mh_solution &parA,const mh_solution &parB);
 	/** This is the uniform order based crossover (UOBX). */
 	void crossover_uobx(const mh_solution &parA,const mh_solution &parB);
-	/** This is the C1 crossover. Up to a random cut point, all genes
-	are copied from the first chromosome; all remaining genes are
-	appended in the order as they appear in the second chromosome. */
+	/** This is the C1 crossover. Up to a random cut point, all variables
+	are copied from the first solution; all remaining variables are
+	appended in the order as they appear in the second solution. */
 	void crossover_c1(const mh_solution &parA,const mh_solution &parB);
-	/* This is the ERX operator. */
-	// void crossover_erx(const chromosome &parA,const chromosome &parB);
-	/* This is the enhanced ERX operator. */
-	// void crossover_eerx(const chromosome &parA,const chromosome &parB);
-	/* This is the MPX operator. */
-	// void crossover_mpx(const chromosome &parA,const chromosome &parB);
 
 public:
-	permChrom(const mh_solution &c);
-	permChrom(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringChrom<permChromGeneType>(l,l-1,t,pg) { }
-	permChrom(int l, const pstring &pg=(pstring)("")) : stringChrom<permChromGeneType>(l,l-1,pg) { }
+	permSol(const mh_solution &c);
+	permSol(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringSol<permSolVarType>(l,l-1,t,pg) { }
+	permSol(int l, const pstring &pg=(pstring)("")) : stringSol<permSolVarType>(l,l-1,pg) { }
 	/** Initialization with random permutation. */
 	void initialize(int count);
 	/** Calls concrete mutation method. Controlled by paramter permmop(). */
@@ -79,4 +73,4 @@ public:
 	void applyMove(const nhmove &m);
 };
 
-#endif //MH_PERMCHROM_H
+#endif //MH_PERMSOL_H

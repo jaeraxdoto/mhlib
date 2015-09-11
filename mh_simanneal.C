@@ -19,11 +19,11 @@ simulatedAnnealing::simulatedAnnealing(pop_base &p, const pstring &pg) : lsbase(
 	T = satemp(pgroup);
 }
 
-void simulatedAnnealing::performGeneration()
+void simulatedAnnealing::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
 	tmpSol->reproduce(*pold);
@@ -40,15 +40,15 @@ void simulatedAnnealing::performGeneration()
 
 	cooling();
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 void simulatedAnnealing::cooling()
 {
 	// Geometric cooling.
-	if ( ( nGeneration % sacint(pgroup) ) == 0 )
+	if ( ( nIteration % sacint(pgroup) ) == 0 )
 		T *= saca(pgroup);
 }
 

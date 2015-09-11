@@ -1,11 +1,12 @@
 // mh_scheduler.C
 
 #include <float.h>
+#include <cstdint>
 #include <stdio.h>
 #include <vector>
 #include <exception>
 #include <stdexcept>
-
+#include <assert.h>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"
@@ -13,7 +14,11 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
-int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
+int_param sched_threadsnum("sched_threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
+
+bool_param sched_syncthreads("sched_syncthreads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
+
+double_param sched_solupprob("sched_solupprob", "Determines the probability for a thread to update its incumbent solution after a major iteration (shaking and subsequent VND)", 0.5, 0, 1);
 
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
@@ -22,66 +27,169 @@ int_param threadsnum("threadsnum", "Number of threads used in the scheduler", 1,
  * which are passed to the main thread. */
 static std::vector<std::exception_ptr> worker_exceptions;
 
+void SchedulerWorker::checkGlobalBest() {
+	if (pop[0]->isWorse(*scheduler->pop->at(0)) &&
+			random_double() <= scheduler->_sched_solupprob)
+		pop.update(0, scheduler->pop->at(0));
+}
+
 void SchedulerWorker::run() {
 	try {
+		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
+		randomNumberGenerator = rng;	// set random number generator pointer to the one of this thread
+
 		if (!scheduler->terminate())
 			for(;;) {
 				scheduler->checkPopulation();
 
-				// 	schedule the next method
-				bool wait = false;				// indicates if the thread needs to wait for another thread to finish
-				bool terminateThread = false;	// indicates if the termination has been initiated
+				// if thread synchronization is active and not all threads
+				// having a lower id are running, yet, then wait
+				if(scheduler->_sched_syncthreads && id > 0) {
+					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
+					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
+						scheduler->cvOrderThreads.wait(lck);
+				}
 
+				// 	schedule the next method
+				bool wait = false;	// indicates if the thread needs to wait for another thread to finish
 				do {
 					if(wait) { // need to wait for other threads, block until notified
 						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
 						scheduler->cvNoMethodAvailable.wait(lck);
-						if(scheduler->terminate()) {	// if the termination is in progress, terminate also this thread!
-							terminateThread = true;
+						if(scheduler->terminate())	// if termination is in progress, terminate also this thread!
 							break;
-						}
 					}
 
-					scheduler->getNextMethod(this);	// try to find and available method for scheduling
-					if(method == NULL)	// no method could be scheduled -> wait for other threads
-						wait = true;
+					scheduler->mutex.lock(); // Begin of atomic operation
+					scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					// if thread synchronization is active and this thread has not started, yet,
+					// set the isWorking flag to true and notify possibly waiting threads
+					if(scheduler->_sched_syncthreads && !isWorking) {
+						scheduler->mutexOrderThreads.lock();
+						isWorking = true;
+						scheduler->cvOrderThreads.notify_all();
+						scheduler->mutexOrderThreads.unlock();
+					}
+					scheduler->mutex.unlock(); // End of atomic operation
+
+					if(method == NULL) {	// no method could be scheduled
+						if(scheduler->_sched_syncthreads)	// if thread synchronization is active, do not block here
+							break;
+						wait = true; // else, wait for other threads
+					}
 				} while (method == NULL);
 
-				if(terminateThread) // if in the meanwhile, termination has been started, terminate this thread as well
+				if (scheduler->finish) // if in the meanwhile, termination has been started, terminate this thread as well
 					break;
+
+				// if the threads should be synchronized ...
+				if(scheduler->_sched_syncthreads) {
+					scheduler->mutex.lock();
+					scheduler->mutexNotAllWorkersInPrepPhase.lock();
+					scheduler->workersWaiting++; // increment the counter for the waiting workers
+					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+
+					// ... and if this is not the last thread to reach this point, then block it
+					if(scheduler->workersWaiting < scheduler->_sched_threadsnum) {
+						if(!scheduler->terminate()) {
+							std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
+							scheduler->mutex.unlock();
+							scheduler->cvNotAllWorkersInPrepPhase.wait(lck);
+						}
+						else
+							scheduler->mutex.unlock();
+					}
+					// ... else, the last thread has reached this point
+					else {
+						// update the global scheduler data and notify the waiting workers
+						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
+						scheduler->updateDataFromResultsVectors(true);
+						randomNumberGenerator = rng; // reset to thread's rng
+						scheduler->writeLogEntry();
+
+						// If termination after a certain number of iterations is requested,
+						// ensure that only exactly titer updates are performed and that possibly
+						// superfluous iterations are not considered in a deterministic way
+						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many).
+						if(scheduler->_titer > -1) {
+							int diff = scheduler->_titer - scheduler->nIteration;
+							for(unsigned int i=0; i < scheduler->_sched_threadsnum; i++) {
+								scheduler->workers[i]->isWorking = false;
+								if((signed)scheduler->workers[i]->id > diff-1)
+									scheduler->workers[i]->terminate = true;
+							}
+						}
+
+						scheduler->mutexNotAllWorkersInPrepPhase.lock();
+						scheduler->workersWaiting = 0;
+						scheduler->cvNotAllWorkersInPrepPhase.notify_all(); // notify the possibly waiting threads
+						scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+						scheduler->mutex.unlock();
+					}
+
+					if(method == NULL)
+						continue;
+					if(terminate)
+						break;
+				}
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				double startTime = CPUtime();
+				startTime = CPUtime();
 				bool tmpSolChanged = method->run(tmpSol);
 				double methodTime = CPUtime() - startTime;
 
-				if (tmpSolChanged)
-					tmpSolImproved = tmpSol->isBetter(*pop[0]);
+				if (tmpSolChanged) {
+					if(tmpSol->isBetter(*pop[0]))
+						tmpSolObjChange = OBJ_BETTER;
+					else
+						tmpSolObjChange = OBJ_WORSE;
+				}
 				else
-					tmpSolImproved = -1;
+					tmpSolObjChange = OBJ_NONE;
 
-				scheduler->mutex.lock(); // Begin of atomic action
+				// update statistics and scheduler data
+				scheduler->mutex.lock();
+				if(!scheduler->terminate()) {
+					scheduler->updateMethodStatistics(this, methodTime);
+					scheduler->updateData(this, !scheduler->_sched_syncthreads, scheduler->_sched_syncthreads);
 
-				// update scheduler data
-				scheduler->updateMethodStatistics(this, methodTime);
-				scheduler->updateData(this);
-
-				scheduler->cvNoMethodAvailable.notify_all(); // notify the possibly waiting threads
+					// notify threads that are waiting for an available method
+					scheduler->mutexNoMethodAvailable.lock();
+					scheduler->cvNoMethodAvailable.notify_all();
+					scheduler->mutexNoMethodAvailable.unlock();
+				}
+				scheduler->mutex.unlock();
 
 				// scheduler->perfGenEndCallback();
 
 				if (scheduler->terminate()) {
 					// write last generation info in any case
-					scheduler->writeLogEntry(true);
-					scheduler->mutex.unlock(); // End of atomic operation
+					if(!scheduler->_sched_syncthreads) {
+						scheduler->mutex.lock();
+						scheduler->writeLogEntry(true);
+						scheduler->mutex.unlock();
+					}
 					break;	// ... and stop
 				}
 				else {
 					// write generation info
-					scheduler->writeLogEntry();
-					scheduler->mutex.unlock(); // End of atomic operation
+					if(!scheduler->_sched_syncthreads) {
+						scheduler->mutex.lock();
+						scheduler->writeLogEntry();
+						scheduler->mutex.unlock();
+					}
 				}
+			}
+			// if synchronization of threads is active, ensure that threads potentially
+			// still blocked at mutexNotAllWorkersReadyForRunning or mutexOrderThreads are freed
+			if(scheduler->_sched_syncthreads) {
+				scheduler->mutexNotAllWorkersInPrepPhase.lock();
+				scheduler->cvNotAllWorkersInPrepPhase.notify_all();
+				scheduler->mutexNotAllWorkersInPrepPhase.unlock();
+				scheduler->mutexOrderThreads.lock();
+				scheduler->cvOrderThreads.notify_all();
+				scheduler->mutexOrderThreads.unlock();
 			}
 	}
 	catch (...) {
@@ -97,32 +205,45 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
+	_sched_threadsnum = sched_threadsnum(pgroup);
+	_sched_syncthreads = _sched_threadsnum > 1 && sched_syncthreads(pgroup); // only meaningful for more than one thread
+	_titer = titer(pgroup);
+	_sched_solupprob = sched_solupprob(pgroup);
+
+ 	workersWaiting = 0;
 }
 
 void Scheduler::run() {
-
-	// so far only construction and simple improvement methods are considered
 	checkPopulation();
 
-	timStart=CPUtime();
+	timStart = (_wall_clock_time ? WallClockTime() : CPUtime());
 
 	writeLogHeader();
 	writeLogEntry();
 	logstr.flush();
 
-	// spawn the worker threads
-	unsigned int nthreads=threadsnum();
-	for(unsigned int i=0; i < nthreads; i++) {
-		SchedulerWorker *w = new SchedulerWorker(this, pop->at(0));
+	// spawn the worker threads, each with its own random number generator having an own seed
+	for(unsigned int i=0; i < _sched_threadsnum; i++) {
+		mh_random_number_generator* rng = new mh_random_number_generator();
+		rng->random_seed(random_int(INT32_MAX));
+		mutex.lock(); // Begin of atomic operation
+		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), rng);
+		mutex.unlock(); // End of atomic operation
 		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
 
 	// wait for the threads to finish and delete them
-	for(auto w : workers) {
+	for(auto w : workers)
 		w->thread.join();
-		delete w;
+	// if thread synchronization is active, perform final update of the scheduler's population and write final log entry
+	if(_sched_syncthreads) {
+		updateDataFromResultsVectors(true);
+		writeLogEntry(true);
 	}
+	for(auto w : workers)
+		delete w;
+
 	// handle possibly transferred exceptions
 	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
@@ -131,13 +252,35 @@ void Scheduler::run() {
 	logstr.flush();
 }
 
+bool Scheduler::terminate() {
+	if (finish)
+		return true;
+	if (callback != NULL && callback(pop->bestObj())) {
+		finish = true;
+		return true;
+	}
+
+	// "standard" termination criteria, modified to allow for termination after a certain
+	// wall clock time, rather than cpu time, if _wall_clock_time == 1
+	checkPopulation();
+	if((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
+		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
+		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
+					getBestSol()->obj()<=tobj(pgroup))) ||
+		(ttime(pgroup)>=0 && ttime(pgroup)<=((_wall_clock_time ? WallClockTime() : CPUtime()) - timStart))) {
+		finish = true;
+		return true;
+	}
+	return false;
+}
+
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
 	totTime[idx] += methodTime;
 	nIter[idx]++;
-	nGeneration++;
+	nIteration++;
 	// if the applied method was successful, update the success-counter and the total obj-gain
-	if (worker->tmpSolImproved == 1) {
+	if (worker->tmpSolObjChange == OBJ_BETTER) {
 		nSuccess[idx]++;
 		sumGain[idx] += abs(worker->pop.at(0)->obj() - worker->tmpSol->obj());
 	}
@@ -162,9 +305,9 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
 			double(sumGain[k])/double(nIter[k]),
-			double(nSuccess[k]/double(sumSuccess)*100.0),
+			double(nSuccess[k])/double(sumSuccess)*100.0,
 			totTime[k],
-			double(totTime[k]/double(sumTime)*100.0));
+			double(totTime[k])/double(sumTime)*100.0);
 		ostr << tmp << endl;
 	}
 	ostr << endl;
@@ -175,76 +318,268 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 	char s[60];
 
-	double tim=CPUtime();
+	double tim = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in iteration:\t" << genBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timGenBest );
-	ostr << "solution time for best:\t" << timGenBest << endl;
+	ostr << "best obtained in iteration:\t" << iterBest << endl;
+	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU-time:\t" << tim << endl;
-	ostr << "iterations:\t" << nGeneration << endl;
+	ostr << (_wall_clock_time ? "Wall clock time:\t" : "CPU-time:\t") << tim << endl;
+	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
+}
+
+//--------------------------------- SchedulerMethodSelector ---------------------------------------------
+
+SchedulerMethod *SchedulerMethodSelector::select() {
+	if (methodList.empty())
+		return NULL;
+	switch (strategy) {
+	case MSSequential:
+	case MSSequentialOnce:
+		if (unsigned(lastMethod) == methodList.size()-1) {
+			if (strategy == MSSequential)
+				lastMethod = 0;
+			else
+				return NULL;	// MSSequentialOnce
+		}
+		else
+			lastMethod++;
+		return scheduler->methodPool[methodList[lastMethod]];
+		break;
+	case MSRandom:
+		return scheduler->methodPool[methodList[random_int(methodList.size())]];
+	case MSRandomOnce: {
+		if (unsigned(lastMethod) == methodList.size()-1)
+			return NULL;	// no more methods
+		lastMethod++;
+		// Choose randomly a not yet selected method and swap it to position lastMethod
+		int r = random_int(lastMethod, methodList.size()-1);
+		if (r != lastMethod) {
+			unsigned int tmp = methodList[lastMethod];
+			methodList[lastMethod] = methodList[r];
+			methodList[r] = tmp;
+		}
+		return scheduler->methodPool[methodList[lastMethod]];
+	}
+	case MSSelfadaptive:
+		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
+		break;
+	default:
+		mherror("Invalid strategy in SchedulerMethodSelector::select",tostring(strategy));
+	}
+	return NULL;
+}
+
+SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
+	if (lastMethod == -1)
+		return NULL;
+	else
+		return scheduler->methodPool[methodList[lastMethod]];
 }
 
 
 //--------------------------------- VNSScheduler ---------------------------------------------
 
+GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
+		unsigned int nshakingnh, const pstring &pg) :
+		Scheduler(p, pg),
+		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
+	initialSolutionExists = false;
 
-VNSScheduler::VNSScheduler(pop_base &p, const pstring &pg) :
-		Scheduler(p, pg) {
+	for (unsigned int t=0; t<_sched_threadsnum; t++) {
+		locimpnh.push_back(new SchedulerMethodSelector(this,
+				SchedulerMethodSelector::MSSequentialOnce));
+		shakingnh.push_back(new SchedulerMethodSelector(this,
+				SchedulerMethodSelector::MSSequential));
+	}
+	unsigned int i = 0;
+	for (; i < nconstheu; i++)
+			constheu.add(i);
+	for (; i < nconstheu + nlocimpnh; i++)
+		for (unsigned int t=0; t<_sched_threadsnum; t++)
+			locimpnh[t]->add(i);
+	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
+		for (unsigned int t=0; t<_sched_threadsnum; t++)
+			shakingnh[t]->add(i);
 }
 
-void VNSScheduler::copyBetter(SchedulerWorker *worker) {
+void GVNSScheduler::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
 	worker->pop.update(0, worker->tmpSol);
-	if (worker->pop[0]->isBetter(*(pop->at(0))))
+	if (updateSchedulerData && worker->pop[0]->isBetter(*(pop->at(0))))
 		update(0, worker->pop[0]);
 }
 
-void VNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	assert(methodPool.size()>=2);
-	if (worker->method == NULL) {
-		// Worker has just been created, apply construction method first
-		worker->method = methodPool[0];
-		// Uninitialized solution in the worker's population is fine
+void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
+	// must have the exact number of methods added
+	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
+
+	// perform a construction method, either, because there is still a method available that
+	// has not been applied, yet, or because the worker has just been created.
+	if (!constheu.empty() && (worker->method == NULL || constheu.hasFurtherMethod())) {
+		worker->method = constheu.select();
+		if(worker->method != NULL)
+			return;
 	}
-	else {
-		// neighborhood method has been applied
-		if (worker->tmpSolImproved == 1) {
-			// improvement achieved:
-			worker->method = methodPool[1];		// restart with first neighborhood
+	if (!locimpnh[0]->empty()) {
+		// choose next local improvement method
+		worker->method = locimpnh[worker->id]->select();
+		if (worker->method != NULL)
+			return;
+		else
+			// all local improvement methods applied to this solution, VND done
+			locimpnh[worker->id]->resetLastMethod();
+	}
+	// perform next shaking method
+	if (!shakingnh[0]->empty()) {
+		// if the worker's method is NULL, i.e. no construction method has been scheduled before
+		// for this worker, check if globally a solution has already been constructed by some worker.
+		if(worker->method == NULL) {
+			if(!initialSolutionExists)
+				return;	// no, then there is no need to schedule an improvement method, yet.
+			else {
+				// yes, then we assign the best known solution and schedule a method to be applied to it.
+				worker->pop.update(0, pop->at(0));
+				worker->tmpSol->copy(*worker->pop[0]);
+			}
+		}
+		worker->method = shakingnh[worker->id]->select();
+		if (worker->method != NULL) {
+			worker->shakingStartTime = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
+			return;
+		}
+	}
+
+	if (!constheu.empty())
+		worker->method = constheu.select();
+	else
+		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
+}
+
+
+void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
+	if (worker->method->idx < constheu.size()) {
+		// construction method has been applied
+		if(worker->tmpSolObjChange == OBJ_BETTER) {
+			copyBetter(worker, updateSchedulerData);	// save new best solution
+			if(!_sched_syncthreads)
+				initialSolutionExists = true;
 		}
 		else {
-			// unsuccessful neighborhood method call
-			// go to next neighborhood
-			unsigned int idx = worker->method->idx + 1;
-			if (idx ==  methodPool.size())
-				idx = 1;	// after last neighborhood start again with first
-			worker->method = methodPool[idx];
+			if(updateSchedulerData)
+				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
+		}
+		return;
+	}
+
+	if (worker->method->idx < locimpnh[0]->size() + constheu.size()) {
+		// local improvement neighborhood has been applied
+		if (worker->tmpSolObjChange == OBJ_BETTER) {
+			// improvement achieved, restart with first local improvement method
+			copyBetter(worker, updateSchedulerData);	// save new best solution within local improvement
+			locimpnh[worker->id]->resetLastMethod();
+			return;
+		}
+		else {
+			// unsuccessful local improvement method call
+			if (locimpnh[worker->id]->hasFurtherMethod()) {
+				// continue VND with next neighborhood and incumbent VND solution
+				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				return;
+			}
+			else {
+				// the embedded VND is done
+				// update statistics for last shaking method (including the just finished local improvement)
+				if (worker->pop[0]->isBetter(*(worker->pop[1]))) {
+					updateShakingMethodStatistics(worker,true);
+					worker->pop.update(1,worker->pop[0]);
+					shakingnh[worker->id]->resetLastMethod();
+					if(updateSchedulerData)
+						worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
+					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				}
+				else {
+					// Go back to best solution before last shaking
+					updateShakingMethodStatistics(worker,false);
+					worker->tmpSol->copy(*worker->pop[1]);
+					worker->pop.update(0,worker->tmpSol);
+				}
+			}
+		}
+	}
+	else {
+		// shaking neighborhood method has been applied
+		if (locimpnh[0]->empty()) {
+			// no local improvement methods, directly handle result of shaking
+			// update statistics for that method
+			if (worker->tmpSolObjChange == OBJ_BETTER) {
+				// improvement achieved:
+				worker->pop.update(1,worker->pop[0]);
+				copyBetter(worker, updateSchedulerData);	// save new best solution
+				updateShakingMethodStatistics(worker,true);
+				shakingnh[worker->id]->resetLastMethod();
+			}
+			else {
+				// unsuccessful neighborhood method call
+				updateShakingMethodStatistics(worker,false);
+				if(updateSchedulerData)
+					worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
+				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+			}
+		}
+		else {
+			// do not update statistics for that method (will be done after local improvement)
+			// start available local improvement neighborhoods
+			if (worker->tmpSolObjChange == OBJ_BETTER)
+				copyBetter(worker, updateSchedulerData);	// save new best solution
+			else
+				// nevertheless store solution after shaking as incumbent of local improvement
+				worker->pop.update(0, worker->tmpSol);
 		}
 	}
 }
 
-void VNSScheduler::updateData(SchedulerWorker *worker) {
-	if (worker->method->idx == 0) {
-		// construction method has been applied
-		copyBetter(worker);	// save new best solution
+void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
+	// update best solution in scheduler's population
+	mh_solution* best = workers[0]->pop[0];
+	for(unsigned int i=1; i < workers.size(); i++) {
+		if (workers[i]->pop[0]->isBetter(*best))
+			best = workers[i]->pop[0];
 	}
-	else {
-		// neighborhood method has been applied
-		if (worker->tmpSolImproved == 1) {
-			// improvement achieved:
-			copyBetter(worker);	// save new best solution
-		}
-		else {
-			// unsuccessful neighborhood method call
-			if (worker->tmpSolImproved == 0)
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+	if (best->isBetter(*(pop->at(0)))) {
+		initialSolutionExists = true;
+		update(0, best);
+	}
+	// possibly replace threads' incumbents by best global solution
+	if(_sched_solupprob > 0)
+		for(unsigned int i=0; i < workers.size(); i++)
+			workers[i]->checkGlobalBest();
+}
+
+void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
+	if (worker->method->idx < constheu.size() + locimpnh[0]->size())
+		Scheduler::updateMethodStatistics(worker, methodTime);
+	else
+		nIteration++;
+	// else skip shaking method statistics updated; will be done separately
+}
+
+void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
+	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
+	if (sm != NULL) {
+		int idx=shakingnh[worker->id]->getLastMethod()->idx;
+		totTime[idx] += ((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()) - worker->shakingStartTime);
+		nIter[idx]++;
+		// if the applied method was successful, update the success-counter and the total obj-gain
+		if (improved) {
+			nSuccess[idx]++;
+			sumGain[idx] += abs(worker->pop[0]->obj() - worker->pop[1]->obj());
 		}
 	}
 }

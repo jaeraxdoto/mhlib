@@ -1,4 +1,5 @@
 /Default/
+/doxy/
 **/*.exe
 **/*.a
 **/*.dll

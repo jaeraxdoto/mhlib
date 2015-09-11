@@ -21,11 +21,11 @@ tabuSearch::~tabuSearch()
 	delete tl_ne;
 }
 
-void tabuSearch::performGeneration()
+void tabuSearch::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
 	curChrom->selectNeighbour();
@@ -35,9 +35,9 @@ void tabuSearch::performGeneration()
 	if (tmpSol->isBetter(*pold))
 		tmpSol=replace(tmpSol);
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 bool tabuSearch::isTabu(tabuAttribute *t)

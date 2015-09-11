@@ -20,11 +20,11 @@ GRASP::~GRASP()
 	delete spop;
 }
 
-void GRASP::performGeneration()
+void GRASP::performIteration()
 {
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	/* Phase 1: greedy construction of a chromosome */
 	gcProvider *gp = dynamic_cast<gcProvider*>(spop->at(0));
@@ -45,7 +45,7 @@ void GRASP::performGeneration()
 	if (pop->at(0)->isWorse(*tmpSol))
 		tmpSol=replace(tmpSol);
 
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }

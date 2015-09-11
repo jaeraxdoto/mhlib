@@ -43,7 +43,7 @@ public:
 		{ return new tabuSearch(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 	/** Checks if a tabu is currently tabu.
 	        Is called from chromsome::neighbour() */
 	virtual bool isTabu(tabuAttribute *t);

@@ -1,10 +1,10 @@
-/*! \file mh_stringchrom.h 
-	\brief A generic string chromosome for strings of genes having the
+/*! \file mh_stringsol.h 
+	\brief A generic string solution class for strings of variables having the
 	same range of values 0...vmax. 
 	*/
 
-#ifndef MH_STRINGCHROM_H
-#define MH_STRINGCHROM_H
+#ifndef MH_STRINGSOL_H
+#define MH_STRINGSOL_H
 
 #include <iostream>
 #include <vector>
@@ -13,7 +13,7 @@
 
 
 /** \ingroup param
-	Used crossover operator for string chromosomes:
+	Used crossover operator for string solutionosomes:
 	- 0: random choice (uniform, and multipoint with k=1...strxpts() equally
 		likely)
 	- 1: uniform crossover
@@ -22,11 +22,11 @@ extern int_param strxop;
 
 /** \ingroup param
 	Number of crossover points in case of multi-point crossover (strxop()==2)
-	for string chromosomes. */
+	for string solutions. */
 extern int_param strxpts;
 
 /** \ingroup param
-	Used mutation operator for string chromosomes.
+	Used mutation operator for string solutions.
 	- 0: random choice
 	- 1: positional (reset a position to a new random value)
 	- 2: inversion
@@ -36,16 +36,16 @@ extern int_param strmop;
 
 
 
-/** A chromosome class for solutions represented by strings of integers of
+/** A solution class for solutions represented by strings of integers of
 	the same domain 0...vmax. */
-template <class T> class stringChrom : public mh_solution
+template <class T> class stringSol : public mh_solution
 {
 protected:
 	vector<T> data;	/** Actual gene vector. */
 	T vmax; 	/** Maximum value. */
 
-	static const stringChrom &toSChrom(const mh_solution &ref)
-		{ return (dynamic_cast<const stringChrom &>(ref)); }
+	static const stringSol &toSSol(const mh_solution &ref)
+		{ return (dynamic_cast<const stringSol &>(ref)); }
 
 	/** Performs uniform crossover. */
 	void crossover_uniform(const mh_solution &parA, const mh_solution &parB);
@@ -72,20 +72,20 @@ protected:
 	void get_cutpoints(int &a, int &b);
 
 public:
-	stringChrom(const mh_solution &c);
+	stringSol(const mh_solution &c);
 	/** normal constructor, number of genes must be passed to base
 		class, as well as maximum value for each gene. */
-	stringChrom(int l, int v, mh_base *t, const pstring &pg=(pstring)("")) : mh_solution(l,t,pg), data(l)
+	stringSol(int l, int v, mh_base *t, const pstring &pg=(pstring)("")) : mh_solution(l,t,pg), data(l)
 		{ vmax=v; }
-	stringChrom(int l, int v, const pstring &pg=(pstring)("")) : mh_solution(l,NULL,pg), data(l)
+	stringSol(int l, int v, const pstring &pg=(pstring)("")) : mh_solution(l,NULL,pg), data(l)
 		{ vmax=v; }
-	/** copy all data from a given chromosome into the current one. */
+	/** copy all data from a given solution into the current one. */
 	virtual void copy(const mh_solution &orig);
-	/** return true if the current chromosome is equal to *orig. */
+	/** return true if the current solution is equal to *orig. */
 	virtual bool equals(mh_solution &orig);
 	/** Returns the hamming distance. */
 	virtual double dist(mh_solution &c);
-	virtual ~stringChrom() { }
+	virtual ~stringSol() { }
 	/** randomly initialize all genes. */
 	void initialize(int count);
 	/** Calls a mutation method, controlled by the parameter strmop(). */
@@ -108,54 +108,54 @@ public:
 		{ return data.size(); }
 };
 
-/// Unsigned char string chromosome.
-typedef stringChrom<unsigned char> charStringChrom;
+/// Unsigned char string solution.
+typedef stringSol<unsigned char> charStringSol;
 
-/// Unsigned integer string chromosome.
-typedef stringChrom<unsigned int> intStringChrom;
+/// Unsigned integer string solution.
+typedef stringSol<unsigned int> intStringSol;
 
-//---------------------- Implementation of stringChrom -------------------------
+//---------------------- Implementation of stringSol -------------------------
 
 #include <cmath>
 #include <fstream>
-#include "mh_stringchrom.h"
+#include "mh_stringsol.h"
 #include "mh_util.h"
 
 
-template <class T> stringChrom<T>::stringChrom(const mh_solution &c) :
+template <class T> stringSol<T>::stringSol(const mh_solution &c) :
 	mh_solution(c),data(length)
 {
-	const stringChrom<T> &sc=toSChrom(c);
+	const stringSol<T> &sc=toSSol(c);
 	for (int i=0;i<length;i++)
 		data[i]=sc.data[i];
 	vmax = sc.vmax;
 }
 
-template <class T> void stringChrom<T>::copy(const mh_solution &orig)
+template <class T> void stringSol<T>::copy(const mh_solution &orig)
 {
 	mh_solution::copy(orig);
-	const stringChrom<T> &sc=toSChrom(orig);
+	const stringSol<T> &sc=toSSol(orig);
 	for (int i=0;i<length;i++)
 		data[i]=sc.data[i];
 	vmax = sc.vmax;
 }
 
-template <class T> bool stringChrom<T>::equals(mh_solution &orig)
+template <class T> bool stringSol<T>::equals(mh_solution &orig)
 {
 	// to be efficient: check first objective values
 	if (orig.obj()!=obj())
 		return false;
 	// and now all the genes
-	const stringChrom<T> &sc=toSChrom(orig);
+	const stringSol<T> &sc=toSSol(orig);
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
 			return false;
 	return true;
 }
 
-template <class T> double stringChrom<T>::dist(mh_solution &c)
+template <class T> double stringSol<T>::dist(mh_solution &c)
 {
-	const stringChrom<T> &sc=toSChrom(c);
+	const stringSol<T> &sc=toSSol(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
@@ -163,14 +163,14 @@ template <class T> double stringChrom<T>::dist(mh_solution &c)
 	return diffs;
 }
 
-template <class T> void stringChrom<T>::initialize(int count)
+template <class T> void stringSol<T>::initialize(int count)
 {
 	for (int i=0;i<length;i++)
 		data[i]=random_int(vmax+1);
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::get_cutpoints(int &a, int &b)
+template <class T> void stringSol<T>::get_cutpoints(int &a, int &b)
 {
 	a = random_int(length);
 	do
@@ -180,7 +180,7 @@ template <class T> void stringChrom<T>::get_cutpoints(int &a, int &b)
 		swap(a,b);
 }
 
-template <class T> void stringChrom<T>::mutate(int count)
+template <class T> void stringSol<T>::mutate(int count)
 {
 	int c;
 	if (strmop(pgroup)) c=strmop(pgroup); else c=random_int(1,4);
@@ -202,7 +202,7 @@ template <class T> void stringChrom<T>::mutate(int count)
 	}
 }
 
-template <class T> void stringChrom<T>::mutate_flip(int count)
+template <class T> void stringSol<T>::mutate_flip(int count)
 {
 	for (int i=0;i<count;i++)
 	{
@@ -216,7 +216,7 @@ template <class T> void stringChrom<T>::mutate_flip(int count)
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::mutate_inversion(int count)
+template <class T> void stringSol<T>::mutate_inversion(int count)
 {
 	int c1,c2;
 	for (int i=0;i<count;i++)
@@ -232,7 +232,7 @@ template <class T> void stringChrom<T>::mutate_inversion(int count)
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::mutate_exchange(int count)
+template <class T> void stringSol<T>::mutate_exchange(int count)
 {
 	int c1,c2;
 	for (int i=0;i<count;i++)
@@ -245,7 +245,7 @@ template <class T> void stringChrom<T>::mutate_exchange(int count)
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::mutate_insertion(int count)
+template <class T> void stringSol<T>::mutate_insertion(int count)
 {
 	int cs,ci;
 	for (int i=0;i<count;i++)
@@ -259,7 +259,7 @@ template <class T> void stringChrom<T>::mutate_insertion(int count)
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::crossover(const mh_solution &parA,const mh_solution &parB)
+template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh_solution &parB)
 {
 	int c=strxop(pgroup),pts=strxpts(pgroup);
 	if (c==0)
@@ -287,22 +287,22 @@ template <class T> void stringChrom<T>::crossover(const mh_solution &parA,const 
 }
 
 
-template <class T> void stringChrom<T>::crossover_uniform(const mh_solution &parA,const mh_solution &parB)
+template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,const mh_solution &parB)
 {
 	// uniform crossover
-	const stringChrom<T> &a=toSChrom(parA);
-	const stringChrom<T> &b=toSChrom(parB);
+	const stringSol<T> &a=toSSol(parA);
+	const stringSol<T> &b=toSSol(parB);
 	for (int i=0;i<length;i++)
 		data[i]=random_bool()?a.data[i]:b.data[i];
 	invalidate();
 }
 
 
-template <class T> void stringChrom<T>::crossover_multipoint(const mh_solution &parA,const mh_solution &parB,int xp)
+template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &parA,const mh_solution &parB,int xp)
 {
 	// k point crossover
-	const stringChrom<T> &a=toSChrom(parA);
-	const stringChrom<T> &b=toSChrom(parB);
+	const stringSol<T> &a=toSSol(parA);
+	const stringSol<T> &b=toSSol(parB);
 
 	int clength = 0;        // length between 2 crossover points (changes each turn)
 	int current = 0;        // current gen to move
@@ -325,13 +325,13 @@ template <class T> void stringChrom<T>::crossover_multipoint(const mh_solution &
 	invalidate();
 }
 
-template <class T> void stringChrom<T>::write(ostream &ostr,int detailed) const
+template <class T> void stringSol<T>::write(ostream &ostr,int detailed) const
 {
 	for (int i=0;i<length;i++)
 		ostr << int(data[i]) << ' ';
 }
 
-template <class T> void stringChrom<T>::save(const char *fname)
+template <class T> void stringSol<T>::save(const char *fname)
 {
 	ofstream of(fname);
 	if (!of)
@@ -343,7 +343,7 @@ template <class T> void stringChrom<T>::save(const char *fname)
 		mherror("Cannot open file",fname);
 }
 
-template <class T> void stringChrom<T>::load(const char *fname)
+template <class T> void stringSol<T>::load(const char *fname)
 {
 	ifstream inf(fname);
 	if (!inf)
@@ -359,7 +359,7 @@ template <class T> void stringChrom<T>::load(const char *fname)
 	invalidate();
 }
 
-template <class T> unsigned long int stringChrom<T>::hashvalue()
+template <class T> unsigned long int stringSol<T>::hashvalue()
 {
 	unsigned h=0;
 	unsigned window=sizeof(h)*8-unsigned(ceil(log(double(vmax+1))/
@@ -370,4 +370,4 @@ template <class T> unsigned long int stringChrom<T>::hashvalue()
 	return h;
 }
 
-#endif //MH_STRINGCHROM_H
+#endif // MH_STRINGSOL_H

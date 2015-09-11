@@ -1,5 +1,6 @@
 /*! \file mh_log.h 
 	\brief A generic output stream and a class for generating log files.
+
 	A program should never directly write to cout or a log file but use
 	this classes. In this way, the output can be redirected to files
 	easily via common parameters. Class logging should be used for
@@ -213,7 +214,7 @@ extern outStream out;
  * settings, i.e. possibly to a file. */
 extern logging logstr;
 
-/** Reinitialize #out and #logstr according to the parameter settings, i.e. possibly to a file. */
+/** Reinitialize out and logstr according to the parameter settings, i.e. possibly to a file. */
 void initOutAndLogstr();
 
 #endif // MH_LOG_H

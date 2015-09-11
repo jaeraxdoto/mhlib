@@ -29,7 +29,7 @@ public:
 	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
 	    { return new localSearch(p,pg); }
 	/** Performs a single generation. */
-	void performGeneration();
+	void performIteration();
 };
 
 #endif //MH_LOCALSEARCH_H

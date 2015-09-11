@@ -26,9 +26,9 @@ double_param plocim("plocim","probability for applying local improvement",
 int_param tcond("tcond","(DEPRICATED) term. crit. (0:gens, 1:conv, 2:obj,\
 -1:auto)",-1,-1,2);
 
-int_param tcgen("tcgen","termination on convergence iterations",-1,-1,100000000);
+int_param tciter("tciter","termination on convergence iterations",-1,-1,100000000);
 
-int_param tgen("tgen","termination at iteration",100000,-1,100000000);
+int_param titer("titer","termination at iteration",100000,-1,100000000);
 
 double_param tobj("tobj","objective value limit for termination",-1);
 
@@ -41,7 +41,9 @@ int_param repl("repl","replacement scheme (0:random, 1:worst, -k:TS)",
 
 bool_param logdups("logdups","log number of elim. dups.?",false);
 
-bool_param logcputime("logcputime","log elapsed cpu time?",false);
+bool_param logcputime("logcputime","log elapsed cpu time?",true);
+
+bool_param wall_clock_time("wall_clock_time", "If set to true, the times measured for the statistics of the scheduler are measured in wall clock time. Otherwise (default), they refer to the CPU time.", false);
 
 
 mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
@@ -52,8 +54,8 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 	// generate a new solution.
 	tmpSol=pop->bestSol()->createUninitialized();
 	// initialize all statistic data
-	nGeneration=0;
-	nSubGenerations=0;
+	nIteration=0;
+	nSubIterations=0;
 	nSelections=0;
 	nCrossovers=0;
 	nMutations=0;
@@ -64,22 +66,24 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 	nTabus = 0;
 	nAspirations = 0;
 	nDeteriorations = 0;
-	genBest=0;
-	timGenBest=0.0;
+	iterBest=0;
+	timIterBest=0.0;
 	timStart=0.0;
 	bestObj=0;
 	// use worstheap only if wheap() is set and repl()==1 
 	// (replace worst)
 	if (repl(pgroup)!=1)
 		wheap.set(false,pgroup);
+
+	_wall_clock_time = wall_clock_time(pgroup);
 }
 
 mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 {
 	pop=NULL;
 	tmpSol=NULL;
-	nGeneration=0;
-	nSubGenerations=0;
+	nIteration=0;
+	nSubIterations=0;
 	nSelections=0;
 	nCrossovers=0;
 	nMutations=0;
@@ -90,10 +94,12 @@ mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 	nTabus = 0;
 	nAspirations = 0;
 	nDeteriorations = 0;
-	genBest=0;
-	timGenBest=0.0;
+	iterBest=0;
+	timIterBest=0.0;
 	timStart=0.0;
 	bestObj=0;
+
+	_wall_clock_time = wall_clock_time(pgroup);
 }
 
 mh_advbase *mh_advbase::clone(pop_base &p, const pstring &pg)
@@ -111,29 +117,29 @@ void mh_advbase::run()
 {
 	checkPopulation();
 
-	timStart=CPUtime();
+	timStart = (_wall_clock_time ? WallClockTime() : CPUtime());
 	
 	writeLogHeader();
 	writeLogEntry();
 	logstr.flush();
-	//pop->bestChrom()->write(cout);
+	//pop->bestSol()->write(cout);
 	
 	if (!terminate())
 		for(;;)
 		{
-			performGeneration();
+			performIteration();
 			if (terminate())
 			{
-				// write last generation info in any case
+				// write last iteration info in any case
 				writeLogEntry(true);
-				//pop->bestChrom()->write(cout);
+				//pop->bestSol()->write(cout);
 				break;	// ... and stop
 			}
 			else
 			{
-				// write generation info
+				// write iteration info
 				writeLogEntry();
-				//pop->bestChrom()->write(cout);
+				//pop->bestSol()->write(cout);
 			}
 		}
 	logstr.emptyEntry();
@@ -175,11 +181,11 @@ void mh_advbase::performMutation(mh_solution *c,double prob)
 		nMutations+=c->mutation(prob);
 	else
 	{
-		static mh_solution *tmp2Chrom=c->createUninitialized();
-		tmp2Chrom->copy(*c);
+		static mh_solution *tmp2Sol=c->createUninitialized();
+		tmp2Sol->copy(*c);
 		int muts=tmpSol->mutation(prob);
 		nMutations+=muts;
-		if (muts>0 && tmp2Chrom->equals(*c))
+		if (muts>0 && tmp2Sol->equals(*c))
 			nMutationDups+=muts;
 	}
 }
@@ -191,19 +197,19 @@ bool mh_advbase::terminate()
 	switch(tcond(pgroup))
 	{
 		case -1: // new auto scheme, which does not use tcond
-			return ((tgen(pgroup) >=0 && nGeneration>=tgen(pgroup)) ||
-				(tcgen(pgroup)>=0 && nGeneration-genBest>=tcgen(pgroup)) ||
-				(tobj(pgroup) >=0 && (maxi(pgroup)?getBestChrom()->obj()>=tobj(pgroup):
-						    getBestChrom()->obj()<=tobj(pgroup))) ||
-				(ttime(pgroup)>=0 && ttime(pgroup)<=(CPUtime()-timStart)));
+			return ((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
+				(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
+				(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
+						    getBestSol()->obj()<=tobj(pgroup))) ||
+						    (ttime(pgroup)>=0 && ttime(pgroup)<=((_wall_clock_time ? WallClockTime() : CPUtime()) - timStart)));
 		// DEPRECATED:
-		case 0: // terminate after tgen (not tcgen!) generations
-			return nGeneration>=tgen(pgroup);
+		case 0: // terminate after titer (not tciter!) iterations
+			return nIteration>=titer(pgroup);
 		case 1: // terminate after convergence 
-			return nGeneration-genBest>=tgen(pgroup);
+			return nIteration-iterBest>=titer(pgroup);
 		case 2:	// terminate when obj. value tobj() reached
-			return maxi(pgroup)? getBestChrom()->obj()>=tobj(pgroup) :
-				getBestChrom()->obj()<=tobj(pgroup);
+			return maxi(pgroup)? getBestSol()->obj()>=tobj(pgroup) :
+				getBestSol()->obj()<=tobj(pgroup);
 		default:
 			mherror("Invalid tcond",tcond.getStringValue(pgroup).c_str());
 			return true;
@@ -289,20 +295,20 @@ void mh_advbase::printStatistics(ostream &ostr)
 	
 	char s[40];
 	
-	double tim=CPUtime();
+	double tim = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in generation:\t" << genBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timGenBest );
-	ostr << "solution time for best:\t" << timGenBest << endl;
+	ostr << "best obtained in iteration:\t" << iterBest << endl;
+	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU-time:\t" << tim << endl;
-	ostr << "generations:\t" << nGeneration << endl;
-	ostr << "subgenerations:\t" << nSubGenerations << endl;
+	ostr << (_wall_clock_time ? "wall clock time:\t" : "CPU-time:\t") << tim << endl;
+	ostr << "iterations:\t" << nIteration << endl;
+	ostr << "subiterations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
 	ostr << "crossovers:\t" << nCrossovers << endl;
 	ostr << "mutations:\t" << nMutations << endl;
@@ -322,7 +328,7 @@ void mh_advbase::writeLogEntry(bool inAnyCase)
 {
 	checkPopulation();
 	
-	if (logstr.startEntry(nGeneration,pop->bestObj(),inAnyCase))
+	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
 		logstr.write(pop->getWorst());
 		logstr.write(pop->getMean());
@@ -330,7 +336,7 @@ void mh_advbase::writeLogEntry(bool inAnyCase)
 		if (logdups(pgroup)) 
 			logstr.write(nDupEliminations);
 		if (logcputime(pgroup))
-			logstr.write(CPUtime());
+			logstr.write((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()));
 		logstr.finishEntry();
 	}
 }
@@ -346,7 +352,7 @@ void mh_advbase::writeLogHeader()
 	if (logdups(pgroup)) 
 		logstr.write("dupelim");
 	if (logcputime(pgroup))
-		logstr.write("cputime");
+		logstr.write(_wall_clock_time ? "wallclocktime" : "cputime");
 	logstr.finishEntry();
 }
 
@@ -366,8 +372,8 @@ void mh_advbase::checkBest()
 	double nb=pop->bestObj();
 	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
 	{
-		genBest=nGeneration;
-		timGenBest = CPUtime();
+		iterBest=nIteration;
+		timIterBest = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
 	}
 }
 
@@ -375,7 +381,7 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 {
 	if ( a!=NULL )
 	{
-		nSubGenerations    += a->nGeneration+a->nSubGenerations;
+		nSubIterations    += a->nIteration+a->nSubIterations;
 		nSelections        += a->nSelections;
 		nCrossovers        += a->nCrossovers;
 		nMutations         += a->nMutations;

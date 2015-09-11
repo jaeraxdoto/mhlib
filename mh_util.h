@@ -19,6 +19,9 @@ void mherror(const std::string &msg, const std::string &par1 = "", const std::st
 /** Return CPU time in seconds since the process was started. */
 double CPUtime();
 
+/** Return the wall clock time in seconds since the process was started */
+double WallClockTime();
+
 /** Convert a basic type, e.g., int, into a string. Implemented here as
  * std::to_string is not yet implemented in certain C++ libraries.
  */
@@ -29,4 +32,8 @@ template < typename T > string tostring( const T& n )
     return stm.str() ;
 }
 
+/** Returns a string stating the git version of the mhlib source. */
+string mhversion(); 
+
 #endif // MH_UTIL_H
+

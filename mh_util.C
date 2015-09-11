@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include "mh_util.h"
+#include <chrono>
 
 void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
 		const std::string &par3)
@@ -139,3 +140,13 @@ double CPUtime()
 	return clock()/double(CLOCKS_PER_SEC);
 }
 #endif // NEVER
+
+
+double WallClockTime() {
+	chrono::steady_clock::time_point t = chrono::steady_clock::now();
+	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count();
+}
+
+string mhversion() {
+	return string("mhlib version: ")+string(VERSION);
+}

@@ -48,7 +48,7 @@ public:
 		{ return new guidedLS(p,pg); }	
 	/** Performs a single generation.
 		Is called from run() */
-	virtual void performGeneration();
+	virtual void performIteration();
 	/** Augmented objective function.
 	        This provides an additional term for the objective value. */
 	virtual double aobj(mh_solution *c);

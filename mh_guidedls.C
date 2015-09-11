@@ -28,13 +28,13 @@ guidedLS::~guidedLS()
 	delete spop;
 }
 
-void guidedLS::performGeneration()
+void guidedLS::performIteration()
 {
 	mh_advbase *alg;
 
 	checkPopulation();
 
-	perfGenBeginCallback();
+	perfIterBeginCallback();
 
 	// Phase 1: apply local search 
 	alg = create_mh( *spop, pgroupext((pstring)pgroup,"sub") );
@@ -62,14 +62,14 @@ void guidedLS::performGeneration()
 		tmpSol=replace(tmpSol);
 
 	// Phase 2: update penalties
-	if ( glsri(pgroup) > 0 && nGeneration % glsri(pgroup) == 0 )
+	if ( glsri(pgroup) > 0 && nIteration % glsri(pgroup) == 0 )
 		f->resetPenalties();
 	else
 		f->updatePenalties(tmpSol);
 	
-	nGeneration++;
+	nIteration++;
 
-	perfGenEndCallback();
+	perfIterEndCallback();
 }
 
 double guidedLS::aobj(mh_solution *c)

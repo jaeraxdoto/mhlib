@@ -6,8 +6,8 @@
 # The CSV-table contains:
 # - file: name of processed out-filename
 # - obj: objective value of final solution
-# - gtot: total number of generations
-# - gbest: number of generation at which final solution was found
+# - ittot: total number of iterations
+# - itbest: number of iteration at which final solution was found
 # - ttot: total CPU-time
 # - tbest: CPUT-time when final solution was found
 #
@@ -38,14 +38,19 @@ sub processlist
 			{
 				if ($_=~/^best objective value:\s(\d+.?\d*)$/) 
 					{ $obj=$1 }
-				if ($_=~/^best obtained in generation:\s(\d+.?\d*)$/) 
-					{ $gbest=$1 }
+				if ($_=~/^best obtained in iteration:\s(\d+.?\d*)$/) 
+					{ $itbest=$1 }
 				if ($_=~/^solution time for best:\s(\d+.?\d*)$/) 
 					{ $tbest=$1; }
 				if ($_=~/^CPU-time:\s(\d+.?\d*)$/) 
 					{ $ttot=$1; }
+				if ($_=~/^iterations:\s(\d+.?\d*)$/) 
+					{ $ittot=$1; $resfound=1; }
+				# for compatibility to old version
+				if ($_=~/^best obtained in generation:\s(\d+.?\d*)$/) 
+					{ $itbest=$1 }
 				if ($_=~/^generations:\s(\d+.?\d*)$/) 
-					{ $gtot=$1; $resfound=1; }
+					{ $ittot=$1; $resfound=1; }
 			}
 			close(FILE);
 			if ($resfound)
@@ -65,11 +70,11 @@ sub processlist
 							{ $obj1=$1 }
 					} 
 					close(FILE);
-					print("$file\t$obj\t$gtot\t$gbest\t$ttot\t$tbest\t$obj0\t$obj1\n");
+					print("$file\t$obj\t$ittot\t$itbest\t$ttot\t$tbest\t$obj0\t$obj1\n");
 				}
 				else
 				{
-					print("$file\t$obj\t$gtot\t$gbest\t$ttot\t$tbest\n");
+					print("$file\t$obj\t$ittot\t$itbest\t$ttot\t$tbest\n");
 				}
 			}
 		}	
@@ -83,11 +88,11 @@ if (@ARGV[0]=~/^-f$/)
 {
 	$paramf=1;
 	shift @ARGV;
-	print("file\tobj\tgtot\tgbest\tttot\ttbest\tobj0\tobj1\n");
+	print("file\tobj\tittot\titbest\tttot\ttbest\tobj0\tobj1\n");
 }
 else
 {
-	print("file\tobj\tgtot\tgbest\tttot\ttbest\n");
+	print("file\tobj\tittot\titbest\tttot\ttbest\n");
 }
 
 processlist(@ARGV);
