@@ -4,7 +4,7 @@ https://bitbucket.org/ads-tuwien/mhlib
 
 mhlib is a collection of modules supporting the efficient and simple implementation of metaheuristics.
 
-![mh.png](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
+![](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
 
 This library is available under the GNU General Public License Version 3
 available at https://www.gnu.org/copyleft/gpl.html

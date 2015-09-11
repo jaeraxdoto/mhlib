@@ -181,6 +181,7 @@ public:
 	/** Writes the solution to an ostream.
 		The solution is written to the given ostream in in
 		text format.
+		@param ostr the output stream
 		@param detailed tells how detailed the description
 		should be (0...least detailed). */
 	virtual void write(ostream &ostr,int detailed=0) const=0;

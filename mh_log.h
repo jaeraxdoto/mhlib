@@ -214,7 +214,7 @@ extern outStream out;
  * settings, i.e. possibly to a file. */
 extern logging logstr;
 
-/** Reinitialize #out and #logstr according to the parameter settings, i.e. possibly to a file. */
+/** Reinitialize out and logstr according to the parameter settings, i.e. possibly to a file. */
 void initOutAndLogstr();
 
 #endif // MH_LOG_H

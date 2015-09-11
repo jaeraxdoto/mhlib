@@ -183,7 +183,7 @@ public:
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
-	 * will executable by the run() method.
+	 * will be executable by the run() method.
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
@@ -515,6 +515,7 @@ public:
 
 	/**
 	 * Updates the statistics data after applying a method in worker.
+	 * @param worker current worker object
 	 * @param methodTime CPU time used by the method call
 	 */
 	virtual void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
@@ -628,6 +629,7 @@ public:
 	 * The special aspect here is that method times and success rates of shaking neighborhoods
 	 * consider the embedded local improvement and they are therefore not done here but in the separate
 	 * method updateShakingMethodStatistics.
+	 * @param worker current worker object
 	 * @param methodTime CPU time used by the method call
 	 */
 	void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
