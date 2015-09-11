@@ -43,7 +43,7 @@ void SchedulerWorker::run() {
 				scheduler->checkPopulation();
 
 				// if thread synchronization is active and not all threads
-				// having a lower id are runinng, yet, then wait
+				// having a lower id are running, yet, then wait
 				if(scheduler->_sched_syncthreads && id > 0) {
 					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
 					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
@@ -107,14 +107,17 @@ void SchedulerWorker::run() {
 						randomNumberGenerator = rng; // reset to thread's rng
 						scheduler->writeLogEntry();
 
+						// If termination after a certain number of iterations is requested,
 						// ensure that only exactly titer updates are performed and that possibly
 						// superfluous iterations are not considered in a deterministic way
-						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many
-						int diff = scheduler->_titer - scheduler->nIteration;
-						for(unsigned int i=0; i < scheduler->_sched_threadsnum; i++) {
-							scheduler->workers[i]->isWorking = false;
-							if((signed)scheduler->workers[i]->id > diff-1)
-								scheduler->workers[i]->terminate = true;
+						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many).
+						if(scheduler->_titer > -1) {
+							int diff = scheduler->_titer - scheduler->nIteration;
+							for(unsigned int i=0; i < scheduler->_sched_threadsnum; i++) {
+								scheduler->workers[i]->isWorking = false;
+								if((signed)scheduler->workers[i]->id > diff-1)
+									scheduler->workers[i]->terminate = true;
+							}
 						}
 
 						scheduler->mutexNotAllWorkersInPrepPhase.lock();
