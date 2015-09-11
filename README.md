@@ -46,13 +46,13 @@ Please report any problems to him. Thank you.
 
 *Daniel Wagner* (d.wagner@cti.ac.at) contributed some local search alike
 algorithms and an extensive example for the QAP and many minor changes or
-improvements. Further contributions are due to *Sandro Pirkwieser* and *Matthias Prandtstetter*.
+improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Prandtstetter*, and *Frederico Dusberger*.
 
-## Changelog: major mhanges over major releases ##
+## Changelog: major changes over major releases ##
 
 ### Version 4.0 ###
 
-A module mh_scheduler and corresponding demo program demo_schedtest have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading.
+A module mh_scheduler and corresponding demo program demo_schedtest have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.
 
 
 ## Installing mhlib ##
