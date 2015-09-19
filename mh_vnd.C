@@ -101,14 +101,14 @@ void VND::performIteration(){
 	perfIterBeginCallback();
 	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
-	double starttime=CPUtime();
+	double starttime=mhcputime();
 	tmpSol->reproduce(*pop->at(0));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);
 	vnd->searchVNDNeighborhood(lidx);
 	nSearch[lidx]++;
-	time[lidx]+=CPUtime()-starttime;
+	time[lidx]+=mhcputime()-starttime;
 
 	/* Move or not */
 	if (pop->at(0)->isWorse(*tmpSol))
@@ -136,8 +136,8 @@ void VND::writeLogEntry(bool inAnyCase) {
 		// 		logstr.write(pop->getDev());
 		//if (logdups(pgroup))
 		//	logstr.write(nDupEliminations);
-		if (logcputime(pgroup))
-			logstr.write(CPUtime());
+		if (ltime(pgroup))
+			logstr.write(mhcputime());
 		logstr.finishEntry();
 	}
 }
@@ -189,7 +189,7 @@ void VND::printStatistics(ostream &ostr)
 	
 	char s[60];
 	
-	double tim=CPUtime();
+	double tim=mhcputime();
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );

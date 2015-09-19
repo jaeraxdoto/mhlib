@@ -43,7 +43,7 @@ void mherror(const std::string &msg, const std::string &par1, const std::string 
 #error "Unable to define getCPUTime( ) for an unknown OS."
 #endif
 
-double CPUtime( )
+double mhcputime( )
 {
 #if defined(_WIN32)
 	/* Windows -------------------------------------------------- */
@@ -129,7 +129,7 @@ double CPUtime( )
 #include <sys/times.h>
 
 // old version just for Linux environments
-double CPUtime()
+double mhcputime()
 {
 	tms t;
 	times(&t);
@@ -141,10 +141,12 @@ double CPUtime()
 }
 #endif // NEVER
 
+// wall clock start time of the program
+static double wctime_start = chrono::duration_cast<chrono::duration<double> >(chrono::steady_clock::now().time_since_epoch()).count();
 
-double WallClockTime() {
+double mhwctime() {
 	chrono::steady_clock::time_point t = chrono::steady_clock::now();
-	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count();
+	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count() - wctime_start;
 }
 
 string mhversion() {

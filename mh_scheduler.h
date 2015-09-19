@@ -16,7 +16,7 @@
 /** \ingroup param
  * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
  */
-extern int_param sched_threadsnum;
+extern int_param schthreads;
 
 /** \ingroup param
  * If set to true, the synchronization of the threads in the scheduler is active (default: false).
@@ -27,14 +27,15 @@ extern int_param sched_threadsnum;
  * Only if all threads are in the synchronization phase,the scheduler'data is updated.
  * No (global) updates happen during the working phase.
  */
-extern bool_param sched_syncthreads;
+extern bool_param sync;
 
 /** \ingroup param
- * Determines the probability for a thread to update its incumbent solution after a major iteration
- * (shaking and subsequent VND). If the best global solution is better than the incumbent solution,
+ * Migration probability for a thread in the scheduler to update its incumbent solution after a major
+ * shaking iteration by copying the global best solution.
+ * If the best global solution is better than the incumbent solution,
  * it becomes the thread's new incumbent solution.
  */
-extern double_param sched_solupprob;
+extern double_param schpmig;
 
 
 //--------------------------- SchedulerMethod ------------------------------
@@ -368,9 +369,9 @@ protected:
 	std::condition_variable cvNoMethodAvailable;
 
 	unsigned int _sched_threadsnum;		///< Mirrored mhlib parameter sched_sched_threadsnum for performance reasons.
-	bool _sched_syncthreads;			///< Mirrored mhlib parameter sched_syncthreads for performance reasons.
+	bool _schsync;			///< Mirrored mhlib parameter sched_syncthreads for performance reasons.
 	int _titer;							///< Mirrored mhlib parameter titer for performance reasons.
-	double _sched_solupprob; 		///< Mirrored mhlib parameter sched_solupprob for performance reasons.
+	double _spmig; 		///< Mirrored mhlib parameter sched_solupprob for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -587,7 +588,7 @@ public:
 
 	/** Cleanup: delete SchedulerMethodSelectors. */
 	~GVNSScheduler() {
-		for (int t=0;t<sched_threadsnum();t++) {
+		for (int t=0;t<schthreads();t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
 		}

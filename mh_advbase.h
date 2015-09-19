@@ -63,16 +63,13 @@ extern int_param tselk;
 extern int_param repl;
 
 /** \ingroup param
-	Control output of logging.
-	If #logdups==1, the current number of eliminated duplicates is
-	printed as last entry in the log. */
-extern bool_param logdups;
+	If set the current number of eliminated duplicates is
+	printed at the end of each log entry. */
+extern bool_param ldups;
 
 /** \ingroup param
-	Control output of logging.
-	If #logcputime is set, the elapsed cpu time is printed as last
-	entry in the log. */
-extern bool_param logcputime;
+	If set, the elapsed time is printed as last entry in each log entry. */
+extern bool_param ltime;
 
 /** \ingroup param
 	The crossover probability.
@@ -110,13 +107,15 @@ extern double_param plocim;
 extern bool_param cntopd;
 
 /** \ingroup param
+ * Measure runtime by wall clock time.
  * If set to true, the runtime measured for the statistics of the metaheuristic is measured in wall clock time.
  * Otherwise, they refer to the CPU time. This does, however, not affect the runtimes measured
- * for specific neighborhoods in e.g. a VNS.
+ * for specific neighborhoods in e.g. a VNS. This setting might be particularly useful in the context
+ * of multithreading in the scheduler.
  * Note that if this parameter is set to true, a termination specified by the ttime parameter
  * will also be interpreted as wall clock time.
  */
-extern bool_param wall_clock_time;
+extern bool_param wctime;
 
 /** The abstract base class for metaheuristics.
 	This abstract base contains methods and attributes that are needed in
@@ -253,7 +252,7 @@ protected:
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called
 
-	bool _wall_clock_time;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
+	bool _wctime;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
 };
 
 #endif //MH_ADVBASE_H

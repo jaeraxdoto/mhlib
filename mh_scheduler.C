@@ -14,11 +14,11 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
-int_param sched_threadsnum("sched_threadsnum", "Number of threads used in the scheduler", 1, 1, 100);
+int_param schthreads("schthreads", "scheduler: number of threads used", 1, 1, 100);
 
-bool_param sched_syncthreads("sched_syncthreads", "If set to true, the synchronization of the threads in the scheduler is active (default: false)", false);
+bool_param schsync("schsync", "scheduler: synchronize all threads for being more deterministic", false);
 
-double_param sched_solupprob("sched_solupprob", "Determines the probability for a thread to update its incumbent solution after a major iteration (shaking and subsequent VND)", 0.5, 0, 1);
+double_param schpmig("schpmig", "scheduler: probability for migrating global best solutions at each shaking iteration", 0.1, 0, 1);
 
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
@@ -29,7 +29,7 @@ static std::vector<std::exception_ptr> worker_exceptions;
 
 void SchedulerWorker::checkGlobalBest() {
 	if (pop[0]->isWorse(*scheduler->pop->at(0)) &&
-			random_double() <= scheduler->_sched_solupprob)
+			random_double() <= scheduler->_spmig)
 		pop.update(0, scheduler->pop->at(0));
 }
 
@@ -44,7 +44,7 @@ void SchedulerWorker::run() {
 
 				// if thread synchronization is active and not all threads
 				// having a lower id are running, yet, then wait
-				if(scheduler->_sched_syncthreads && id > 0) {
+				if(scheduler->_schsync && id > 0) {
 					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
 					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
 						scheduler->cvOrderThreads.wait(lck);
@@ -64,7 +64,7 @@ void SchedulerWorker::run() {
 					scheduler->getNextMethod(this);	// try to find an available method for scheduling
 					// if thread synchronization is active and this thread has not started, yet,
 					// set the isWorking flag to true and notify possibly waiting threads
-					if(scheduler->_sched_syncthreads && !isWorking) {
+					if(scheduler->_schsync && !isWorking) {
 						scheduler->mutexOrderThreads.lock();
 						isWorking = true;
 						scheduler->cvOrderThreads.notify_all();
@@ -73,7 +73,7 @@ void SchedulerWorker::run() {
 					scheduler->mutex.unlock(); // End of atomic operation
 
 					if(method == NULL) {	// no method could be scheduled
-						if(scheduler->_sched_syncthreads)	// if thread synchronization is active, do not block here
+						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
 							break;
 						wait = true; // else, wait for other threads
 					}
@@ -83,7 +83,7 @@ void SchedulerWorker::run() {
 					break;
 
 				// if the threads should be synchronized ...
-				if(scheduler->_sched_syncthreads) {
+				if(scheduler->_schsync) {
 					scheduler->mutex.lock();
 					scheduler->mutexNotAllWorkersInPrepPhase.lock();
 					scheduler->workersWaiting++; // increment the counter for the waiting workers
@@ -135,9 +135,9 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				startTime = CPUtime();
+				startTime = mhcputime();
 				bool tmpSolChanged = method->run(tmpSol);
-				double methodTime = CPUtime() - startTime;
+				double methodTime = mhcputime() - startTime;
 
 				if (tmpSolChanged) {
 					if(tmpSol->isBetter(*pop[0]))
@@ -150,40 +150,34 @@ void SchedulerWorker::run() {
 
 				// update statistics and scheduler data
 				scheduler->mutex.lock();
-				if(!scheduler->terminate()) {
+
+				bool termnow = scheduler->terminate();	// should we terminate?
+				if(!termnow) {
 					scheduler->updateMethodStatistics(this, methodTime);
-					scheduler->updateData(this, !scheduler->_sched_syncthreads, scheduler->_sched_syncthreads);
+					scheduler->updateData(this, !scheduler->_schsync, scheduler->_schsync);
 
 					// notify threads that are waiting for an available method
 					scheduler->mutexNoMethodAvailable.lock();
 					scheduler->cvNoMethodAvailable.notify_all();
 					scheduler->mutexNoMethodAvailable.unlock();
 				}
-				scheduler->mutex.unlock();
+				////scheduler->mutex.unlock();
 
 				// scheduler->perfGenEndCallback();
 
-				if (scheduler->terminate()) {
-					// write last generation info in any case
-					if(!scheduler->_sched_syncthreads) {
-						scheduler->mutex.lock();
-						scheduler->writeLogEntry(true);
-						scheduler->mutex.unlock();
-					}
-					break;	// ... and stop
+				if(!scheduler->_schsync) {
+					////scheduler->mutex.lock();
+					if (!termnow || scheduler->nIteration>logstr.lastIter())
+						scheduler->writeLogEntry(termnow);
+					////scheduler->mutex.unlock();
 				}
-				else {
-					// write generation info
-					if(!scheduler->_sched_syncthreads) {
-						scheduler->mutex.lock();
-						scheduler->writeLogEntry();
-						scheduler->mutex.unlock();
-					}
-				}
+				scheduler->mutex.unlock();  ////
+				if (termnow)
+					break;
 			}
 			// if synchronization of threads is active, ensure that threads potentially
 			// still blocked at mutexNotAllWorkersReadyForRunning or mutexOrderThreads are freed
-			if(scheduler->_sched_syncthreads) {
+			if(scheduler->_schsync) {
 				scheduler->mutexNotAllWorkersInPrepPhase.lock();
 				scheduler->cvNotAllWorkersInPrepPhase.notify_all();
 				scheduler->mutexNotAllWorkersInPrepPhase.unlock();
@@ -205,10 +199,10 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
-	_sched_threadsnum = sched_threadsnum(pgroup);
-	_sched_syncthreads = _sched_threadsnum > 1 && sched_syncthreads(pgroup); // only meaningful for more than one thread
+	_sched_threadsnum = schthreads(pgroup);
+	_schsync = _sched_threadsnum > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
-	_sched_solupprob = sched_solupprob(pgroup);
+	_spmig = schpmig(pgroup);
 
  	workersWaiting = 0;
 }
@@ -216,7 +210,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 void Scheduler::run() {
 	checkPopulation();
 
-	timStart = (_wall_clock_time ? WallClockTime() : CPUtime());
+	timStart = (_wctime ? mhwctime() : mhcputime());
 
 	writeLogHeader();
 	writeLogEntry();
@@ -237,7 +231,7 @@ void Scheduler::run() {
 	for(auto w : workers)
 		w->thread.join();
 	// if thread synchronization is active, perform final update of the scheduler's population and write final log entry
-	if(_sched_syncthreads) {
+	if(_schsync) {
 		updateDataFromResultsVectors(true);
 		writeLogEntry(true);
 	}
@@ -267,7 +261,7 @@ bool Scheduler::terminate() {
 		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
 		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
 					getBestSol()->obj()<=tobj(pgroup))) ||
-		(ttime(pgroup)>=0 && ttime(pgroup)<=((_wall_clock_time ? WallClockTime() : CPUtime()) - timStart))) {
+		(ttime(pgroup)>=0 && ttime(pgroup)<=((_wctime ? mhwctime() : mhcputime()) - timStart))) {
 		finish = true;
 		return true;
 	}
@@ -318,7 +312,9 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 	char s[60];
 
-	double tim = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
+	double wctime = mhwctime();
+	double cputime = mhcputime();
+
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
@@ -329,7 +325,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << (_wall_clock_time ? "Wall clock time:\t" : "CPU-time:\t") << tim << endl;
+	ostr << "CPU time:\t" << cputime << "\twall clock time:\t" << wctime << endl;
 	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
@@ -451,7 +447,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != NULL) {
-			worker->shakingStartTime = (_wall_clock_time ? (WallClockTime() - timStart) : CPUtime());
+			worker->shakingStartTime = (_wctime ? (mhwctime() - timStart) : mhcputime());
 			return;
 		}
 	}
@@ -468,7 +464,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 		// construction method has been applied
 		if(worker->tmpSolObjChange == OBJ_BETTER) {
 			copyBetter(worker, updateSchedulerData);	// save new best solution
-			if(!_sched_syncthreads)
+			if(!_schsync)
 				initialSolutionExists = true;
 		}
 		else {
@@ -557,7 +553,7 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 		update(0, best);
 	}
 	// possibly replace threads' incumbents by best global solution
-	if(_sched_solupprob > 0)
+	if(_spmig > 0)
 		for(unsigned int i=0; i < workers.size(); i++)
 			workers[i]->checkGlobalBest();
 }
@@ -567,14 +563,14 @@ void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double metho
 		Scheduler::updateMethodStatistics(worker, methodTime);
 	else
 		nIteration++;
-	// else skip shaking method statistics updated; will be done separately
+	    // skip shaking method statistics updated; will be done separately
 }
 
 void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
 	if (sm != NULL) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += ((_wall_clock_time ? (WallClockTime() - timStart) : CPUtime()) - worker->shakingStartTime);
+		totTime[idx] += ((_wctime ? (mhwctime() - timStart) : mhcputime()) - worker->shakingStartTime);
 		nIter[idx]++;
 		// if the applied method was successful, update the success-counter and the total obj-gain
 		if (improved) {
