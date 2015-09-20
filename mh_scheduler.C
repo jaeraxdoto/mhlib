@@ -29,7 +29,7 @@ static std::vector<std::exception_ptr> worker_exceptions;
 
 void SchedulerWorker::checkGlobalBest() {
 	if (pop[0]->isWorse(*scheduler->pop->at(0)) &&
-			random_double() <= scheduler->_spmig)
+			random_double() <= scheduler->_schpmig)
 		pop.update(0, scheduler->pop->at(0));
 }
 
@@ -90,7 +90,7 @@ void SchedulerWorker::run() {
 					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 
 					// ... and if this is not the last thread to reach this point, then block it
-					if(scheduler->workersWaiting < scheduler->_sched_threadsnum) {
+					if(scheduler->workersWaiting < scheduler->_schthreads) {
 						if(!scheduler->terminate()) {
 							std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
 							scheduler->mutex.unlock();
@@ -113,7 +113,7 @@ void SchedulerWorker::run() {
 						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many).
 						if(scheduler->_titer > -1) {
 							int diff = scheduler->_titer - scheduler->nIteration;
-							for(unsigned int i=0; i < scheduler->_sched_threadsnum; i++) {
+							for(unsigned int i=0; i < scheduler->_schthreads; i++) {
 								scheduler->workers[i]->isWorking = false;
 								if((signed)scheduler->workers[i]->id > diff-1)
 									scheduler->workers[i]->terminate = true;
@@ -199,10 +199,10 @@ void SchedulerWorker::run() {
 
 Scheduler::Scheduler(pop_base &p, const pstring &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
-	_sched_threadsnum = schthreads(pgroup);
-	_schsync = _sched_threadsnum > 1 && schsync(pgroup); // only meaningful for more than one thread
+	_schthreads = schthreads(pgroup);
+	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
-	_spmig = schpmig(pgroup);
+	_schpmig = schpmig(pgroup);
 
  	workersWaiting = 0;
 }
@@ -217,7 +217,7 @@ void Scheduler::run() {
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
-	for(unsigned int i=0; i < _sched_threadsnum; i++) {
+	for(unsigned int i=0; i < _schthreads; i++) {
 		mh_random_number_generator* rng = new mh_random_number_generator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
@@ -389,7 +389,7 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
 	initialSolutionExists = false;
 
-	for (unsigned int t=0; t<_sched_threadsnum; t++) {
+	for (unsigned int t=0; t<_schthreads; t++) {
 		locimpnh.push_back(new SchedulerMethodSelector(this,
 				SchedulerMethodSelector::MSSequentialOnce));
 		shakingnh.push_back(new SchedulerMethodSelector(this,
@@ -399,10 +399,10 @@ GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int n
 	for (; i < nconstheu; i++)
 			constheu.add(i);
 	for (; i < nconstheu + nlocimpnh; i++)
-		for (unsigned int t=0; t<_sched_threadsnum; t++)
+		for (unsigned int t=0; t<_schthreads; t++)
 			locimpnh[t]->add(i);
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		for (unsigned int t=0; t<_sched_threadsnum; t++)
+		for (unsigned int t=0; t<_schthreads; t++)
 			shakingnh[t]->add(i);
 }
 
@@ -553,7 +553,7 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 		update(0, best);
 	}
 	// possibly replace threads' incumbents by best global solution
-	if(_spmig > 0)
+	if(_schpmig > 0)
 		for(unsigned int i=0; i < workers.size(); i++)
 			workers[i]->checkGlobalBest();
 }

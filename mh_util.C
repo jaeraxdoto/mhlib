@@ -141,8 +141,10 @@ double mhcputime()
 }
 #endif // NEVER
 
-// wall clock start time of the program
-static double wctime_start = chrono::duration_cast<chrono::duration<double> >(chrono::steady_clock::now().time_since_epoch()).count();
+// wall clock start time of the program; current time minus the process' cpu time so far
+static double wctime_start = chrono::duration_cast<chrono::duration<double> >
+	(chrono::steady_clock::now().time_since_epoch()).count() -
+	mhcputime();
 
 double mhwctime() {
 	chrono::steady_clock::time_point t = chrono::steady_clock::now();
