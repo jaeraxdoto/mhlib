@@ -105,7 +105,17 @@ void SchedulerWorker::run() {
 						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
 						randomNumberGenerator = rng; // reset to thread's rng
-						scheduler->writeLogEntry();
+
+						// write out log entries for all iterations passed since the last logging:
+						// these entries are identical listing for each iteration the state after the last global update
+						unsigned int schedNIteration = scheduler->nIteration;
+						scheduler->nIteration = scheduler->lastLogIter;
+						for(unsigned int i=scheduler->lastLogIter+1; i <= schedNIteration; i++) {
+							scheduler->nIteration++;
+							scheduler->writeLogEntry();
+						}
+						scheduler->lastLogIter = scheduler->nIteration;
+
 
 						// If termination after a certain number of iterations is requested,
 						// ensure that only exactly titer updates are performed and that possibly
@@ -161,17 +171,14 @@ void SchedulerWorker::run() {
 					scheduler->cvNoMethodAvailable.notify_all();
 					scheduler->mutexNoMethodAvailable.unlock();
 				}
-				////scheduler->mutex.unlock();
 
 				// scheduler->perfGenEndCallback();
 
 				if(!scheduler->_schsync) {
-					////scheduler->mutex.lock();
 					if (!termnow || scheduler->nIteration>logstr.lastIter())
 						scheduler->writeLogEntry(termnow);
-					////scheduler->mutex.unlock();
 				}
-				scheduler->mutex.unlock();  ////
+				scheduler->mutex.unlock();
 				if (termnow)
 					break;
 			}
@@ -205,6 +212,7 @@ Scheduler::Scheduler(pop_base &p, const pstring &pg)
 	_schpmig = schpmig(pgroup);
 
  	workersWaiting = 0;
+ 	lastLogIter = 0;
 }
 
 void Scheduler::run() {
@@ -230,10 +238,20 @@ void Scheduler::run() {
 	// wait for the threads to finish and delete them
 	for(auto w : workers)
 		w->thread.join();
-	// if thread synchronization is active, perform final update of the scheduler's population and write final log entry
+	// if thread synchronization is active, perform final update of the scheduler's population
+	// and write final log entries
 	if(_schsync) {
 		updateDataFromResultsVectors(true);
-		writeLogEntry(true);
+
+		// write out log entries for all iterations passed since the last logging:
+		// these entries are identical listing for each iteration the state after the last global update
+		unsigned int schedNIteration = nIteration;
+		nIteration = lastLogIter;
+		for(unsigned int i=lastLogIter+1; i <= schedNIteration; i++) {
+			nIteration++;
+			writeLogEntry();
+		}
+		lastLogIter = nIteration;
 	}
 	for(auto w : workers)
 		delete w;

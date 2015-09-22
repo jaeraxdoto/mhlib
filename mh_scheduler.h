@@ -409,6 +409,14 @@ protected:
 	 */
 	std::condition_variable cvOrderThreads;
 
+	/**
+	 * Stores the iteration at which the last log entries have been written.
+	 * This is necessary for writing out the correct number of log entries if the worker threads
+	 * are synchronized, since in that case, an update is performed only every #schthreads iterations.
+	 * Only meaningful if #schsync is true.
+	 */
+	unsigned int lastLogIter;
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
