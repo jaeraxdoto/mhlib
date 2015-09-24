@@ -179,7 +179,7 @@ void SchedulerWorker::run() {
 						scheduler->writeLogEntry(termnow);
 				}
 				scheduler->mutex.unlock();
-				if (termnow)
+				if (scheduler->terminate())
 					break;
 			}
 			// if synchronization of threads is active, ensure that threads potentially
