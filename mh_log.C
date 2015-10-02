@@ -88,6 +88,7 @@ outStream::~outStream()
 
 void logging::init()
 {
+	curIter = 0;
 	buffer_first=buffer_last=NULL;
 }
 
@@ -105,7 +106,7 @@ void logging::headerEntry()
 		curStream.str("");
 		curStream.clear();
 		curStream << "iter" << delimiter << "best";
-		curGen=0;
+		curIter=0;
 	}
 }
 
@@ -117,8 +118,8 @@ bool logging::startEntry(int gen, double bestobj,bool inAnyCase)
 		// curStream.seekp(long(0),ios_base::beg);
 		curStream.str("");
 		curStream.clear();
-		curGen=gen;
-		// write out generation number
+		curIter=gen;
+		// write out iteration number
 		curStream << setfill('0') << setw(7) << gen;
 		// write out best objective value
 		write(bestobj);
@@ -221,10 +222,10 @@ void logging::finishEntry()
 	}
 	else
 		buffer_first=buffer_last=p;
-	if (st.isCout() || (curGen-lastflush)>=lbuffer())
+	if (st.isCout() || (curIter-lastflush)>=lbuffer())
 	{
 		flush();
-		lastflush=curGen-curGen%lbuffer();
+		lastflush=curIter-curIter%lbuffer();
 	}
 }
 

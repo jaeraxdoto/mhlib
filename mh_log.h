@@ -4,8 +4,8 @@
 	A program should never directly write to cout or a log file but use
 	this classes. In this way, the output can be redirected to files
 	easily via common parameters. Class logging should be used for
-	producing per-generation log information. It supports a parameter
-	controlled, flexible buffering mechanism. The generations for which
+	producing per-iteration log information. It supports a parameter
+	controlled, flexible buffering mechanism. The iterations for which
 	log information should be actually produced can also be controlled
 	via parameters.
  */
@@ -39,24 +39,24 @@ extern string_param logext;
 
 /** \ingroup param
 	Log frequency for writing to the file.
-	The log is generated every lfreq generations. 
+	The log is generated every lfreq iterations.
 	Additionally to all positive values, there are the following
 	special values:
 	- 0: generate no log.
-	- -1: generate log for generation 0,1,2,5,10,20,50,100,200,... */
+	- -1: generate log for iterations 0,1,2,5,10,20,50,100,200,... */
 extern int_param lfreq;
 
 /** \ingroup param
 	Write log entries only/always when best objective value changes.
 	- 1: Log-entries are only written if the objective value
-	has changed since the last generation. 
+	has changed since the last iteration.
 	- 2: Log entries are always written (regardless of lfreq) when the
 	  objective value changes. */
 extern int_param lchonly;
 
 /** \ingroup param
 	Flush frequency for the log file.
-	The log is actually flushed to the file every lbuffer generations. */
+	The log is actually flushed to the file every lbuffer iterations. */
 extern int_param lbuffer;
 
 /** \ingroup param
@@ -110,7 +110,7 @@ protected:
 	Logs can be written to a file or cout, depending on parameter oname. 
 	A log usually has a header (created by headerEntry(), successive
 	calls to write(), and finishEntry()) followed by possible entries 
-	for each generation (created by startEntry(), successive calls to
+	for each iteration (created by startEntry(), successive calls to
 	write(), and finishEntry(). */ 
 class logging
 {
@@ -142,24 +142,24 @@ public:
 	/** Destructor. */
 	virtual ~logging();	
 	/** This function is supposed to be called to start the log-entry for a 
-		generation. It checks via shouldWrite(), whether a log
+		iteration. It checks via shouldWrite(), whether a log
 		should be generated according to lfreq and lchonly or not. It
 		returns true if a log should be generated and writes the
-		beginning of the generation's log-entry (the generation number
+		beginning of the iteration's log-entry (the iteration number
 		and the best objective value). If this function returns
 		true, the log data must be written by calls to write(),
 		and finally finishEntry(). A log entry is generated
 		regardless of lfreq and lchonly if inAnyCase is set (e.g.
-		at the very beginning of a run or the last generation). */ 
+		at the very beginning of a run or the last iteration). */
 	bool startEntry(int gen,double bestobj,bool inAnyCase=false);
 	/** Start a first comment line at the beginning of the log.
 		This first line should describe all columns. The
-		description for the generation and best fitness is
+		description for the iteration and best fitness is
 		automatically inserted, all other descriptions should
 		then added by calling write() and finally
 		finishEntry() and flush(). */
 	void headerEntry();
-	/** Check if a log should be generated for the given generation.
+	/** Check if a log should be generated for the given iteration.
 		Is called by shouldWrite().
 		If inAnyCase is set, the log is written regardless of
 		lfreq and lchonly, except lfreq==0. */
@@ -173,7 +173,7 @@ public:
 	/** Write a string to the log.
 		A separator is inserted in the front of it. */ 
 	void write(const char *val);
-	/** Finish the log for this generation.
+	/** Finish the log for this iteration.
 		The line is inserted into the buffer or actually written to the
 		stream (depending on ffreq). */ 
 	void finishEntry();
@@ -186,20 +186,24 @@ public:
 	void emptyEntry();
 	/// delimiter for data in a log entry
 	static const char delimiter='\t';
+	/** Return iteration number from the last log entry started. */
+	int lastIter() {
+		return curIter;
+	}
 protected:
-	// The actual output stream.
+	/// The actual output stream.
 	outStream st;
-	// A  single-linked list struct for buffering the entries
+	/// A  single-linked list struct for buffering the entries
 	struct log_entry
 	{
 		string s;
 		log_entry *next;
 	};
-	// Pointer to the first and last log entry (buffer)
+	/// Pointer to the first and last log entry (buffer)
 	log_entry *buffer_first,*buffer_last;
-	// the generation number of the current entry
-	int curGen;
-	// the string stream for the current log entry
+	/// the iteration number of the current entry
+	int curIter;
+	/// the string stream for the current log entry
 	ostringstream curStream;
 };
 

@@ -129,8 +129,8 @@ void VNS::writeLogEntry(bool inAnyCase) {
 		// 		logstr.write(pop->getDev());
 		//if (logdups(pgroup))
 		//	logstr.write(nDupEliminations);
-		if (logcputime(pgroup))
-			logstr.write(CPUtime());
+		if (ltime(pgroup))
+			logstr.write(mhcputime());
 		logstr.finishEntry();
 	}
 }
@@ -179,7 +179,7 @@ void VNS::printStatistics(ostream &ostr)
 	
 	char s[60];
 	
-	double tim=CPUtime();
+	double tim=mhcputime();
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );

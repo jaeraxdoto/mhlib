@@ -174,18 +174,18 @@ static void mythread(int t)
  * then parallel fashion and writing out the needed CPU-times. */
 static void testmultithreading()
 {
-		cerr << "Time: " << CPUtime() << endl;
+		cerr << "Time: " << mhcputime() << endl;
 		cout << "Test multithreading, available hardware threads: " << 
 			thread::hardware_concurrency() << " " << endl;
 
-		cerr << "Time: " << CPUtime() << endl;
+		cerr << "Time: " << mhcputime() << endl;
 		cout << "Sequential execution:" << endl;
 		mythread(1);
 		mythread(2);
 		mythread(3);
 		mythread(4);
 		cout << endl << "Sequential execution finished" << endl;
-		cerr << "Time: " << CPUtime() << endl;
+		cerr << "Time: " << mhcputime() << endl;
 		cout << "Parallel execution:" << endl;
 		std::thread t1(mythread,1);
 		std::thread t2(mythread,2);
@@ -196,7 +196,7 @@ static void testmultithreading()
 		t3.join();
 		t4.join();
 		cout << endl << "All threads finished" << endl << endl;
-		cerr << "Time: " << CPUtime() << endl;
+		cerr << "Time: " << mhcputime() << endl;
 }
 
 

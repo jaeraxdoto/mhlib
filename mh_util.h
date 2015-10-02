@@ -17,10 +17,10 @@ void mherror(const std::string &msg, const std::string &par1 = "", const std::st
 		const std::string &par3 = "");
 
 /** Return CPU time in seconds since the process was started. */
-double CPUtime();
+double mhcputime();
 
-/** Return the wall clock time in seconds since the process was started */
-double WallClockTime();
+/** Return the wall clock time in seconds since the process was started. */
+double mhwctime();
 
 /** Convert a basic type, e.g., int, into a string. Implemented here as
  * std::to_string is not yet implemented in certain C++ libraries.
