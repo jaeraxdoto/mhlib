@@ -7,6 +7,7 @@
 #include <exception>
 #include <stdexcept>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"

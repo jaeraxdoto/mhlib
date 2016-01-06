@@ -7,7 +7,7 @@
 
 #include <list>
 #include <map>
-#include <ext/hash_map>
+#include <unordered_map>
 #include "mh_base.h"
 #include "mh_popbase.h"
 #include "mh_util.h"
@@ -58,7 +58,7 @@ protected:
 	/// Parametergroup
 	string pgroup;
 
-	hash_map<unsigned long int,list<pophashtable_elem> > table;
+	unordered_map<unsigned long int,list<pophashtable_elem> > table;
 	/** heap to obtain worst solution efficiently.
 		Only maintained if wheap is set. 
 		The info component is the index in the population. */

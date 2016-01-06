@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include "mh_param.h"
 #include "mh_util.h"
 

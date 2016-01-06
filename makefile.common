@@ -19,7 +19,7 @@ GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
 DEFS=-std=c++11 -pthread # -static -static-libgcc -static-libstdc++
 
-CCFLAGS=-pipe -Wall -Wno-deprecated -DVERSION=\"$(GIT_VERSION)\" $(DEFS)
+CCFLAGS=-pipe -Wall -DVERSION=\"$(GIT_VERSION)\" $(DEFS)
 ifndef O4
 CCFLAGS += -g
 #CCFLAGS += -pg

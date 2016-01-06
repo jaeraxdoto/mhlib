@@ -4,7 +4,7 @@
 #ifndef MH_TABULIST_H
 #define MH_TABULIST_H
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include <queue>
 #include "mh_hash.h"
 #include "mh_param.h"
@@ -38,7 +38,7 @@ protected:
 	size_t size;
 	
 	/// The tabu list
-	hash_map<tabulist_entry,int, hashtabulist_entry> tlist;
+	unordered_map<tabulist_entry,int, hashtabulist_entry> tlist;
 
 	/// The history cycle buffer
 	queue<tabuAttribute*> tqueue;

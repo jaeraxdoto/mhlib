@@ -1,6 +1,6 @@
 // mh_hash.C
 
-#include <ext/hash_map>
+#include <unordered_map>
 #include "mh_hash.h"
 #include "mh_tabulist.h"
 
@@ -8,7 +8,8 @@ using namespace __gnu_cxx;
 
 size_t hashstring::operator()( const string &s ) const
 {
-	return __stl_hash_string( s.c_str() );
+	std::hash<std::string> hash_fn;
+	return hash_fn(s);
 }
 
 size_t hashdouble::operator()(double d) const

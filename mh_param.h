@@ -27,7 +27,7 @@
 #define MH_PARAM_H
 
 #include <iostream>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <sstream>
 #include <string>
 #include "mh_hash.h"
@@ -285,7 +285,7 @@ public:
 
 			param::print(os);
 
-			typename hash_map<string,T,hashstring>::const_iterator it = qvals.begin();
+			typename unordered_map<string,T,hashstring>::const_iterator it = qvals.begin();
 
 			while (it != qvals.end())
 			{
@@ -301,7 +301,7 @@ private:
 	// the default value
 	T defval;
 	// the additional qualified parameter values
-	hash_map<string,T,hashstring>  qvals;
+	unordered_map<string,T,hashstring>  qvals;
 	string getStringValue_impl(const T &val) const;
 };
 

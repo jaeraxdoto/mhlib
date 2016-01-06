@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <sstream>
 #include <sys/timeb.h>
 #include "mh_hash.h"
@@ -256,7 +256,7 @@ unsigned int mh_random_number_generator::random_poisson(double mu)
 
 	rndmutex.lock();
 	typedef poisson_cache *ppoisson_cache;
-	static hash_map<double,ppoisson_cache,hashdouble> cache(4);
+	static unordered_map<double,ppoisson_cache,hashdouble> cache(4);
 
 	poisson_cache *pc;
 	if (cache.count(mu)==0)

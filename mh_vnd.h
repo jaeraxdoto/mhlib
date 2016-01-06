@@ -5,8 +5,11 @@
 #ifndef MH_VND_H
 #define MH_VND_H
 
+#include <vector>
 #include "mh_lsbase.h"
 #include "mh_param.h"
+
+using namespace std;
 
 /** \ingroup param
     If set logging is performed in VND. */
@@ -35,7 +38,7 @@ protected:
 	 * first is the index of the neighborhood structure,
 	 * second a priority value for adaptive strategies whose
 	 * meaning depends on the specific strategy. */
-	vector<pair<int,double> > order;
+	vector< pair<int,double> > order;
 	/** The strategy for adapting the order:
 	 * - 0: static first to last
 	 * - 1: random order
