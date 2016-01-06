@@ -8,6 +8,8 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
+namespace mhlib {
+
 /** \ingroup param
 	The population size.
 	The number of solutions the population contains. */
@@ -89,7 +91,7 @@ public:
 	int findDuplicate(mh_solution *p);
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
-	void write(ostream &ostr);
+	void write(std::ostream &ostr);
 	/** Validate all statistic data of population.
 		If the current statistic data are not valid
 		(!statValid), the determine them. */
@@ -97,5 +99,7 @@ public:
 	/** Set the algorithm for all solutions of the population. */
 	virtual void setAlgorithm(mh_base *alg);
 };
+
+} // end of namespace mhlib
 
 #endif // MH_POP_H

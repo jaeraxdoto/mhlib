@@ -16,6 +16,10 @@
 #include "mh_vnd.h"
 #include "mh_vns.h"
 
+namespace mhlib {
+
+using namespace std;
+
 double_param pcross("pcross","crossover probability",1.0,0.0,1.0);
 
 double_param pmut("pmut","mutation probability",-1.0,-2000.0,1000.0);
@@ -394,4 +398,6 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 		nDeteriorations    += a->nDeteriorations;
 	}
 }
+
+} // end of namespace mhlib
 

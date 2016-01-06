@@ -4,6 +4,8 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
 lsbase::lsbase(pop_base &p, const pstring &pg) : mh_advbase(p,pg)
 {
 	checkPopulation();
@@ -24,3 +26,6 @@ mh_solution *lsbase::replace(mh_solution *p)
 	checkBest();
 	return replaced;
 }
+
+} // end of namespace mhlib
+

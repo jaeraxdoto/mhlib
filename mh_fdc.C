@@ -5,6 +5,10 @@
 #include "mh_fdc.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
+using namespace std;
+
 int_param fdcn("fdcn","number of samples for FDC analysis",0,0,10000000);
 
 string_param fdcfile("fdcfile","name of FDC output file","fdc.tsv");
@@ -87,4 +91,6 @@ void FitnessDistanceCorrelation::write(outStream &out, const string &fname)
 		}
 	}
 }
+
+} // end of namespace mhlib
 

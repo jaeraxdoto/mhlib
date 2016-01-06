@@ -7,12 +7,14 @@
 #include <iostream>
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** An element of a tabulist. */
 class tabuAttribute
 {
 protected:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/// The constructor
@@ -33,5 +35,7 @@ public:
 		The default implementation return simply 0.0. */
 	virtual unsigned long int hashvalue() const = 0;
 };
+
+} // end of namespace mhlib
 
 #endif //MH_TABUATTRIBUTE_H

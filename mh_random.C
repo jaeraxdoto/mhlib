@@ -19,7 +19,9 @@
 #define GETPID getpid
 #endif
 
-using namespace __gnu_cxx;
+namespace mhlib {
+
+using namespace std;
 
 int_param seed("seed","seed value for the random number generator",0);
 
@@ -379,3 +381,6 @@ double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
 void random_resetRNG() {
 	randomNumberGenerator = &defaultRNG;
 }
+
+} // end of namespace mhlib
+

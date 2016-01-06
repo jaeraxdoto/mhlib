@@ -10,6 +10,8 @@
 #include "mh_nhmove.h"
 #include "mh_stringsol.h"
 
+namespace mhlib {
+
 /** \ingroup param
 	Used crossover operator for permSol:
 	- 0: random choice,
@@ -72,5 +74,7 @@ public:
 	        This will only work with a swapMove. */
 	void applyMove(const nhmove &m);
 };
+
+} // end of namespace mhlib
 
 #endif //MH_PERMSOL_H

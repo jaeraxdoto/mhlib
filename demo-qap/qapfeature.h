@@ -10,6 +10,8 @@
 #include "mh_feature.h"
 #include "qapsol.h"
 
+using namespace mhlib;
+
 /** A quadratic assignment feature class. */
 class qapFeature : public feature
 {

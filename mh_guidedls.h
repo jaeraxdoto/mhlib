@@ -10,6 +10,8 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** \ingroup param
     Interval for penalty resets.
 
@@ -57,5 +59,7 @@ public:
 		if a certain move is applied is computed. */
 	virtual double delta_aobj(mh_solution *c, const nhmove *m);
 };
+
+} // end of namespace mhlib
 
 #endif //MH_GUIDEDLS_H

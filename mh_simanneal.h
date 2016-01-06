@@ -1,13 +1,13 @@
 /*! \file mh_simanneal.h
   \brief Simulated annealing.
-
 */
-
 
 #ifndef MH_SIMANNEAL_H
 #define MH_SIMANNEAL_H
 
 #include "mh_lsbase.h"
+
+namespace mhlib {
 
 /** \ingroup param
     Slope for geometric cooling scheme method.
@@ -64,5 +64,7 @@ public:
 		defaults to the metropolis criterion. */
 	virtual bool accept( mh_solution *o, mh_solution *n );
 };
+
+} // end of namespace mhlib
 
 #endif //MH_SIMANNEAL_H

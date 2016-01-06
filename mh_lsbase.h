@@ -7,6 +7,8 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** An abstract base class for local search alike algorithms. */
 class lsbase : public mh_advbase
 {
@@ -22,5 +24,7 @@ public:
 	/** Replaces the first chromosome in the population by p. */
 	mh_solution *replace(mh_solution *p);
 };
+
+} // end of namespace mhlib
 
 #endif //MH_LSBASE_H

@@ -6,6 +6,7 @@
 #include "mh_subpop.h"
 #include "mh_util.h"
 
+namespace mhlib {
 
 int_param islk("islk","island count",4,2,100);
 
@@ -138,3 +139,6 @@ void islandModelEA::sumStatistics()
 		nDupEliminations+=subEAs[i]->nDupEliminations;
 	}
 }
+
+} // end of namespace mhlib
+

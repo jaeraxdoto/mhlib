@@ -4,6 +4,8 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
 void localSearch::performIteration()
 {
 	checkPopulation();
@@ -28,3 +30,6 @@ void localSearch::performIteration()
 
 	perfIterEndCallback();
 }
+
+} // end of namespace mhlib
+

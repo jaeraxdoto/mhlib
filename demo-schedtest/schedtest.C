@@ -19,7 +19,7 @@
 #include "mh_util.h"
 #include "mh_param.h"
 #include "mh_random.h"
-#include "mh_allalgs.h"
+//#include "mh_allalgs.h"
 
 #include "mh_pop.h"
 #include "mh_advbase.h"
@@ -31,7 +31,8 @@
 #include "mh_c11threads.h"
 #include "mh_scheduler.h"
 
-
+using namespace std;
+using namespace mhlib;
 
 /** Problem specific parameters (the number of variablens). */
 int_param vars("vars","number of variables",20,1,10000);

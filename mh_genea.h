@@ -7,6 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
 
 /** \ingroup param
 	Should elitism be used?.
@@ -50,5 +51,7 @@ protected:
 	int *selectedChroms;          // indizes of selected chromosomes
 	mh_solution **nextGeneration;  // used to build the next generation
 };
+
+} // end of namespace mhlib
 
 #endif //MH_GENGA_H

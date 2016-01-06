@@ -9,6 +9,8 @@
 
 #include "mh_log.h"
 
+namespace mhlib {
+
 /** The most abstract base class for all EAs.
 	This abstract base contains methods and attributes that might be
 	needed in any EA.
@@ -26,8 +28,10 @@ public:
 
 public:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 };
+
+} // end of namespace mhlib
 
 #endif //MH_BASE_H
 

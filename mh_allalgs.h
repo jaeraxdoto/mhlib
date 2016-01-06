@@ -3,7 +3,6 @@
 	in dependence of a parameter.
 */
 
-
 #ifndef MH_ALLALGS_H
 #define MH_ALLALGS_H
 
@@ -11,6 +10,8 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 #include "mh_popbase.h"
+
+namespace mhlib {
 
 /** \defgroup param Global parameters */
 
@@ -39,5 +40,7 @@ extern int_param mhalg;
     metaheuristic is created.  */
 	inline mh_advbase *create_mh(pop_base &p, const pstring &pg=(pstring)(""))
 	{ return create_mh(p,mhalg(pg.s),pg); }
+
+} // end of namespace mhlib
 
 #endif //MH_ALLALGS_H

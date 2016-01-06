@@ -4,6 +4,7 @@
 #include "mh_util.h"
 #include "mh_ssea.h"
 
+namespace mhlib {
 
 bool_param dcdag("dcdag","don't count duplicate as generation",false);
 
@@ -55,3 +56,6 @@ void steadyStateEA::performIteration()
 	perfIterEndCallback();
 
 }
+
+} // end of namespace mhlib
+

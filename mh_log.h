@@ -16,6 +16,8 @@
 #include <iostream>
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** \ingroup param
 	Default-basename (without extension) for all output files.
 	If this name is "@" (which is the default) all output is
@@ -72,7 +74,7 @@ class outStream
 private:
 	/** Init-Method.
 	    Does the actual initialization work. Is called by constructor. */
-	void init(const string &fext, const string &fname, const string &fdir);
+	void init(const std::string &fext, const std::string &fname, const std::string &fdir);
 	friend void initOutAndLogstr();
 	
 public:
@@ -82,27 +84,27 @@ public:
 	outStream()
 		{ init(logext(),oname(),odir()); }
 	
-	outStream(const string &fext)
+	outStream(const std::string &fext)
 		{ init( fext, oname(), odir() ); }
 	
-	outStream(const string &fext, const string &fname)
+	outStream(const std::string &fext, const std::string &fname)
 		{ init( fext, fname, odir() ); }
 	
-	outStream(const string &fext, const string &fname,
-		  const string &fdir)
+	outStream(const std::string &fext, const std::string &fname,
+		  const std::string &fdir)
 		{ init( fext, fname, fdir ); }
 	/** Destructor.
 		Closes stream (if not cout). */
 	virtual ~outStream();
 	/** Access operator for using the stream. */
-	ostream &operator()() 
+	std::ostream &operator()()
 		{ return *str; }
 	/** Returns true if the stream is the standard output. */
 	bool isCout() const
 		{ return isCoutFlag; }
 protected:
 	bool isCoutFlag;
-	ostream *str;
+	std::ostream *str;
 };
 
 
@@ -128,14 +130,14 @@ public:
 	logging()
 		: st(logext(),oname(),odir()), curStream("")
 		{ init(); }
-	logging(const string &fext)
+	logging(const std::string &fext)
 		: st(fext,oname(),odir()), curStream("")
 		{ init(); }
-	logging(const string &fext, const string &fname)
+	logging(const std::string &fext, const std::string &fname)
 		: st(fext,fname,odir()), curStream("")
 		{ init(); }
-	logging(const string &fext, const string &fname,
-		const string &fdir)
+	logging(const std::string &fext, const std::string &fname,
+		const std::string &fdir)
 		: st(fext,fname,fdir), curStream("")
 		{ init(); }
 
@@ -196,7 +198,7 @@ protected:
 	/// A  single-linked list struct for buffering the entries
 	struct log_entry
 	{
-		string s;
+		std::string s;
 		log_entry *next;
 	};
 	/// Pointer to the first and last log entry (buffer)
@@ -204,7 +206,7 @@ protected:
 	/// the iteration number of the current entry
 	int curIter;
 	/// the string stream for the current log entry
-	ostringstream curStream;
+	std::ostringstream curStream;
 };
 
 /* Global standard output object, initialized to standard output. It is supposed
@@ -220,6 +222,8 @@ extern logging logstr;
 
 /** Reinitialize out and logstr according to the parameter settings, i.e. possibly to a file. */
 void initOutAndLogstr();
+
+} // end of namespace mhlib
 
 #endif // MH_LOG_H
 

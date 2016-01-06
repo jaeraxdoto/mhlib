@@ -2,6 +2,8 @@
 
 #include "mh_popbase.h"
 
+namespace mhlib {
+
 int_param popsize("popsize","size of the population",100,1,10000000);
 
 int_param dupelim("dupelim","eliminate duplicates: 0:no 1:child 2:ini+child"
@@ -22,3 +24,6 @@ pop_base::~pop_base()
 	if (phash)
 		delete phash;
 }
+
+} // end of namespace mhlib
+

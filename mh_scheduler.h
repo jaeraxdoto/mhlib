@@ -12,6 +12,7 @@
 #include "mh_pop.h"
 #include "mh_c11threads.h"
 
+namespace mhlib {
 
 /** \ingroup param
  * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
@@ -49,7 +50,7 @@ extern double_param schpmig;
  */
 class SchedulerMethod {
 public:
-	const string name;			///< The method's (unique) name (possibly including method_par).
+	const std::string name;			///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
@@ -166,7 +167,7 @@ public:
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
 	bool terminate;				///< Indicates if this thread specifically is to be terminated.
-	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
+	std::vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -251,7 +252,7 @@ protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
+	std::vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 
@@ -317,13 +318,13 @@ class Scheduler : public mh_advbase {
 	friend class SchedulerMethodSelector;
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
-	vector<SchedulerMethod*> methodPool;
+	std::vector<SchedulerMethod*> methodPool;
 
 	/* Statistical data on methods */
-	vector<int> nIter;				///< Number of iterations of the particular methods.
-	vector<double> totTime;			///< Total time spent running the particular methods.
-	vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
-	vector<double> sumGain;			///< Total gain achieved by the particular methods.
+	std::vector<int> nIter;				///< Number of iterations of the particular methods.
+	std::vector<double> totTime;			///< Total time spent running the particular methods.
+	std::vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
+	std::vector<double> sumGain;			///< Total gain achieved by the particular methods.
 
 	/**
 	 * Optional function pointer to a callback function passed by the interface.
@@ -344,7 +345,7 @@ protected:
 	/**
 	 * The SchedulerWorkers spawned by the scheduler in individual threads.
 	 */
-	vector<SchedulerWorker *> workers;
+	std::vector<SchedulerWorker *> workers;
 
 	/**
 	 * Mutex used for the synchronization of access to the Scheduler data not owned by the workers,
@@ -536,14 +537,14 @@ public:
 	 * successful iterations, the total and average gain in objective value the method yielded
 	 * and the total and relative time spent with applying the method.
 	 */
-	virtual void printMethodStatistics(ostream &ostr);
+	virtual void printMethodStatistics(std::ostream &ostr);
 
 	/**
 	 * Prints general statistics on the optimization.
 	 * In particular, the total runtime of the algorithm, the best found objective value, and
 	 * in which iteration and after how much time it was found.
 	 */
-	virtual void printStatistics(ostream &ostr);
+	virtual void printStatistics(std::ostream &ostr);
 };
 
 
@@ -562,8 +563,8 @@ class GVNSScheduler : public Scheduler {
 
 protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
-	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
-	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
+	std::vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
+	std::vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
 
 	/**
 	 * Indicates whether a construction method has already been scheduled and executed before,
@@ -652,6 +653,6 @@ public:
 	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
 };
 
-
+} // end of namespace mhlib
 
 #endif /* MH_SCHEDULER_H */

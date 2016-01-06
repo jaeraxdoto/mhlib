@@ -10,6 +10,8 @@
 #include "mh_lsbase.h"
 #include "mh_vnd.h"
 
+namespace mhlib {
+
 /** \ingroup param
  	Maximum value of used shaking NHs. */
 extern int_param vnsnum;
@@ -63,9 +65,9 @@ protected:
 	int k;		///< current neighborhood
 	int kmax;	///< total number of neighborhoods
 	int nFullIter;	///< counter for full VNS iterations
-	vector<int> nShake;		///< number of shaking calls
-	vector<int> nShakeSuccess;	///< number of successful shakes
-	vector<double> sumShakeGain;	///< total gain achieved
+	std::vector<int> nShake;		///< number of shaking calls
+	std::vector<int> nShakeSuccess;	///< number of successful shakes
+	std::vector<double> sumShakeGain;	///< total gain achieved
 	NBStructureOrder *nborder; ///< Order of neighborhood structures
 	// for possibly embedded VND:
 	pstring vndpg;	///< parameter group for VND
@@ -88,9 +90,11 @@ public:
 	/** Write only meaningful information into log. */
 	virtual void writeLogEntry(bool inAnyCase = false);
 	/** Write detailed statistics on shaking neighborhoods. */
-	void printStatisticsShaking(ostream &ostr);
+	void printStatisticsShaking(std::ostream &ostr);
 	/** General print Statistics method extended. */
-	void printStatistics(ostream &ostr);
+	void printStatistics(std::ostream &ostr);
 };
+
+} // end of namespace mhlib
 
 #endif // VNS_H

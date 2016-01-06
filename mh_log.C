@@ -6,6 +6,10 @@
 #include "mh_log.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
+using namespace std;
+
 string_param oname("oname","base-name for all output files ('@':stdout,'NULL':no output)","@");
 
 string_param odir("odir","directory for all output files","");
@@ -248,3 +252,6 @@ void initOutAndLogstr()
 	out.init(outext(),oname(),odir());
 	logstr.st.init(logext(),oname(),odir());
 }
+
+} // end of namespace mhlib
+

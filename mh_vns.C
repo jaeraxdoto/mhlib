@@ -1,11 +1,15 @@
 /**! \file mh_vns.C
  \include mh_vns.C */
 
-#include "mh_subpop.h"
 #include <cmath>
+#include "mh_subpop.h"
 #include "stdio.h"
 #include "mh_vnd.h"
 #include "mh_vns.h"
+
+namespace mhlib {
+
+using namespace std;
 
 int_param vnsnum("vnsnum", "Maximum number of VNS neighborhood used",10000,0,10000);
 
@@ -211,3 +215,4 @@ void VNS::printStatistics(ostream &ostr)
 	printStatisticsShaking(ostr);
 }
 
+} // end of namespace mhlib

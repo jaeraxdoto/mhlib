@@ -6,6 +6,8 @@
 #include "mh_util.h"
 #include "mh_allalgs.h"
 
+namespace mhlib {
+
 GRASP::GRASP(pop_base &p, const pstring &pg) : lsbase(p,pg)
 {
 	if ( dynamic_cast<gcProvider*>(tmpSol) == 0 )
@@ -49,3 +51,6 @@ void GRASP::performIteration()
 
 	perfIterEndCallback();
 }
+
+} // end of namespace mhlib
+

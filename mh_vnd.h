@@ -9,7 +9,7 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
-using namespace std;
+namespace mhlib {
 
 /** \ingroup param
     If set logging is performed in VND. */
@@ -38,7 +38,7 @@ protected:
 	 * first is the index of the neighborhood structure,
 	 * second a priority value for adaptive strategies whose
 	 * meaning depends on the specific strategy. */
-	vector< pair<int,double> > order;
+	std::vector< std::pair<int,double> > order;
 	/** The strategy for adapting the order:
 	 * - 0: static first to last
 	 * - 1: random order
@@ -94,10 +94,10 @@ class VND : public lsbase
 protected:
 	int l; ///< number of current neighborhood structure
 	int lmax;			///< total number of neighborhoods
-	vector<int> nSearch;		///< number of searching calls
-	vector<int> nSearchSuccess;	///< number of successful searches
-	vector<double> sumSearchGain;	///< total gain achieved
-	vector<double> time;	///< total CPU-time used by the NB search
+	std::vector<int> nSearch;		///< number of searching calls
+	std::vector<int> nSearchSuccess;	///< number of successful searches
+	std::vector<double> sumSearchGain;	///< total gain achieved
+	std::vector<double> time;	///< total CPU-time used by the NB search
 	NBStructureOrder *nborder; ///< neighborhood order
 	bool own_nborder; ///< true if the VND created its own NBStructureOrder
 public:
@@ -125,9 +125,9 @@ public:
 	/** Write only meaningful information into log. */
 	virtual void writeLogEntry(bool inAnyCase = false);
 	/** Write detailed statistics on searched neighborhoods. */
-	void printStatisticsVND(ostream &ostr);
+	void printStatisticsVND(std::ostream &ostr);
 	/** General print Statistics method extended. */
-	void printStatistics(ostream &ostr);
+	void printStatistics(std::ostream &ostr);
 };
 
 
@@ -137,10 +137,10 @@ class VNDStatAggregator
 {
 public:
 	int lmax;			///< total number of neighborhoods
-	vector<int> nSearch;		///< number of searching calls
-	vector<int> nSearchSuccess;	///< number of successful searches
-	vector<double> sumSearchGain;	///< total gain achieved
-	vector<double> time;	///< total CPU-time
+	std::vector<int> nSearch;		///< number of searching calls
+	std::vector<int> nSearchSuccess;	///< number of successful searches
+	std::vector<double> sumSearchGain;	///< total gain achieved
+	std::vector<double> time;	///< total CPU-time
 	int vndCalls;			///< total number of VND calls
 
 	/** Initialization with number of neighborhoods. */
@@ -148,9 +148,9 @@ public:
 	/** Add statistics of VND object. */
 	void add(const VND &vnd);
 	/** Write detailed statistics on searched neighborhoods. */
-	void printStatisticsVND(ostream &ostr);
+	void printStatisticsVND(std::ostream &ostr);
 };
 
-
+} // end of namespace mhlib
 
 #endif //MH_VND_H

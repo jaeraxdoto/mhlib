@@ -1,13 +1,13 @@
 /*! \file mh_grasp.h
   \brief Greedy adaptive randomized search procedure. */
 
-
 #ifndef MH_GRASP_H
 #define MH_GRASP_H
 
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
 
 /** Greedy adaptive randomized search procedure.
 	A randomized construction heuristic generates solutions which
@@ -39,5 +39,7 @@ public:
 		Is called from run() */
 	virtual void performIteration();
 };
+
+} // end of namespace mhlib
 
 #endif //MH_GRASP_H

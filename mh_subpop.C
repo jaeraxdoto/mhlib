@@ -5,6 +5,10 @@
 #include "mh_subpop.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
+using namespace std;
+
 void subPopulation::determineBest()
 {
 	indexBest=0;
@@ -111,3 +115,6 @@ void subPopulation::setAlgorithm(mh_base *alg)
 	for (int i=0;i<nSolutions;i++)
 		at(i)->setAlgorithm(alg);
 }
+
+} // end of namespace mhlib
+

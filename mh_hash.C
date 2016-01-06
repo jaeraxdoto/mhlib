@@ -4,9 +4,9 @@
 #include "mh_hash.h"
 #include "mh_tabulist.h"
 
-using namespace __gnu_cxx;
+namespace mhlib {
 
-size_t hashstring::operator()( const string &s ) const
+size_t hashstring::operator()( const std::string &s ) const
 {
 	std::hash<std::string> hash_fn;
 	return hash_fn(s);
@@ -21,4 +21,6 @@ size_t hashtabulist_entry::operator()( const tabulist_entry &e ) const
 {
 	return (size_t)e.elem->hashvalue();
 }
+
+} // end of namespace mhlib
 

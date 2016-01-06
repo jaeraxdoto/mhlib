@@ -8,6 +8,8 @@
 #include "mh_nhmove.h"
 #include "mh_tabuattribute.h"
 
+using namespace mhlib;
+
 /** A simple specialized tabuAttribute class for the quadratic assignment. */
 class qapTabuAttribute : public swapMove, public tabuAttribute
 {

@@ -10,6 +10,9 @@
 #include <vector>
 #include "mh_param.h"
 
+using namespace std;
+using namespace mhlib;
+
 /** \ingroup param
     Filename of the quadratic assignment problem instance.
 */

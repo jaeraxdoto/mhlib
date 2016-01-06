@@ -7,6 +7,7 @@
 #include "mh_pop.h"
 #include "mh_popbase.h"
 
+namespace mhlib {
 
 /** The island model EA sub-population.
 	This class implements a sub-population for use in the island model. */
@@ -48,7 +49,7 @@ public:
 	virtual int findDuplicate(mh_solution *p);
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
-	virtual void write(ostream &ostr);
+	virtual void write(std::ostream &ostr);
 	/** Validate all statistic data of population.
 		If the current statistic data are not valid
 		(!statValid), then determine them. */
@@ -56,5 +57,7 @@ public:
 	/** Set the algorithm for all chromosomes of the population. */
 	virtual void setAlgorithm(mh_base *alg);
 };
+
+} // end of namespace mhlib
 
 #endif //MH_SUBPOP_H

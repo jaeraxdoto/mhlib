@@ -9,6 +9,8 @@
 #include "mh_popsupp.h"
 #include "mh_random.h"
 
+namespace mhlib {
+
 /** The population size.
 	The number of solutions the population contains. */
 extern int_param popsize;
@@ -64,7 +66,7 @@ protected:
 	pophashtable *phash;
 
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/** The Constructor.
@@ -120,7 +122,7 @@ public:
 	virtual int findDuplicate(mh_solution *p) = 0;
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
-	virtual void write(ostream &ostr) = 0;
+	virtual void write(std::ostream &ostr) = 0;
 	/** Determines mean objective value of population. */
 	double getMean()
 		{ validateStat(); return statMean; }
@@ -140,5 +142,7 @@ public:
 		is using them. */
 	virtual void setAlgorithm(mh_base *alg) = 0;
 };
+
+} // end of namespace mhlib
 
 #endif //MH_POPBASE_H

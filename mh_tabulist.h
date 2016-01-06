@@ -10,7 +10,7 @@
 #include "mh_param.h"
 #include "mh_tabuattribute.h"
 
-using namespace __gnu_cxx;
+namespace mhlib {
 
 /** \ingroup param
     Number of tabuattributes per tabulist. */
@@ -38,13 +38,13 @@ protected:
 	size_t size;
 	
 	/// The tabu list
-	unordered_map<tabulist_entry,int, hashtabulist_entry> tlist;
+	std::unordered_map<tabulist_entry,int, hashtabulist_entry> tlist;
 
 	/// The history cycle buffer
-	queue<tabuAttribute*> tqueue;
+	std::queue<tabuAttribute*> tqueue;
 
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/** Normal constructor.
@@ -62,5 +62,7 @@ public:
 	/** Checks if a given tabuAttribute is already known. */
 	virtual bool match( const tabuAttribute *t );
 };
+
+} // end of namespace mhlib
 
 #endif //MH_TABULIST_H

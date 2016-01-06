@@ -13,6 +13,8 @@
 #include "qapinstance.h"
 #include "qaptabuattribute.h"
 
+using namespace mhlib;
+
 /** \ingroup param
     Alpha parameter for GRASP.
 

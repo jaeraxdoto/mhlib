@@ -33,8 +33,7 @@
 #include "mh_hash.h"
 #include "mh_util.h"
 
-using namespace std;
-using namespace __gnu_cxx;
+namespace mhlib {
 
 class param;
 
@@ -44,10 +43,10 @@ class param;
 class pstring
 {
 public:
-	string s;
+	std::string s;
 
 	explicit pstring( const char *_s ) : s(_s) {};
-	explicit pstring( const string &_s ) : s(_s) {};
+	explicit pstring( const std::string &_s ) : s(_s) {};
 };
 
 /** Extend the parametergroup p with n.
@@ -56,7 +55,7 @@ public:
     pgroupext( "", "ls" ) == "ls"
 
     pgroupext( "foo", "bar" ) == "bar.foo" */
-pstring pgroupext( const pstring &pg, const string &n);
+pstring pgroupext( const pstring &pg, const std::string &n);
 
 /** Abstract validator object for validating a value to be set for a 
 	parameter. 
@@ -70,12 +69,12 @@ public:
 		Function call operator for actually performing validation
 		in case of invalidity, error is called which calls by default
 		error will be called. */
-	void operator()(const param &par,const string pgroup = "") const;
+	void operator()(const param &par,const std::string pgroup = "") const;
 	/** actual validation function; returns true if parameter is okay
 		defaults to "everything is valid" */
-	virtual bool validate(const param &par, const string pgroup = "") const;
+	virtual bool validate(const param &par, const std::string pgroup = "") const;
 	/// called in case of an invalid parameter; calls eaerror
-	virtual void error(const param &par, const string pgroup = "") const;
+	virtual void error(const param &par, const std::string pgroup = "") const;
 	/// write out short help for valid values
 	virtual void printHelp(std::ostream &os) const { }
 };
@@ -92,26 +91,26 @@ public:
 	param(const char *nam,const char *descr,
 		const paramValidator *val=0);
 	/// Write parameter with its value to an ostream.
-	virtual void print(ostream &os) const;
+	virtual void print(std::ostream &os) const;
 	/// Write list of all parameters with their values to an ostream.
-	static void printAll(ostream &os);
+	static void printAll(std::ostream &os);
 	/// Read value from istream.
-	virtual void read(istream &os, const string pgroup = "")=0;
+	virtual void read(std::istream &os, const std::string pgroup = "")=0;
 	/// Get parameter name as string.
 	const char *getName() const
 		{ return name; }
 	/// Get parameter value as string.
-	virtual string getStringValue(const string &pgroup = "" ) const =0;
+	virtual std::string getStringValue(const std::string &pgroup = "" ) const =0;
 	/// Get default value as string.
-	virtual string getStringDefValue() const =0;
+	virtual std::string getStringDefValue() const =0;
 	/// Checks value with optionally privided validator.
-	void validate( const string pgroup = "" ) const;
+	void validate( const std::string pgroup = "" ) const;
 	/** Writes out a helping message for the parameter
 		(with description, default value,...). */
-	void printHelp(ostream &os) const;
+	void printHelp(std::ostream &os) const;
 	/** Writes out a help message for all registered parameters
 		(with description, default value,...). */
-	static void printAllHelp(ostream &os);
+	static void printAllHelp(std::ostream &os);
 	/** Parse argument vector.
 		All existing arguments are supposed to be parameters! */
 	static void parseArgs(int argc,char *argv[]);
@@ -170,9 +169,9 @@ public:
 	/// Give upper and lower bound as parameters and type of rangecheck to constructor.
 	rangeValidator(T low, T high, rangecheck c) : lbound(low), ubound(high), check(c) {}
 	/// It is checked if the value lies in [low,high].
-	bool validate(const param &par, const string pgroup="") const;
+	bool validate(const param &par, const std::string pgroup="") const;
 	/// Write out short help for valid values.
-	virtual void printHelp(ostream &os) const;
+	virtual void printHelp(std::ostream &os) const;
 private:
 	// lower and upper bounds
 	const T lbound,ubound;
@@ -206,9 +205,9 @@ public:
 	/// Give a value and type ofcheck as parameters to constructor.
 	unaryValidator(T v, unarycheck c) : value(v), check(c) {}
 	/// It is checked if the value conforms to the unarycheck.
-	bool validate(const param &par, const string pgroup="") const;
+	bool validate(const param &par, const std::string pgroup="") const;
 	/// Write out short help for valid values.
-	virtual void printHelp(ostream &os) const;
+	virtual void printHelp(std::ostream &os) const;
 private:
 	/// value to check
 	const T value;
@@ -250,7 +249,7 @@ public:
 	/** Access of a parameters value. 
 		Parameter values should be accessed by using this 
 		operator, therefore by the function call notation. */
-	T operator()( const string pgroup = ""  ) const
+	T operator()( const std::string pgroup = ""  ) const
 		{ if (pgroup == "" || qvals.count(pgroup)==0)
 			return value;
 		else
@@ -259,38 +258,38 @@ public:
 	void setDefault(const T &newval)
 		{ defval=value=newval; validate(); }
 	/// If you really have to explicitly set the parameter to a value.
-	void set(const T &newval, const string pgroup = "" ) {
+	void set(const T &newval, const std::string pgroup = "" ) {
 		if ( pgroup == "" ) {
 			value=newval; validate(); }
 		else {
 			qvals[pgroup] = newval; validate( pgroup ); } }
 	/// Determine string representation for value.
-	string getStringValue( const string &pgroup = "" ) const
+	std::string getStringValue( const std::string &pgroup = "" ) const
 		{ if ( pgroup == "" )
 			return getStringValue_impl(value);
 		else
 			return getStringValue_impl((*qvals.find(pgroup)).second); }
 	/// Determine string representation for default value.
-	string getStringDefValue() const
+	std::string getStringDefValue() const
 		{ return getStringValue_impl(defval); }
 	/// Read value from ostream.
-	void read(istream &is, const string pgroup = "")
+	void read(std::istream &is, const std::string pgroup = "")
 		{ if ( pgroup == "" ) {
 			is >> value; validate(); }
 		else {
 			is >> qvals[pgroup]; validate( pgroup ); } }
-	void print(ostream &os) const
+	void print(std::ostream &os) const
 		{
-			string i;
+			std::string i;
 
 			param::print(os);
 
-			typename unordered_map<string,T,hashstring>::const_iterator it = qvals.begin();
+			typename std::unordered_map<std::string,T,hashstring>::const_iterator it = qvals.begin();
 
 			while (it != qvals.end())
 			{
 				os << (*it).first << "." << getName() << '\t' << getStringValue((*it).first);
-				os << endl;
+				os << std::endl;
 				it++;
 			}
 		}
@@ -301,8 +300,8 @@ private:
 	// the default value
 	T defval;
 	// the additional qualified parameter values
-	unordered_map<string,T,hashstring>  qvals;
-	string getStringValue_impl(const T &val) const;
+	std::unordered_map<std::string,T,hashstring>  qvals;
+	std::string getStringValue_impl(const T &val) const;
 };
 
 //template<class T> T twice(T t);
@@ -316,12 +315,12 @@ typedef gen_param<double> double_param;
 /// A global bool parameter.
 typedef gen_param<bool> bool_param;
 /// A global string parameter.
-typedef gen_param<string> string_param;
+typedef gen_param<std::string> string_param;
 
 
 //------------------- larger inline functions -------------------------
 
-template <class T> bool rangeValidator<T>::validate(const param &par, const string pgroup) 
+template <class T> bool rangeValidator<T>::validate(const param &par, const std::string pgroup)
 	const
 { 
 	const gen_param<T> &p=dynamic_cast<const gen_param<T> &>(par);
@@ -342,7 +341,7 @@ template <class T> bool rangeValidator<T>::validate(const param &par, const stri
 	}
 }
 
-template <class T> void rangeValidator<T>::printHelp(ostream &os)
+template <class T> void rangeValidator<T>::printHelp(std::ostream &os)
 	const 
 {
 	switch (check)
@@ -366,7 +365,7 @@ template <class T> void rangeValidator<T>::printHelp(ostream &os)
 	}
 }
 
-template <class T> bool unaryValidator<T>::validate(const param &par, const string pgroup) 
+template <class T> bool unaryValidator<T>::validate(const param &par, const std::string pgroup)
 	const
 { 
 	const gen_param<T> &p=dynamic_cast<const gen_param<T> &>(par);
@@ -387,7 +386,7 @@ template <class T> bool unaryValidator<T>::validate(const param &par, const stri
 	}
 }
 
-template <class T> void unaryValidator<T>::printHelp(ostream &os)
+template <class T> void unaryValidator<T>::printHelp(std::ostream &os)
 	const
 {
 	switch (check)
@@ -412,12 +411,14 @@ template <class T> void unaryValidator<T>::printHelp(ostream &os)
 	}
 }
 
-template <class T> string gen_param<T>::getStringValue_impl(const T &val)
+template <class T> std::string gen_param<T>::getStringValue_impl(const T &val)
 	const
 {
-	ostringstream os("");
+	std::ostringstream os("");
 	os << val;
 	return os.str();
 }
+
+} // end of namespace mhlib
 
 #endif //MH_PARAM_H

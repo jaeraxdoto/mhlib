@@ -27,7 +27,8 @@
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
 
-
+using namespace std;
+using namespace mhlib;
 
 /** Problem specific parameters (the number of variables). */
 int_param vars("vars","number of variables",20,1,10000);

@@ -12,6 +12,8 @@
 #include "mh_c11threads.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** \ingroup param
 	Seed value for the random number generator.
 	The default value of 0 implies an initialization based on the time 
@@ -30,8 +32,8 @@ protected:
 	long idum;
 	unsigned long iseed;
 
-	mutex rndmutex;
-	mutex rndnormalmutex;
+	std::mutex rndmutex;
+	std::mutex rndnormalmutex;
 
 	void rndseed(unsigned int seed);
 
@@ -214,6 +216,8 @@ inline double random_doublefunc(unsigned seed, unsigned x) {
  * Resets the mh_random_number_generator pointer to the default RNG.
  */
 void random_resetRNG();
+
+} // end of namespace mhlib
 
 #endif //MH_RANDOM_H
 

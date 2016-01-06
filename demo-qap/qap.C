@@ -27,6 +27,8 @@
 #include "qapsol.h"
 #include "qapinstance.h"
 
+using namespace std;
+using namespace mhlib;
 
 /// Name of file to save best solution.
 string_param sfile("sfile","name of file to save solution to","");

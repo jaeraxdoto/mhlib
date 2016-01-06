@@ -7,6 +7,10 @@
 #include "mh_util.h"
 #include "mh_vnd.h"
 
+namespace mhlib {
+
+using namespace std;
+
 bool_param vndlog("vndlog","Logging is performed in VND",false);
 
 int_param vndnum("vndnum","Max. number of VND neighborhood to be used",10000,0,10000);
@@ -309,4 +313,6 @@ void NBStructureOrder::calculateNewOrder()
 			break;
 	}
 }
+
+} // end of namespace mhlib
 

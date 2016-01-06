@@ -8,6 +8,8 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** Simple local search.
 	During each iteration, a move in the neighbourhood is performed
 	and the current solution is replaced if the new solution is not
@@ -31,5 +33,7 @@ public:
 	/** Performs a single generation. */
 	void performIteration();
 };
+
+} // end of namespace mhlib
 
 #endif //MH_LOCALSEARCH_H

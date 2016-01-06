@@ -9,6 +9,8 @@
 #include "mh_solution.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** \ingroup param
     Penalty influence tuning parameter for GLS. */
 extern double_param glsa;
@@ -18,7 +20,7 @@ class feature
 {
 protected:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/** The constructor. */
@@ -43,5 +45,7 @@ public:
 	        The calculation is parametrized with the glsa parameter. */
 	virtual double tuneLambda(mh_solution *c) = 0;
 };
+
+} // end of namespace mhlib
 
 #endif //MH_FEATURE_H

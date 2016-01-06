@@ -6,8 +6,7 @@
 
 #include <string>
 
-using namespace std;
-
+namespace mhlib {
 
 // Forward declaration of class tabulist_entry
 class tabulist_entry;
@@ -16,9 +15,8 @@ class tabulist_entry;
 /** Functor providing a hash function for std::string. */
 struct hashstring
 {
-	/** Hashing function.
-		Incorporationg __gnu_cxx::__stl_hash_string( const char *__s ). */
-	size_t operator()( const string &s ) const;
+	/** Hashing function.  */
+	size_t operator()( const std::string &s ) const;
 };
 
 
@@ -39,5 +37,6 @@ struct hashtabulist_entry
 	size_t operator()( const tabulist_entry &e ) const;
 };
 
+} // end of namespace mhlib
 
 #endif // MH_HASH_H

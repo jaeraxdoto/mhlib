@@ -4,6 +4,10 @@
 #include <iomanip>
 #include "mh_pop.h"
 
+namespace mhlib {
+
+using namespace std;
+
 void population::determineBest()
 {
 	indexBest=0;
@@ -161,3 +165,6 @@ void population::setAlgorithm(mh_base *alg)
 	for (int i=0;i<nSolutions;i++)
 		chroms[i]->setAlgorithm(alg);
 }
+
+} // end of namespace mhlib
+

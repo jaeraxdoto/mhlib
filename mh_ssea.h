@@ -7,6 +7,8 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
+
 /** \ingroup param 
 Don't count duplicates as generation. If this parameter is set, the
 generation counter for the statistics is not incremented for created
@@ -52,5 +54,7 @@ public:
 	virtual int select()
 		{ nSelections++; return tournamentSelection(); }
 };
+
+} // end of namespace mhlib
 
 #endif //MH_SSEA_H

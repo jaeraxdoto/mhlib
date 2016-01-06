@@ -7,6 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mhlib {
 
 /** \ingroup param
 	The number of islands.
@@ -61,5 +62,7 @@ protected:
 	
 	mh_advbase **subEAs;  // Sub-EAs used for the islands.
 };
+
+} // end of namespace mhlib
 
 #endif //MH_ISLAND_H

@@ -3,13 +3,14 @@
 
 */
 
-
 #ifndef MH_TABUSEARCH_H
 #define MH_TABUSEARCH_H
 
 #include "mh_interfaces.h"
 #include "mh_lsbase.h"
 #include "mh_tabulist.h"
+
+namespace mhlib {
 
 /** Tabu search.
 	During each iteration the best neighbour of the current solution
@@ -50,5 +51,7 @@ public:
 	/** Checks if a chromsome can overide its tabustate. */
 	virtual bool aspiration(mh_solution *c);
 };
+
+} // end of namespace mhlib
 
 #endif //MH_TABUSEARCH_H

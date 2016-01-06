@@ -5,6 +5,10 @@
 #include "mh_nhmove.h"
 #include "mh_util.h"
 
+namespace mhlib {
+
+using namespace std;
+
 // instantiate template
 template class stringSol<bool>;
 
@@ -19,4 +23,6 @@ void binStringSol::applyMove(const nhmove &m)
 	const bitflipMove &qm = dynamic_cast<const bitflipMove &>(m);
 	data[qm.r] = !data[qm.r];
 }
+
+} // end of namespace mhlib
 

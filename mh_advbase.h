@@ -10,6 +10,8 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
+namespace mhlib {
+
 /** \defgroup param Global parameters */
 
 /** \ingroup param 
@@ -179,7 +181,7 @@ public:
 	/** Print statistic informations.
 		Prints out various statistic informations including
 		the best solution of the population.. */
-	virtual void printStatistics(ostream &ostr);
+	virtual void printStatistics(std::ostream &ostr);
 	/** Writes the log entry for the current iteration.
 		If inAnyCase is set, then the entry is written in any case. */
 	virtual void writeLogEntry(bool inAnyCase=false);
@@ -254,5 +256,7 @@ protected:
 
 	bool _wctime;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
 };
+
+} // end of namespace mhlib
 
 #endif //MH_ADVBASE_H

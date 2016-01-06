@@ -2,6 +2,10 @@
 
 #include "mh_popsupp.h"
 
+namespace mhlib {
+
+using namespace std;
+
 //------------------------- pophashtable -----------------------------
 
 bool_param wheap("wheap","Use the worstheap data structure",true);
@@ -62,4 +66,5 @@ istream & operator>>(istream &is,pophashtable_elem &e)
 ostream & operator<<(ostream &os,const pophashtable_elem &e)
 { os << e.p << " # " << e.idx; return os; }
 
+} // end of namespace mhlib
 

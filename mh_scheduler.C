@@ -15,6 +15,10 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
+namespace mhlib {
+
+using namespace std;
+
 int_param schthreads("schthreads", "scheduler: number of threads used", 1, 1, 100);
 
 bool_param schsync("schsync", "scheduler: synchronize all threads for being more deterministic", false);
@@ -598,3 +602,6 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 		}
 	}
 }
+
+} // end of namespace mhlib
+
