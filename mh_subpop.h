@@ -31,7 +31,7 @@ public:
 	/** The constructor.
 		Creates a new sub-population for the given population, using the
 		chromosomes in the given range. */
-	subPopulation(pop_base *super,int from,int to, const pstring &pg=(pstring)(""));
+	subPopulation(pop_base *super,int from,int to, const std::string &pg="");
 	/** Get Chromosome via given index.
 		The chromosome must not be modified or deleted! */
 	virtual mh_solution *at(int index)

@@ -11,13 +11,7 @@ namespace mhlib {
 
 using namespace std;
 
-pstring pgroupext( const pstring &pg, const string &n)
-{
-	if (pg.s=="")
-		return (pstring)(n);
-	else
-		return (pstring)(pg.s+"."+n);
-}
+
 
 //------------------------ param ---------------------------
 
@@ -96,7 +90,13 @@ void param::parseArgs(int argc, char *argv[])
 		mherror("Uneven number of parameters in command line");
 	for (int i=1;i<argc;i+=2)
 	{
-		setParam(argv[i],argv[i+1]);
+		char *purename=argv[i];
+		// skip '-'s at the beginning of parameter names
+		while (purename[0]=='-')
+			purename++;
+		if (purename[0]==0)
+			mherror("Empty parameter name:",argv[i]);
+		setParam(purename,argv[i+1]);
 	}
 }
 
@@ -133,8 +133,8 @@ void param::setParam(const char nam[],const char sval[])
 			return;
 		}
 	}
-	mherror("Unknown parameter (use -h for a list of possible parameters)"
-		,rnam.c_str(),sval);
+	mherror("Unknown parameter (use -h for a list of possible parameters)",
+		rnam.c_str(),sval);
 }
 
 void param::parseFile(const char fname[])
@@ -146,6 +146,12 @@ void param::parseFile(const char fname[])
 	ifil >> nam;
 	while (!ifil.eof())
 	{
+		// skip "--" at the beginning of parameter names
+		char *purename = nam;
+		while (purename[0]=='-')
+			purename++;
+		if (purename[0]==0)
+			mherror("Empty parameter name:",nam);
 		if (nam[0]=='#')	// ignore to end of line
 		{
 			ifil.getline(val,sizeof(val));
@@ -156,7 +162,7 @@ void param::parseFile(const char fname[])
 			if (!ifil)
 				mherror("Error in reading parameter file",
 					fname,nam);
-			setParam(nam,val);
+			setParam(purename,val);
 		}
 		ifil >> nam;
 	}
@@ -174,7 +180,7 @@ bool paramValidator::validate(const param &,const std::string) const
 void paramValidator::error(const param &par,const std::string pgroup) const
 { 
 	char buf[500];
-	if ( pgroup == "" )
+	if ( pgroup.empty() )
 		strcpy(buf,par.getName());
 	else
 	{

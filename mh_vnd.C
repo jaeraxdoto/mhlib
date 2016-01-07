@@ -20,15 +20,15 @@ int_param vndorder("vndorder","VND nb-order 0:static, 1:random, 2:adaptive",0,0,
 
 //------------------------ VNDProvider --------------------------
 
-int VNDProvider::get_lmax(const pstring &pg)
+int VNDProvider::get_lmax(const std::string &pg)
 {
-	return  min(getVNDNNum(),vndnum(pg.s));
+	return  min(getVNDNNum(),vndnum(pg));
 }
 
 
 //--------------------------- VND -------------------------------
 
-VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
+VND::VND(pop_base &p, const std::string &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 {
 	VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
@@ -41,11 +41,11 @@ VND::VND(pop_base &p, const pstring &pg, NBStructureOrder *nbo) : lsbase(p,pg)
 	own_nborder=nbo?true:false;
 
 	if (own_nborder)	// create own static neighborhood order
-		nborder=new NBStructureOrder(lmax,vndorder(pg.s));
+		nborder=new NBStructureOrder(lmax,vndorder(pg));
 	else
 		nborder=nbo;	// use provided neighborhood order object
 
-	tciter.set(lmax, pg.s);
+	tciter.set(lmax, pg);
 	nSearch.assign(lmax+1,0);
 	nSearchSuccess.assign(lmax+1,0);
 	sumSearchGain.assign(lmax+1,0.0);

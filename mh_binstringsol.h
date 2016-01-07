@@ -18,8 +18,8 @@ protected:
 public:
 	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }
 	/** Normal constructor, number of genes must be passed to base class. */
-	binStringSol(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,t,pg) { }
-	binStringSol(int l, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,pg) { }
+	binStringSol(int l, mh_base *t, const std::string &pg="") : stringSol<bool>(l,1,t,pg) { }
+	binStringSol(int l, const std::string &pg="") : stringSol<bool>(l,1,pg) { }
 	/** Writes out the binary string. */
 	void write(std::ostream &ostr,int detailed=0) const;
 	/** Function to apply a certain move.

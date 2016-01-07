@@ -36,7 +36,7 @@ int subPopulation::determineWorst() const
 	return idx;
 }
 
-subPopulation::subPopulation(pop_base *super,int from,int to, const pstring &pg)
+subPopulation::subPopulation(pop_base *super,int from,int to, const string &pg)
 	: pop_base(to-from+1,pg)
 {
 	superPopulation=super;

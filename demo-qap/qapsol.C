@@ -90,7 +90,7 @@ double qapSol::objective()
 void qapSol::mutate(int count) 
 {
 	tabuSearch *ts = dynamic_cast<tabuSearch*>(alg);
-	qapTabuAttribute qta((pstring)pgroup);
+	qapTabuAttribute qta(pgroup);
 	swapMove qm;
 
 	if (!objval_valid)
@@ -240,7 +240,7 @@ void qapSol::selectImprovement(bool find_best)
 
 	// other local stuff
 	bool cont=true;
-	qapTabuAttribute qta((pstring)pgroup);
+	qapTabuAttribute qta(pgroup);
 	swapMove qm;
 	tabuSearch *ts = dynamic_cast<tabuSearch*>(alg);
 
@@ -291,7 +291,7 @@ void qapSol::selectImprovement(bool find_best)
 
 feature* qapSol::getFeature()
 {
-	return new qapFeature( (pstring)pgroup );
+	return new qapFeature( pgroup );
 }
 
 void qapSol::greedyConstruct()

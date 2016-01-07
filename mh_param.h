@@ -14,12 +14,15 @@
 	param::parseArgs() must be called in main(). 
 	Giving "-h" as command line argument will print out all existing
 	parameters with their default values, ranges and a brief
-	explanation.
+	explanation. In the argument list parameter names may optionally be prefixed
+	by "-" or "--". By parameter "@ <filename>" parameter settings are read from
+	the specified file, in which, again, parameter names may be optionally prefixed
+	by "-" or "--".
 
-	To allow fine grained control it is possible to define parametergroups
+	To allow fine grained control it is possible to define parameter-groups
 	for which each parameter can have an individual value. The name of a
-	parametergroup can be passed to the constructor of a class to let the
-	created object use this parametergroup instead of the global parameter
+	parameter-group can be passed to the constructor of a class to let the
+	created object use this parameter-group instead of the global parameter
 	values.
 */
 
@@ -30,32 +33,25 @@
 #include <unordered_map>
 #include <sstream>
 #include <string>
-#include "mh_hash.h"
 #include "mh_util.h"
 
 namespace mhlib {
 
 class param;
 
-/**
- * A simple class encapsulating a parameter name.
- */
-class pstring
+/** Extend the parameter-group pg with n.
+    This method prepends the string n to the existing parameter-group p.
+
+    pgroupext( "", "ls" ) => "ls"
+
+    pgroupext( "foo", "bar" ) => "bar.foo" */
+inline std::string pgroupext( const std::string &pg, const std::string &n)
 {
-public:
-	std::string s;
-
-	explicit pstring( const char *_s ) : s(_s) {};
-	explicit pstring( const std::string &_s ) : s(_s) {};
-};
-
-/** Extend the parametergroup p with n.
-    This method prepends the string n to the existing parametergroup p.
-
-    pgroupext( "", "ls" ) == "ls"
-
-    pgroupext( "foo", "bar" ) == "bar.foo" */
-pstring pgroupext( const pstring &pg, const std::string &n);
+	if (pg.empty())
+		return n;
+	else
+		return pg + "." + n;
+}
 
 /** Abstract validator object for validating a value to be set for a 
 	parameter. 
@@ -246,26 +242,33 @@ public:
 		param(nam,descr,new unaryValidator<T>(value,check)),
 		value(def), defval(def)
 		{ validate(); }
-	/** Access of a parameters value. 
+	/** Access of a parameter's value without a specified parameter-group.
+		Parameter values should be accessed by using this
+		operator, therefore by the function call notation. */
+	const T operator()() const
+		{ return value; }
+	/** Access of a parameters value with specified parameter group.
 		Parameter values should be accessed by using this 
 		operator, therefore by the function call notation. */
-	T operator()( const std::string pgroup = ""  ) const
-		{ if (pgroup == "" || qvals.count(pgroup)==0)
-			return value;
-		else
-			return (*qvals.find(pgroup)).second; }
+	const T operator()( const std::string pgroup) const
+		{
+			auto it = qvals.find(pgroup);
+			if (it == qvals.end())
+				return value;
+			else
+				return it->second; }
 	/// Set a new value and default value for a parameter.
 	void setDefault(const T &newval)
 		{ defval=value=newval; validate(); }
 	/// If you really have to explicitly set the parameter to a value.
 	void set(const T &newval, const std::string pgroup = "" ) {
-		if ( pgroup == "" ) {
+		if ( pgroup.empty() ) {
 			value=newval; validate(); }
 		else {
 			qvals[pgroup] = newval; validate( pgroup ); } }
 	/// Determine string representation for value.
 	std::string getStringValue( const std::string &pgroup = "" ) const
-		{ if ( pgroup == "" )
+		{ if ( pgroup.empty() )
 			return getStringValue_impl(value);
 		else
 			return getStringValue_impl((*qvals.find(pgroup)).second); }
@@ -274,7 +277,7 @@ public:
 		{ return getStringValue_impl(defval); }
 	/// Read value from ostream.
 	void read(std::istream &is, const std::string pgroup = "")
-		{ if ( pgroup == "" ) {
+		{ if ( pgroup.empty() ) {
 			is >> value; validate(); }
 		else {
 			is >> qvals[pgroup]; validate( pgroup ); } }
@@ -284,7 +287,7 @@ public:
 
 			param::print(os);
 
-			typename std::unordered_map<std::string,T,hashstring>::const_iterator it = qvals.begin();
+			auto it = qvals.begin();
 
 			while (it != qvals.end())
 			{
@@ -300,7 +303,7 @@ private:
 	// the default value
 	T defval;
 	// the additional qualified parameter values
-	std::unordered_map<std::string,T,hashstring>  qvals;
+	std::unordered_map<std::string,T>  qvals;
 	std::string getStringValue_impl(const T &val) const;
 };
 

@@ -38,15 +38,15 @@ public:
 		must be given. Note that the population is NOT owned by the 
 		algorithm, and will not be deleted by its destructor. guidedLS
 		will only use the first two chromosomes. */
-	guidedLS(pop_base &p, const pstring &pg=(pstring)(""));
+	guidedLS(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty algorithm that can only be used as a template. */
-	guidedLS(const pstring &pg=(pstring)("")) : lsbase(pg) {}
+	guidedLS(const std::string &pg="") : lsbase(pg) {}
 	/** The destructor. */
 	~guidedLS();
 	/** Create new guidedLS.
 		Returns a pointer to a new guidedLS. */
-	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &pg="")
 		{ return new guidedLS(p,pg); }	
 	/** Performs a single generation.
 		Is called from run() */

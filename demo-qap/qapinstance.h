@@ -61,7 +61,7 @@ public:
 	
 		\param pg Parametergroup
 	*/
-	qapInstance( const pstring &pg ) : pgroup(pg.s), n(0), a(0), b(0)
+	qapInstance( const string &pg ) : pgroup(pg), n(0), a(0), b(0)
 		{ initialize(qapfile(pgroup)); }
 
 	/** Normal Constrcutor.
@@ -70,7 +70,7 @@ public:
 		\param fname Filename from where to load the instance
 		\param pg Parametergroup
 	*/
-	qapInstance( const string &fname, const pstring &pg=(pstring)("") ) : pgroup(pg.s), n(0), a(0), b(0)
+	qapInstance( const string &fname, const string &pg="" ) : pgroup(pg), n(0), a(0), b(0)
 		{ initialize(fname); };
 	
 	/** Actual initialization.

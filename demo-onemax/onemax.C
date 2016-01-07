@@ -39,7 +39,7 @@ string_param sfile("sfile","name of file to save solution to","");
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
 /** This is the solution class for the OneMax problem.
-	In larger appications, it should be implemented in a separate
+	In larger applications, it should be implemented in a separate
 	module. */
 class oneMaxSol : public binStringSol, public gcProvider
 {

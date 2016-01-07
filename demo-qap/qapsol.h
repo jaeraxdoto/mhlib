@@ -51,7 +51,7 @@ protected:
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
 	mh_solution *createUninitialized() const
-		{ return new qapSol(alg, (pstring)(pgroup)); }
+		{ return new qapSol(alg, pgroup); }
 	mh_solution *clone() const
 		{ return new qapSol((mh_solution&)*this); }
 	double objective();
@@ -65,13 +65,13 @@ public:
 		\param t Associated algorithm object
 		\param pg Parametergroup
 	*/
-	qapSol(mh_base* t, const pstring &pg=(pstring)("")) : mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
+	qapSol(mh_base* t, const string &pg="") : mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
 		{}
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param pg Parametergroup
 	*/
-	qapSol(const pstring &pg=(pstring)("")) : mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
+	qapSol(const string &pg="") : mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
 		{}
 	
 	/** Copy all data from a given solution into the current one.

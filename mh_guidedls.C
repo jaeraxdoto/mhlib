@@ -11,7 +11,7 @@ namespace mhlib {
 /// Interval for penalty resets.
 int_param glsri("glsri","Interval for penalty resets.", 0, 0, LOWER_EQUAL );
 
-guidedLS::guidedLS(pop_base &p, const pstring &pg) : lsbase(p,pg), lambda(0)
+guidedLS::guidedLS(pop_base &p, const std::string &pg) : lsbase(p,pg), lambda(0)
 {
 	featureProvider *fp = dynamic_cast<featureProvider*>(tmpSol);
 	if ( fp==NULL )
@@ -20,7 +20,7 @@ guidedLS::guidedLS(pop_base &p, const pstring &pg) : lsbase(p,pg), lambda(0)
 		f = fp->getFeature();
 	if ( pop->size() < 2 )
 		mherror("Population is to small");
-	spop = new population(*tmpSol, 1, true, false, pgroupext((pstring)pgroup,"sub"));
+	spop = new population(*tmpSol, 1, true, false, pgroupext(pgroup,"sub"));
 }
 
 guidedLS::~guidedLS()
@@ -38,7 +38,7 @@ void guidedLS::performIteration()
 	perfIterBeginCallback();
 
 	// Phase 1: apply local search 
-	alg = create_mh( *spop, pgroupext((pstring)pgroup,"sub") );
+	alg = create_mh( *spop, pgroupext(pgroup,"sub") );
 
 	glsSubAlgorithm *sa = dynamic_cast<glsSubAlgorithm*>(alg);
 

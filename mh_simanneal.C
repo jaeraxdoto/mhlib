@@ -16,7 +16,7 @@ int_param sacint( "sacint", "interval between cooling steps", 1, 1, LOWER_EQUAL 
 /// Anfangstemperatur
 double_param satemp( "satemp", "initial temperature for simulated annealing", 1.0, 0.0, LOWER );
 
-simulatedAnnealing::simulatedAnnealing(pop_base &p, const pstring &pg) : lsbase(p,pg)
+simulatedAnnealing::simulatedAnnealing(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
 	T = satemp(pgroup);
 }

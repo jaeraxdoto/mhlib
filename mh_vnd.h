@@ -1,5 +1,5 @@
 /*! \file mh_vnd.h
-\brief A general class Variable Neighborhood Descent VND.
+\brief DEPRECATED, better use mh_scheduler; A general class Variable Neighborhood Descent VND.
 */
 
 #ifndef MH_VND_H
@@ -12,22 +12,22 @@
 namespace mhlib {
 
 /** \ingroup param
-    If set logging is performed in VND. */
+    DEPRECATED, better use mh_scheduler; If set logging is performed in VND. */
 extern bool_param vndlog;
 
 /** \ingroup param
-    Maximum number of VND neighborhood to be used (0,...,vndnum()). */
+    DEPRECATED, better use mh_scheduler; Maximum number of VND neighborhood to be used (0,...,vndnum()). */
 extern int_param vndnum;
 
 /** \ingroup param
-    VND neighborhood ordering:
+    DEPRECATED, better use mh_scheduler; VND neighborhood ordering:
     - 0: static
     - 1: random
     - 2: adaptive */
 extern int_param vndorder;
 
 
-/** A class for diverse strategies to change the order of the neighborhood
+/** DEPRECATED, better use mh_scheduler; A class for diverse strategies to change the order of the neighborhood
  * structures within VND, VNS etc. */
 class NBStructureOrder
 {
@@ -60,7 +60,7 @@ public:
 };
 
 
-/** An abstract interface class for solutions
+/** DEPRECATED, better use mh_scheduler; An abstract interface class for solutions
     used in a VND heuristic. */
 class VNDProvider
 {
@@ -77,14 +77,14 @@ public:
 	virtual int getVNDNNum() = 0;
 	/** Returns the number of neighborhood structures to be used,
 	    considering vndnum(). */
-	int get_lmax(const pstring &pg);
+	int get_lmax(const std::string &pg);
 };
 
 
 class VNDStatAggregator;
 
 
-/** VND base class, implementing the variable neighborhood descent.
+/** DEPRECATED, better use mh_scheduler; VND base class, implementing the variable neighborhood descent.
 Not only looking for a possible improvement in one neighborhood, but in
 several different ones.  The chromosome for this algorithm has implement
 the VNDProvider interface.  */
@@ -108,7 +108,7 @@ public:
 		will only use the first chromosome. 
 		If no NBStructureOrder object is provided, the VND creates
 		its own static one. */
-	VND(pop_base &p, const pstring &pg=(pstring)(""), NBStructureOrder *nbo=NULL);
+	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=NULL);
 	/** The destructor. */
 	virtual ~VND() 
 	{
@@ -131,7 +131,7 @@ public:
 };
 
 
-/** A class for aggregating the neighborhood statistics information
+/** DEPRECATED, better use mh_scheduler; A class for aggregating the neighborhood statistics information
     on multiple VND runs. */
 class VNDStatAggregator
 {

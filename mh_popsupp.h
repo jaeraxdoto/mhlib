@@ -19,7 +19,7 @@ struct worstcompare : public std::binary_function<double,double,bool>
 {
 	/// Parametergroup.
 	std::string pgroup;
-	worstcompare(const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	worstcompare(const std::string &pg="") : pgroup(pg) {}
 
 	/// Compare function.
 	bool operator()(const double &a, const double &b) const;
@@ -65,7 +65,7 @@ protected:
 
 public:
 	/// Initialize the hash-table to be empty.
-	pophashtable(const pstring &pg=(pstring)("")) : pgroup(pg.s), worstheap(worstcompare(pg)) {}
+	pophashtable(const std::string &pg="") : pgroup(pg), worstheap(worstcompare(pg)) {}
 	/// Cleans up.
 	virtual ~pophashtable() {}
 	/// Removes all entries in the hash-table.

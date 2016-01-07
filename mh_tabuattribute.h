@@ -18,7 +18,7 @@ protected:
 	
 public:
 	/// The constructor
-	tabuAttribute( const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	tabuAttribute( const std::string &pg="") : pgroup(pg) {}
 	
 	/// virtual destructor
 	virtual ~tabuAttribute() {};

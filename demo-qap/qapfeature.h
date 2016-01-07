@@ -25,7 +25,7 @@ protected:
 public:
 	/** Normal constructor.
 	 \param pg Parametergroup */
-	qapFeature(const pstring &pg=(pstring)("") );
+	qapFeature(const string &pg="" );
  	
 	/** Function for getting the penalty.
 		The penalty is computed with respect to a passed solution.

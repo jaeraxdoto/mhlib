@@ -24,7 +24,7 @@ public:
 	
 		\param pg Parametergroup
 	*/
-	qapTabuAttribute(const pstring &pg=(pstring)("")) : swapMove(), tabuAttribute(pg)  {};
+	qapTabuAttribute(const std::string &pg="") : swapMove(), tabuAttribute(pg)  {};
 
 	/** Copy constructor.
 	

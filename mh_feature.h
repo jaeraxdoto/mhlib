@@ -24,7 +24,7 @@ protected:
 	
 public:
 	/** The constructor. */
-	feature(const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	feature(const std::string &pg="") : pgroup(pg) {}
 	/** Virtual destructor.
 	        Needed if dynamic data structures are involved. */
 	virtual ~feature() {}

@@ -8,7 +8,7 @@
 #include "../mh_nhmove.h"
 #include "mh_util.h"
 
-qapFeature::qapFeature(const pstring &pg) : feature(pg), qi(qapInstance::getInstance()), pv(qi->n*qi->n)
+qapFeature::qapFeature(const string &pg) : feature(pg), qi(qapInstance::getInstance()), pv(qi->n*qi->n)
 {
 }
 

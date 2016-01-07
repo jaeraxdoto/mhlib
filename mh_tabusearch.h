@@ -32,15 +32,15 @@ public:
 	        An initialized population already containing chromosomes 
 		must be given. Note that the population is NOT owned by the 
 		algorithm, and will not be deleted by its destructor. */
-	tabuSearch(pop_base &p, const pstring &pg=(pstring)(""));
+	tabuSearch(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty Algorithm that can only be used as a template. */
-	tabuSearch(const pstring &pg=(pstring)("")) : lsbase(pg) {}
+	tabuSearch(const std::string &pg="") : lsbase(pg) {}
 	/** The destructor. */
 	~tabuSearch();
 	/** Create new simulatedAnnealing.
 		Returns a pointer to a new simulatedAnnealing. */
-	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &pg="")
 		{ return new tabuSearch(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */

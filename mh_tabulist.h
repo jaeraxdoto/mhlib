@@ -6,7 +6,6 @@
 
 #include <unordered_map>
 #include <queue>
-#include "mh_hash.h"
 #include "mh_param.h"
 #include "mh_tabuattribute.h"
 
@@ -27,6 +26,14 @@ public:
 	bool operator==( const tabulist_entry &o ) const { return elem->equals( *o.elem ); };
 };
 
+/** A functor providing a hash function for tabulist_entry. */
+struct hashtabulist_entry
+{
+	/** Hashing function.
+		Incorporation tabuAttribute::hashvalue(). */
+	size_t operator()( const tabulist_entry &e ) const
+		{ return size_t(e.elem->hashvalue()); }
+};
 
 /** A hash-table for the members of the tabulist. 
     This includes a queue of the tabus so dropping of old
@@ -49,10 +56,10 @@ protected:
 public:
 	/** Normal constructor.
 	        A tabulist of given size is created. */
-	explicit tabulist( int N, const pstring &pg=(pstring)("")) : size(N), pgroup(pg.s) {}
+	explicit tabulist( int N, const std::string &pg="") : size(N), pgroup(pg) {}
 	/** Default constructor.
 	        Size of tabulist is determined through parameters. */      
-	explicit tabulist( const pstring &pg=(pstring)("") ) : size(tlsize(pg.s)), pgroup(pg.s) {}
+	explicit tabulist( const std::string &pg="") : size(tlsize(pg)), pgroup(pg) {}
 	/** The destructor. */
 	virtual ~tabulist() {}
 	/** Removes all entries in the hash-table. */

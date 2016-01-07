@@ -209,7 +209,7 @@ void SchedulerWorker::run() {
 
 //--------------------------------- Scheduler ---------------------------------------------
 
-Scheduler::Scheduler(pop_base &p, const pstring &pg)
+Scheduler::Scheduler(pop_base &p, const std::string &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
 	_schthreads = schthreads(pgroup);
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
@@ -407,7 +407,7 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 //--------------------------------- VNSScheduler ---------------------------------------------
 
 GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-		unsigned int nshakingnh, const pstring &pg) :
+		unsigned int nshakingnh, const std::string &pg) :
 		Scheduler(p, pg),
 		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
 	initialSolutionExists = false;

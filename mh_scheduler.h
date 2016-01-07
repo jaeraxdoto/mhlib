@@ -7,6 +7,7 @@
 #define MH_SCHEDULER_H
 
 #include <assert.h>
+#include <vector>
 #include <string>
 #include "mh_advbase.h"
 #include "mh_pop.h"
@@ -422,7 +423,7 @@ public:
 	/**
 	 * Constructor: Initializes the scheduler.
 	 */
-	Scheduler(pop_base &p, const pstring &pg = (pstring) (""));
+	Scheduler(pop_base &p, const std::string &pg = "");
 
 	/**
 	 * Destructor, deletes the used methodPool and the solution objects.
@@ -588,7 +589,7 @@ public:
 	 * finally nshakingnh shaking or large neighborhood search neighborhoods.
 	 */
 	GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-			unsigned int nshakingnh, const pstring &pg = (pstring) (""));
+			unsigned int nshakingnh, const std::string &pg = "");
 
 	/** Cloning is not implemented for this class. */
 	virtual GVNSScheduler* clone() const {

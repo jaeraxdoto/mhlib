@@ -20,7 +20,7 @@ class mh_base
 {
 public:
 	/// The Constructor.
-	mh_base( const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	mh_base( const std::string &pg = "") : pgroup(pg) {}
 	/// Virtual destructor.
 	virtual ~mh_base() {}
 	/// Run method.

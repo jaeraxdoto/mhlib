@@ -35,14 +35,14 @@ class islandModelEA : public mh_advbase
 public:
 	/** The constructor.
 		If no sub-EA template is given, a steady-state EA is used. */
-	islandModelEA(pop_base &p, mh_advbase *mh_templ, const pstring &pg=(pstring)(""));
-	islandModelEA(pop_base &p, const pstring &pg=(pstring)(""));
+	islandModelEA(pop_base &p, mh_advbase *mh_templ, const std::string &pg="");
+	islandModelEA(pop_base &p, const std::string &pg="");
 	/** The destructor.
 		Deletes sub-EAs. */
 	~islandModelEA();
 	/** Create new islandModelEA.
 		Returns a pointer to a new islandModelEA. */
-	mh_advbase *clone(pop_base &p, const pstring &ps=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &ps="")
 	    { return new islandModelEA(p,ps); }
 	/** The EA's main loop.
 		Performs generations and migration until the termination

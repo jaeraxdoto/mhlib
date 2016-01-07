@@ -24,15 +24,15 @@ public:
 		An initialized population already containing chromosomes 
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
-	generationalEA(pop_base &p, const pstring &pg=(pstring)(""));
+	generationalEA(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
-	generationalEA(const pstring &pg=(pstring)("")) : mh_advbase(pg) {};
+	generationalEA(const std::string &pg="") : mh_advbase(pg) {};
 	/** The destructor. */
 	~generationalEA();
 	/** Create new steadyStateGA.
 		Returns a pointer to a new steadyStateEA. */
-	mh_advbase *clone(pop_base &p,const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p,const std::string &pg="")
 	    { return new generationalEA(p,pg); }
 	/** Performs a single generation. */
 	void performIteration();

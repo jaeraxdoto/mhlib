@@ -71,15 +71,15 @@ protected:
 public:
 	/** The Constructor.
 	        Calls the Init-Method with default population size according to parameter popsize. */
-	pop_base(int psize, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+	pop_base(int psize, const std::string &pg="") : pgroup(pg) { init( psize ); }
 
 	/** The Constructor.
   	        Calls the Init-Method with a specific population size. */
-	pop_base(const pstring &pg=pstring("") ) : pgroup(pg.s) { init( popsize(pgroup) ); }
+	pop_base(const std::string &pg="" ) : pgroup(pg) { init( popsize(pgroup) ); }
 
 	/** The Constructor.
 	        Calls the Init-Method with the population size and nohashing parameter. */
-	pop_base(int psize, bool nohashing = false, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+	pop_base(int psize, bool nohashing = false, const std::string &pg="") : pgroup(pg) { init( psize ); }
 
 	/** Destructor. */
 	virtual ~pop_base();

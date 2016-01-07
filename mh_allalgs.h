@@ -34,12 +34,12 @@ extern int_param mhalg;
 /** Creation of any of the implemented algorithms.
     Depending on the parameter a, a specific instance of a
     metaheuristic is created.  */
-	mh_advbase *create_mh(pop_base &p,int a, const pstring &pg=(pstring)(""));
+	mh_advbase *create_mh(pop_base &p,int a, const std::string &pg="");
 /** Creation of any of the implemented algorithms.
     Depending on the parameter mhalg(), a specific instance of a
     metaheuristic is created.  */
-	inline mh_advbase *create_mh(pop_base &p, const pstring &pg=(pstring)(""))
-	{ return create_mh(p,mhalg(pg.s),pg); }
+	inline mh_advbase *create_mh(pop_base &p, const std::string &pg="")
+	{ return create_mh(p,mhalg(pg),pg); }
 
 } // end of namespace mhlib
 

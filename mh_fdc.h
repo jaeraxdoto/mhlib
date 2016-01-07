@@ -52,7 +52,7 @@ public:
 	double distbetween;	///< average distance between samples
 
 	/// The constructor
-	FitnessDistanceCorrelation( const pstring &pg=(pstring)("") ) : pgroup(pg.s) {};
+	FitnessDistanceCorrelation( const std::string &pg="") : pgroup(pg) {};
 	
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective

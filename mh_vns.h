@@ -12,28 +12,28 @@
 
 namespace mhlib {
 
-/** \ingroup param
+/** DEPRECATED, better use mh_scheduler; \ingroup param
  	Maximum value of used shaking NHs. */
 extern int_param vnsnum;
 
-/** \ingroup param
+/** DEPRECATED, better use mh_scheduler; \ingroup param
     VNS neighborhood ordering:
     - 0: static
     - 1: random
     - 2: adaptive */
 extern int_param vnsorder;
 
-/** \ingroup param
+/** DEPRECATED, better use mh_scheduler; \ingroup param
     Parameter tgen for embedded VND
  */
 extern int_param vnsvndtiter;
 
-/** \ingroup param
+/** DEPRECATED, better use mh_scheduler; \ingroup param
     Parameter ttime for embedded VND
  */
 extern int_param vnsvndttime;
 
-/** An abstract interface class for chromosomes
+/** DEPRECATED, better use mh_scheduler; An abstract interface class for chromosomes
     used in a VNS heuristic. */
 class VNSProvider
 {
@@ -51,7 +51,7 @@ public:
 
 
 /** 
-The VNS base algorithm. For local search it calls VND or another sub algorithm.
+DEPRECATED, better use mh_scheduler; The VNS base algorithm. For local search it calls VND or another sub algorithm.
 The neighborhoodsize is increased if shaking and the subsequent local search
 do not find an improved solution.
 The chromosome for this algorithm should implement the vnsProvider interface. 
@@ -70,7 +70,7 @@ protected:
 	std::vector<double> sumShakeGain;	///< total gain achieved
 	NBStructureOrder *nborder; ///< Order of neighborhood structures
 	// for possibly embedded VND:
-	pstring vndpg;	///< parameter group for VND
+	std::string vndpg;	///< parameter group for VND
 	VNDStatAggregator *vndstat;	///< aggegator for VND statistics
 	NBStructureOrder *vnd_nborder; ///< VND neighborhood order
 public:
@@ -79,7 +79,7 @@ public:
 		must be given. Note that the population is NOT owned by the 
 		algorithm and will not be deleted by its destructor. VNS
 		will only use the first two chromosomes. */
-	VNS(pop_base &p, const pstring &pg = (pstring) (""));
+	VNS(pop_base &p, const std::string &pg = "");
 	/** Destructor. */
 	virtual ~VNS();
 	/** Performs a single generation, is called from run() */

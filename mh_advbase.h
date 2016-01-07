@@ -134,10 +134,10 @@ public:
 		An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
-	mh_advbase(pop_base &p, const pstring &pg=(pstring)(""));
+	mh_advbase(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
-	mh_advbase(const pstring &pg=(pstring)(""));
+	mh_advbase(const std::string &pg="");
 	/** The destructor.
 		It does delete the temporary solution, but not the
 		population. */
@@ -145,7 +145,7 @@ public:
 	/** Create new object of same class.
 		Virtual method, uses the classes constructor to create a
 		new EA object of the same class as the called object. */
-	virtual mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""));
+	virtual mh_advbase *clone(pop_base &p, const std::string &pg="");
 	/** The EA's main loop.
 		Performs iterations until the termination criterion is
 		fulfilled.

@@ -6,7 +6,7 @@
 
 namespace mhlib {
 
-lsbase::lsbase(pop_base &p, const pstring &pg) : mh_advbase(p,pg)
+lsbase::lsbase(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
 {
 	checkPopulation();
 	wheap.set(false,pgroup);

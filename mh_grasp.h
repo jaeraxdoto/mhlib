@@ -25,15 +25,15 @@ public:
 		must be given. Note that the population is NOT owned by the 
 		algorithm and will not be deleted by its destructor. GRASP
 		will only use the first two chromosomes. */
-	GRASP(pop_base &p, const pstring &pg=(pstring)(""));
+	GRASP(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty algorithm that can only be used as a template. */
-	GRASP(const pstring &pg=(pstring)("")) : lsbase(pg) {}
+	GRASP(const std::string &pg="") : lsbase(pg) {}
 	/** The destructor. */
 	~GRASP();
 	/** Create new GRASP.
 		Returns a pointer to a new GRASP. */
-	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &pg="")
 		{ return new GRASP(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */

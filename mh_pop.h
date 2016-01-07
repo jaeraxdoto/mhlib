@@ -53,12 +53,12 @@ public:
 		If binit is set, the new solutions are all initialized, otherwise they
 		are a copy of the template solution.
 		If nohashing is set, hashing is avoided in the population; otherwise it depends on dupelim(). */
-	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const pstring &pg=(pstring)(""));
+	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const std::string &pg="");
 	/** A population of solutions is created.
 		The size is taken from popsize().
 		The template solution is used to create solutions of the same type,
 		which are finally all initialized by calling initialize(). */
-	population(const mh_solution &c_template, const pstring &pg=(pstring)(""));
+	population(const mh_solution &c_template, const std::string &pg="");
 	
 	/** Destructor.
 		The population and all its contained solutions are deleted. */

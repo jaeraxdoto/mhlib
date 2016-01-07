@@ -50,7 +50,7 @@ bool_param ltime("ltime","log time for iterations",true);
 bool_param wctime("wctime", "use wall clock time instead of cpu time", false);
 
 
-mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
+mh_advbase::mh_advbase(pop_base &p, const string &pg) : mh_base(pg)
 {
 	pop = &p;
 	pop->setAlgorithm(this);
@@ -82,7 +82,7 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 	_wctime = wctime(pgroup);
 }
 
-mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
+mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 {
 	pop=NULL;
 	tmpSol=NULL;
@@ -106,7 +106,7 @@ mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 	_wctime = wctime(pgroup);
 }
 
-mh_advbase *mh_advbase::clone(pop_base &p, const pstring &pg)
+mh_advbase *mh_advbase::clone(pop_base &p, const string &pg)
 {
 	mherror("clone in class derived from mh_advbase not supported");
 	return NULL;

@@ -8,7 +8,7 @@ namespace mhlib {
 
 bool_param elit("elit","use elitism?",true);
 
-generationalEA::generationalEA(pop_base &p, const pstring &pg) : mh_advbase(p,pg)
+generationalEA::generationalEA(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
 {
 	selectedChroms=new int[pop->size()];
 	nextGeneration=new mh_solution*[pop->size()];

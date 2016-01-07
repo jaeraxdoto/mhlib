@@ -14,14 +14,14 @@ int_param migr("migr","migration strategy: 0:best, 1:none",0,0,1);
 
 double_param pmig("pmig","migration probability",0.001,0.0,1.0);
 
-islandModelEA::islandModelEA(pop_base &p, mh_advbase *mh_templ, const pstring &pg) : mh_advbase(p,pg)
+islandModelEA::islandModelEA(pop_base &p, mh_advbase *mh_templ, const std::string &pg) : mh_advbase(p,pg)
 {
 	init(mh_templ);
 }
 
-islandModelEA::islandModelEA(pop_base &p, const pstring &pg) : mh_advbase(p,pg)
+islandModelEA::islandModelEA(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
 {
-	init(new steadyStateEA((pstring)pgroup));
+	init(new steadyStateEA(pgroup));
 }
 
 void islandModelEA::init(mh_advbase *mh_templ)
@@ -35,8 +35,8 @@ void islandModelEA::init(mh_advbase *mh_templ)
 	subEAs = new mh_advbase*[islk(pgroup)];
 	for (int i=0;i<islk(pgroup);i++)
 	{
-		subPop=new subPopulation(pop, i*islandSize, (i+1)*islandSize-1,(pstring)pgroup);
-		subEAs[i]=mh_templ->clone(*subPop,(pstring)pgroup);
+		subPop=new subPopulation(pop, i*islandSize, (i+1)*islandSize-1,pgroup);
+		subEAs[i]=mh_templ->clone(*subPop,pgroup);
 	}
 }
 

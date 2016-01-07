@@ -80,9 +80,9 @@ public:
 	stringSol(const mh_solution &c);
 	/** normal constructor, number of genes must be passed to base
 		class, as well as maximum value for each gene. */
-	stringSol(int l, int v, mh_base *t, const pstring &pg=(pstring)("")) : mh_solution(l,t,pg), data(l)
+	stringSol(int l, int v, mh_base *t, const std::string &pg="") : mh_solution(l,t,pg), data(l)
 		{ vmax=v; }
-	stringSol(int l, int v, const pstring &pg=(pstring)("")) : mh_solution(l,NULL,pg), data(l)
+	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,NULL,pg), data(l)
 		{ vmax=v; }
 	/** copy all data from a given solution into the current one. */
 	virtual void copy(const mh_solution &orig);

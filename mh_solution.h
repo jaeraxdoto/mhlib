@@ -68,14 +68,14 @@ public:
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, mh_base *t, const pstring &pg=(pstring)("")) : length(l), alg(t), pgroup(pg.s)
+	mh_solution(int l, mh_base *t, const std::string &pg="") : length(l), alg(t), pgroup(pg)
 		{ objval_valid=false; objval=0; }
 	/** Constructor for unitinialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, const pstring &pg=(pstring)("") ) : length(l), alg(0), pgroup(pg.s)
+	mh_solution(int l, const std::string &pg="") : length(l), alg(0), pgroup(pg)
 		{ objval_valid=false; objval=0; }
 	/** Creates an uninitialized object of the same class as the
 		current object.

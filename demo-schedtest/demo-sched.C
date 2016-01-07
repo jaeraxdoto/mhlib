@@ -1,16 +1,16 @@
-/*! \file schedtest.C
+/*! \file demo-sched.C
     \brief A template main program for the Scheduler algorithm and multithreading.  
 
 	A  main program demonstrating the Scheduler algorithm 	
 	class, which allows exploiting multithreading and presents a uniform
 	framework for implementing GRASP, VNS, VLNS ans similar metaheuristics.
-	This simple exemplary program solves the simple ONEMAX and ONEPERM problems.
-	Additionally performs a basic test of multithreading if parameter 	
+	This exemplary program solves the simple ONEMAX and ONEPERM problems.
+	Additionally, it applies a basic test of multithreading if parameter 	
 	mthreadtest ist set to 1.
 
 	Use this main program as a basis for writing your own application based
 	on the Scheduler.
-	\include schedtest.C */
+	\include demo-sched.C */
 
 #include <cstdlib>
 #include <iostream>
