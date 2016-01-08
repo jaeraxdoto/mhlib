@@ -276,10 +276,10 @@ int main(int argc, char *argv[])
 	}
 	// catch all exceptions and write error message
 	catch (std::string &s)
-	{ cerr << s << endl; return 1; }
+	{ writeErrorMessage(s);  return 1; }
 	catch (exception &e)
-	{ cerr << "Standard exception occured" << e.what() << endl; return 1; }
+	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
 	catch (...)
-	{ cerr << "Unknown exception occured" << endl; return 1; }
+	{ writeErrorMessage("Unknown exception occured"); return 1; }
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include "mh_log.h"
 #include "mh_util.h"
 

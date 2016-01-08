@@ -18,6 +18,10 @@ namespace mhlib {
 void mherror(const std::string &msg, const std::string &par1 = "", const std::string &par2 = "",
 		const std::string &par3 = "");
 
+/** Write given error message to stderr as well as out(), if the latter is associated with a file.
+ * Usually called when catching an Exception in the main program e.g. due to mherror. */
+void writeErrorMessage(const std::string &msg);
+
 /** Return CPU time in seconds since the process was started. */
 double mhcputime();
 

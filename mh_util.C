@@ -4,16 +4,18 @@
 #include <ctime>
 #include <iostream>
 #include "mh_util.h"
+#include "mh_log.h"
 #include <chrono>
 
 namespace mhlib {
 
+using namespace std;
 
 void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
 		const std::string &par3)
 {
 	std::stringstream ss;
-	ss << "\n" << msg;
+	ss << msg;
 	if (!par1.empty())
 	{
 		ss << ": " << par1;
@@ -30,6 +32,16 @@ void mherror(const std::string &msg, const std::string &par1, const std::string 
 	ss << std::endl;
 
 	throw ss.str();
+}
+
+void writeErrorMessage(const string &msg)
+{
+	if (!out.isCout()) {
+		out() << endl << "ERROR: " << msg << endl;
+		out().flush();
+		logstr.flush();
+	}
+	cerr << "ERROR: " << msg << endl;
 }
 
 
