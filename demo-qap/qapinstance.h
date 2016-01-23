@@ -10,13 +10,12 @@
 #include <vector>
 #include "mh_param.h"
 
-using namespace std;
-using namespace mhlib;
+namespace qap {
 
 /** \ingroup param
     Filename of the quadratic assignment problem instance.
 */
-extern string_param qapfile;
+extern mhlib::string_param qapfile;
 
 
 /** A class for instances of quadratic assignment problems. */
@@ -24,7 +23,7 @@ class qapInstance
 {
 private:
 	/// Parametergroup.
-	string pgroup;
+	std::string pgroup;
 	
 	static qapInstance *qi;
 	
@@ -33,22 +32,22 @@ public:
 	int n;
 
 	/// The distance matrix.
-	vector<int> a;
+	std::vector<int> a;
 
 	/// The flow matrix.
-	vector<int> b;
+	std::vector<int> b;
 
 	/// a-index
-	vector< pair<int,int> > indexa;
+	std::vector< std::pair<int,int> > indexa;
 
 	/// b-index
-	vector< pair<int,int> > indexb;
+	std::vector< std::pair<int,int> > indexb;
 
 	/// cost vector
-	vector<int> cost;
+	std::vector<int> cost;
 
 	/// fd-index vector
-	vector<int> fdind;
+	std::vector<int> fdind;
 
 
 	/** Default Constructor.
@@ -61,7 +60,7 @@ public:
 	
 		\param pg Parametergroup
 	*/
-	qapInstance( const string &pg ) : pgroup(pg), n(0), a(0), b(0)
+	qapInstance( const std::string &pg ) : pgroup(pg), n(0), a(0), b(0)
 		{ initialize(qapfile(pgroup)); }
 
 	/** Normal Constrcutor.
@@ -70,7 +69,7 @@ public:
 		\param fname Filename from where to load the instance
 		\param pg Parametergroup
 	*/
-	qapInstance( const string &fname, const string &pg="" ) : pgroup(pg), n(0), a(0), b(0)
+	qapInstance( const std::string &fname, const std::string &pg="" ) : pgroup(pg), n(0), a(0), b(0)
 		{ initialize(fname); };
 	
 	/** Actual initialization.
@@ -78,7 +77,7 @@ public:
 	
 		\param fname Filename from where to load the instance
 	*/
-	void initialize( const string &fname );
+	void initialize( const std::string &fname );
 
 	/** Prepare sorted indices.
 		This method prepares the sorted indices used by the greedy construction heuristic.
@@ -106,5 +105,7 @@ public:
 	/** Getter method for qapInstance Singleton. */
 	static qapInstance *getInstance();
 };
+
+} // namespace qap
 
 #endif //MH_QAPINSTANCE_H

@@ -3,6 +3,11 @@
 
 #include "qaptabuattribute.h"
 
+using namespace mhlib;
+using namespace std;
+
+namespace qap { 
+
 qapTabuAttribute::qapTabuAttribute(const qapTabuAttribute &t) : swapMove(t.r,t.s), tabuAttribute(t)
 {
 }
@@ -17,3 +22,6 @@ unsigned long int qapTabuAttribute::hashvalue() const
 {
 	return r*s;
 }
+
+} // namespace qap
+

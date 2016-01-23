@@ -30,8 +30,15 @@
 using namespace std;
 using namespace mhlib;
 
+/// Namespace for demo-qap, the demo program for solving the QAP.
+namespace qap {
+
 /// Name of file to save best solution.
 string_param sfile("sfile","name of file to save solution to","");
+
+} // qap namespace
+
+using namespace qap;
 
 /** The example main function.
 	It should remain small. It contains only the creation 

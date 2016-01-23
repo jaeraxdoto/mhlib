@@ -11,6 +11,11 @@
 #include "qapfeature.h"
 #include "mh_tabusearch.h"
 
+using namespace mhlib;
+using namespace std;
+
+namespace qap {
+
 /// Alpha parameter for GRASP
 double_param graspa( "graspa", "alpha for grasp", 0.25, 0.0, 1.0, UPPER_INCLUSIVE );
 
@@ -402,3 +407,6 @@ void qapSol::greedyConstruct()
 		data[a[i]] = b[i];
 	}
 }
+
+} // qap namespace
+

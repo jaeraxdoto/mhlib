@@ -34,6 +34,9 @@
 using namespace std;
 using namespace mhlib;
 
+/// Namespace for demo-sched, the demo program for using the scheduler classes.
+namespace sched {
+
 /** Problem specific parameters (the number of variablens). */
 int_param vars("vars","number of variables",20,1,10000);
 
@@ -200,6 +203,9 @@ static void testmultithreading()
 		cerr << "Time: " << mhcputime() << endl;
 }
 
+} // sched namespace
+
+using namespace sched;
 
 //------------------------------------------------------------------------
 
@@ -283,3 +289,4 @@ int main(int argc, char *argv[])
 	{ writeErrorMessage("Unknown exception occured"); return 1; }
 	return 0;
 }
+

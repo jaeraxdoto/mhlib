@@ -30,6 +30,9 @@
 using namespace std;
 using namespace mhlib;
 
+/// Namespace for demo-onemax, the demo program for solving the onemax and oneperm problems.
+namespace onemax {
+
 /** Problem specific parameters (the number of variables). */
 int_param vars("vars","number of variables",20,1,10000);
 
@@ -115,6 +118,10 @@ void onePermSol::greedyConstruct()
 	for (int i=0;i<length;i++) 
 		data[i] = i;
 }
+
+} // onemax namespace
+
+using namespace onemax;
 
 //------------------------------------------------------------------------
 

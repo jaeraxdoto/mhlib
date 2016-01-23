@@ -8,6 +8,11 @@
 #include "qapsol.h"
 #include "qapinstance.h"
 
+using namespace mhlib;
+using namespace std;
+
+namespace qap {
+
 /// Name of file to load qap instance.
 string_param qapfile( "qapfile", "name of file to load qap instance", "bur26a.dat" );
 
@@ -136,3 +141,6 @@ void qapInstance::prepare()
 		it++;
 	}
 }
+
+} // qap namespace
+
