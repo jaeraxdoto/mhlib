@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <stdlib.h>
+#include <cmath>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"

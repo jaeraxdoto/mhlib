@@ -1,4 +1,4 @@
-/*! \file demo-sched.C
+/*! \file sched.C
     \brief A template main program for the Scheduler algorithm and multithreading.  
 
 	A  main program demonstrating the Scheduler algorithm 	
@@ -10,7 +10,7 @@
 
 	Use this main program as a basis for writing your own application based
 	on the Scheduler.
-	\include demo-sched.C */
+	\include sched.C */
 
 #include <cstdlib>
 #include <iostream>

@@ -52,7 +52,7 @@ improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Pr
 
 ### Version 4.0 ###
 
-A module mh_scheduler and corresponding demo program demo_schedtest have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.
+A module mh_scheduler and corresponding demo program demo_sched have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.
 
 
 ## Installing mhlib ##
@@ -74,7 +74,7 @@ A more complex example for the quadratic assignment problem is provided
 in the demo-qap directory.
 
 More recently, in version 4.0, a Scheduler module has been added that supports
-variants of variable neighborhood search, GRASP, and large neighborhood search more efficiently and even with multithreading. For an example see the demo-schedtest directory.
+variants of variable neighborhood search, GRASP, and large neighborhood search more efficiently and even with multithreading. For an example see the demo-sched directory.
 
 Then, its probably best to look at the documentation of all the include 
 files, which can best be browsed by using doxygen to produce HTML-documentation from the include files (call 'make doc'). Since mhlib has an own parameter handling mechanism and many global parameters controlling the behavior of the library, you should also take a look at them in particular.

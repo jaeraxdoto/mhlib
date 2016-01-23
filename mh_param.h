@@ -5,10 +5,10 @@
 	in separate object files by a single-line object definition.
 	The parameter values can then be used by the overloaded ()-operator
 	(thus, just write "paramname"()).
-	Use the typedefs \ref int_param, \ref double_param, \ref bool_param, 
-	and \ref string_param which instanciate the generic class gen_param.
-	These parameters get their values either by a
-	an argument in the command line, from a configuration file 
+	Use the typedefs #mhlib::int_param, #mhlib::double_param,
+	#mhlib::bool_param, and mhlib::string_param which instanciate the
+	generic class mhlib::gen_param.  These parameters get their values
+	either by a an argument in the command line, from a configuration file 
 	(name given as command line argument), or by using a default value. 
 	In order to initialize and read command line arguments,
 	param::parseArgs() must be called in main(). 
@@ -35,6 +35,7 @@
 #include <string>
 #include "mh_util.h"
 
+/*! mhlib's namespace. */ 
 namespace mhlib {
 
 class param;
