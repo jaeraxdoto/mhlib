@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 		// initialize the global qapinst
 		qi = qapInstance::getInstance();
-		qi->initialize(qapfile());
+		qi->initialize(ifile());
 		
 		// generate a template solution of the problem specific qapSol tsol;
 		qapSol tsol;

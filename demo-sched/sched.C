@@ -37,21 +37,38 @@ using namespace mhlib;
 /// Namespace for demo-sched, the demo program for using the scheduler classes.
 namespace sched {
 
-/** Problem specific parameters (the number of variablens). */
-int_param vars("vars","number of variables",20,1,10000);
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
+int_param prob("prob","problem to be solved (0:ONEMAX,1:ONEPERM)",0,0,1);
 
+/** \ingroup param
+	Number of variables in the ONEMAX/ONEPERM problem. 
+	May be overriden by an instance file if one is specified by parameter
+	ifile. */ 
+int_param vars("vars","number of variables",20,1,100000);
 
-/** Number of construction heuristics. */
-int_param constheus("constheus","number of construcction heuristics",1,0,10000);
+/** \ingroup param
+	Problem instance file name. If a problem instance file is given, it is
+	expected to just contain the values for parameters prob and vars,
+	which are overwritten. */ 
+string_param ifile("ifile","problem instance file name","");
 
-/** Number of VNS shaking neighborhoods. */
+/** \ingroup param
+	Name of file to save best solution. */
+string_param sfile("sfile","name of file to save solution to","");
+
+/** \ingroup param
+	Number of construction heuristics. */
+int_param constheus("constheus","number of construction heuristics",1,0,10000);
+
+/** \ingroup param
+	Number of VND shaking neighborhoods. */
 int_param vndnhs("vndnhs","number of VND neighborhoods",0,0,10000);
 
-/** Number of VNS shaking neighborhoods. */
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
 int_param vnsnhs("vnsnhs","number of VNS neighborhoods",5,0,10000);
 
-/** Name of file to save best solution. */
-string_param sfile("sfile","name of file to save solution to","");
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
@@ -115,6 +132,7 @@ bool oneMaxSol::shaking(int k)
 	// mutate(k);
 	return true;
 }
+
 
 //-- 2. example problem: ONEPERM -----------------------------------------
 
@@ -244,6 +262,20 @@ int main(int argc, char *argv[])
 
 		if (threadstest())
 			testmultithreading();
+
+		if (ifile()!="") {
+			// problem instance file given, read it, overwriting 
+			// parameters prob and vars 
+			ifstream is(ifile());
+			if (!is)
+				mherror("Cannot open problem instance file", ifile());
+			int p=0,v=0;
+			is >> p >> v;
+			if (!is)
+				mherror("Invalid problem instance file", ifile());
+			prob.set(p);
+			vars.set(v);
+		}
 
 		// generate a template solution of the problem specific class
 		typedef oneMaxSol usedSol;

@@ -13,9 +13,9 @@
 namespace qap {
 
 /** \ingroup param
-    Filename of the quadratic assignment problem instance.
+    Filename of the problem instance.
 */
-extern mhlib::string_param qapfile;
+extern mhlib::string_param ifile;
 
 
 /** A class for instances of quadratic assignment problems. */
@@ -56,12 +56,12 @@ public:
 	qapInstance() : pgroup(""), n(0), a(0), b(0) {};
 	
 	/** Constructor.
-		The qapfile parameter is used as filename of the instance.
+		The ifile parameter is used as filename of the instance.
 	
 		\param pg Parametergroup
 	*/
 	qapInstance( const std::string &pg ) : pgroup(pg), n(0), a(0), b(0)
-		{ initialize(qapfile(pgroup)); }
+		{ initialize(ifile(pgroup)); }
 
 	/** Normal Constrcutor.
 		The filename of the instance is passed as parameter.

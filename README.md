@@ -48,6 +48,40 @@ Please report any problems to him. Thank you.
 algorithms and an extensive example for the QAP and many minor changes or
 improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Prandtstetter*, and *Frederico Dusberger*.
 
+Besides the actual C++ library, mhlib also contains 
+
+- **demo-sched**: A demonstration program using mhlib and in particular its
+  mh_scheduler module for solving the ONEMAX and ONEPERM problems by means
+  of variable neighborhood search (VNS). This demo should be used as
+  template for new applications realizing a VNS, VND, GRASP, or Large
+  Neighborhood Search. It also supports multi-threading, for which the
+  demo also contains a test function.
+
+- **summary.pl**: A Perl script used to statistically summarize many runs
+  over many instances.
+
+- **aggregate.R**: An R (https://www.r-project.org/) script used to
+  further aggregate the results obtained by summary.pl and in particular
+  to make statistical tests for showing the significance of different
+  configurations. Furthermore, this script also contains some exemplary
+  functions for drawing graphs.
+
+- **irace**: An exemplare configuration for applying irace
+  (http://iridia.ulb.ac.be/irace/) to systematically tune parameters. In
+  this example just the number of used VNS neighborhoods is tuned for
+  demo-sched. Use this configuration as a template for your own mhlib
+  applications. irace must be installed within R, and the environment
+  variable IRACE_HOME must be set and point to the main irace directory,
+  which is usually ~/.R_libs/irace.
+
+- **demo-onemax** and **demo-qap**: These are demonstration programs in
+  particular for the classes realizing evolutionary algorithms, but also
+  simulated annealing and tabu search. The also demonstrated mh_vns and mh_vnd
+  are deprecated; new implementations should use mh_scheduler for
+  realizing VNS, VND, GRASP, and Large Neighborhood Search. 
+  While demo-onemax solves the ONEMAX and ONEPERM problems, demo-qap
+  solves the quadratic assignment problem.
+
 ## Changelog: major changes over major releases ##
 
 ### Version 4.0 ###

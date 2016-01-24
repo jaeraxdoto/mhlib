@@ -13,8 +13,9 @@ using namespace std;
 
 namespace qap {
 
-/// Name of file to load qap instance.
-string_param qapfile( "qapfile", "name of file to load qap instance", "bur26a.dat" );
+/** \ingroup param 
+	Problem instance file name. */
+string_param ifile( "ifile", "problem instance file name", "bur26a.dat" );
 
 
 qapInstance *qapInstance::qi = 0;
