@@ -164,6 +164,10 @@ public:
  permutation 0,1,...vars()-1. */
 double onePermSol::objective()
 {
+	// check for uninitialized solution (0,...,0) and return -1 as it
+	// is not feasible in case of ONEPERM
+	if (data[0]==0 && data[1]==0)
+		return -1;
 	int sum=0;
 	for (int i=0;i<length;i++) 
 		if (int(data[i])==i) 
@@ -223,9 +227,24 @@ static void testmultithreading()
 
 } // sched namespace
 
+//------------------------------------------------------------------------
+
 using namespace sched;
 
-//------------------------------------------------------------------------
+/** Template function for registering the problem-specific scheduler methods in the algorithm.
+ * When considering just one kind of problem, this does not need to be a template function
+ * but can directly be implemented in the main function. */
+template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
+	for (int i=1;i<=constheus();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
+			&SolClass::construct,i,0));
+	for (int i=0;i<vndnhs();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
+			&SolClass::localimp,i,1));
+	for (int i=1;i<=vnsnhs();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("shake"+tostring(i),
+			&SolClass::shaking,i,1));
+}
 
 /** The example main function.
 	It should remain small. It contains only the creation 
@@ -278,26 +297,28 @@ int main(int argc, char *argv[])
 		}
 
 		// generate a template solution of the problem specific class
-		typedef oneMaxSol usedSol;
-		// typedef onePermSol usedSol;
-		usedSol tchrom;
+		mh_solution *tsol;
+		switch (prob()) {
+		case 0: tsol = new oneMaxSol; break;
+		case 1: tsol = new onePermSol; break;
+		default: mherror("Invalid problem", tostring(prob()));
+		}
 		// generate a population of uninitialized solutions; don't use hashing
-		population p(tchrom,popsize(),false,false);
+		// be aware that the third parameter indicates that the initial solution is
+		// not initialized here, i.e., it is the solution (0,0,...,0), which even
+		// is invalid in case of ONEPERM; we consider this in objective().
+		population p(*tsol,popsize(),false,false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
 		GVNSScheduler *alg;
 		alg=new GVNSScheduler(p,constheus(),vndnhs(),vnsnhs());
-		for (int i=1;i<=constheus();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("conh"+tostring(i),
-				&usedSol::construct,i,0));
-		for (int i=0;i<vndnhs();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("locim"+tostring(i),
-				&usedSol::localimp,i,1));
-		for (int i=1;i<=vnsnhs();i++) {
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("shake"+tostring(i),
-				&usedSol::shaking,i,1));
+		switch (prob()) {
+		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
+		case 1: registerSchedulerMethods<onePermSol>(alg); break;
+		default: mherror("Invalid problem", tostring(prob()));
 		}
+
 		alg->run();		// run Scheduler until termination cond.
 		
 	    // p.write(out());	// write out final population
@@ -306,6 +327,7 @@ int main(int argc, char *argv[])
 		alg->printStatistics(out());	// write result & statistics
 
 		delete alg;
+		delete tsol;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;

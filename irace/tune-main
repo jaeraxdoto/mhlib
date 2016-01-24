@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# set if not set as environment variable globally:
+# IRACE_HOME=
+
 # # This program launches one run of iterated Race.
 # # It should execute irace at some point like in:
 # #
@@ -12,8 +15,3 @@ rm $EXECDIR/*
 exec 2>&1
 # exec 1> $EXECDIR/irace-$$.stdout 
 $BINDIR/irace --exec-dir=$EXECDIR $* | tee $EXECDIR/irace.stdout
-# #
-# # All parameters are passed down to irace
-# #
-# # However, it could be much more complicated, see the examples in
-# # examples/

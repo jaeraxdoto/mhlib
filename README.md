@@ -67,12 +67,13 @@ Besides the actual C++ library, mhlib also contains
   functions for drawing graphs.
 
 - **irace**: An exemplare configuration for applying irace
-  (http://iridia.ulb.ac.be/irace/) to systematically tune parameters. In
-  this example just the number of used VNS neighborhoods is tuned for
-  demo-sched. Use this configuration as a template for your own mhlib
-  applications. irace must be installed within R, and the environment
-  variable IRACE_HOME must be set and point to the main irace directory,
-  which is usually ~/.R_libs/irace.
+  (http://iridia.ulb.ac.be/irace/files/README.html) to systematically
+  tune parameters. In this example just the number of used VNS
+  neighborhoods is tuned for demo-sched. Use this configuration as a
+  template for your own mhlib applications. irace must be installed
+  within R, and the environment variable IRACE_HOME must be set and
+  point to the main irace directory, which is usually 
+  /usr/lib/R/site-library/irace or ~/.R_libs/irace.
 
 - **demo-onemax** and **demo-qap**: These are demonstration programs in
   particular for the classes realizing evolutionary algorithms, but also

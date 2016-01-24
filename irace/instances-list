@@ -10,7 +10,9 @@
 # 100/100-1_100-2.tsp --time 1
 # 100/100-1_100-3.tsp --time 2
 # 100/100-1_100-4.tsp --time 3
-onemax2000
-onemax3000
-onemax4000
-onemax5000
+# onemax2000
+# onemax3000
+# onemax4000
+# onemax5000
+oneperm20
+oneperm30
