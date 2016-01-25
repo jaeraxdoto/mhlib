@@ -294,7 +294,7 @@ bool Scheduler::terminate() {
 
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
-	totTime[idx] += methodTime;
+	totNetTime[idx] = (totTime[idx] += methodTime);
 	nIter[idx]++;
 	nIteration++;
 	// if the applied method was successful, update the success-counter and the total obj-gain
@@ -315,17 +315,18 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	}
 	ostr << "total num of iterations:\t" << sumIter << endl;
 	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
-	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\t rel success\ttotal time\t rel time" << endl;
+	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\trel success\ttotal time\trel time\tt.net time" << endl;
 	for (unsigned int k = 0; k < methodPool.size(); k++) {
 		char tmp[200];
-		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
+		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%\t%9.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
 			double(sumGain[k])/double(nIter[k]),
 			double(nSuccess[k])/double(sumSuccess)*100.0,
 			totTime[k],
-			double(totTime[k])/double(sumTime)*100.0);
+			double(totTime[k])/double(sumTime)*100.0,
+			totNetTime[k]);
 		ostr << tmp << endl;
 	}
 	ostr << endl;
@@ -585,9 +586,13 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	if (worker->method->idx < constheu.size() + locimpnh[0]->size())
 		Scheduler::updateMethodStatistics(worker, methodTime);
-	else
+	else {
 		nIteration++;
-	    // skip shaking method statistics updated; will be done separately
+		// skip shaking method statistics update except adding to totNetTime;
+		// all remaining will be done separately when all local improvement neighborhoods have finished
+		int idx=worker->method->idx;
+		totNetTime[idx] += methodTime;
+	}
 }
 
 void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {

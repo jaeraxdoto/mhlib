@@ -322,8 +322,9 @@ protected:
 	std::vector<SchedulerMethod*> methodPool;
 
 	/* Statistical data on methods */
-	std::vector<int> nIter;				///< Number of iterations of the particular methods.
-	std::vector<double> totTime;			///< Total time spent running the particular methods.
+	std::vector<int> nIter;			///< Number of iterations of the particular methods.
+	std::vector<double> totTime;	///< Total time spent running the particular methods.
+	std::vector<double> totNetTime;	///< Total netto time spent for the method, excl. VND in case of shaking
 	std::vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
 	std::vector<double> sumGain;			///< Total gain achieved by the particular methods.
 
@@ -458,6 +459,7 @@ public:
 		methodPool.push_back(method);
 		nIter.push_back(0);
 		totTime.push_back(0);
+		totNetTime.push_back(0);
 		nSuccess.push_back(0);
 		sumGain.push_back(0);
 	}
@@ -535,8 +537,14 @@ public:
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.
 	 * The output contains the number of iterations used for each method, the number of
-	 * successful iterations, the total and average gain in objective value the method yielded
-	 * and the total and relative time spent with applying the method.
+	 * successful iterations, the total and average gain in objective value the method yielded,
+	 * and the total, relative, and total netto times spent with applying the method.
+	 * The total netto times normally correspond to the total times. Just in case of
+	 * methods that include actions one may consider as auxiliary,
+	 * like in shaking neighborhoods the automatically applied VND, the total netto time
+	 * reports the total times excluding these further actions. It is the responsibility of a
+	 * derived class (like GVNSScheduler below) to set the total netto time to other values
+	 * than the total time.
 	 */
 	virtual void printMethodStatistics(std::ostream &ostr);
 
