@@ -305,28 +305,31 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
+	double totSchedulerTime = mhcputime() - timStart;
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
 	for (unsigned int k=0;k<methodPool.size();k++) {
 		sumSuccess+=nSuccess[k];
 		sumIter+=nIter[k];
-		sumTime+= totTime[k];
+		sumTime+=totNetTime[k];
 	}
 	ostr << "total num of iterations:\t" << sumIter << endl;
-	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
-	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\trel success\ttotal time\trel time\tt.net time" << endl;
+	ostr << "total num of successes iterations:\t" << sumSuccess << endl;
+	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
+	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
 	for (unsigned int k = 0; k < methodPool.size(); k++) {
 		char tmp[200];
-		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%\t%9.4f",
+		sprintf(tmp,"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
 			double(sumGain[k])/double(nIter[k]),
 			double(nSuccess[k])/double(sumSuccess)*100.0,
 			totTime[k],
-			double(totTime[k])/double(sumTime)*100.0,
-			totNetTime[k]);
+			double(totTime[k])/totSchedulerTime*100.0,
+			totNetTime[k],
+			double(totNetTime[k])/double(sumTime)*100.0);
 		ostr << tmp << endl;
 	}
 	ostr << endl;

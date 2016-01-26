@@ -9,8 +9,7 @@ mhlib is a collection of modules supporting the efficient and simple implementat
 This library is available under the GNU General Public License Version 3
 available at https://www.gnu.org/copyleft/gpl.html
 
-(c) Algorithms and Complexity Structures Group  
-Vienna University of Technology  
+(c) Algorithms and Complexity Group, TU Wien
 http://www.ac.tuwien.ac.at  
 Mainly responsible is Günther Raidl <raidl@ac.tuwien.ac.at>
 
@@ -35,8 +34,9 @@ This library is intended to be a problem-independent C++ library
 suitable for the development of efficient metaheuristics for 
 combinatorial optimization problems.
 
-The library is in development since 1999 at the Vienna University of Technology,
-Institute of Computer Graphics and Algorithms, Vienna, Austria.
+The library is in development since 1999 at the 
+Algorithms and Complexity Group,
+Institute of Computer Graphics and Algorithms, TU Wien, Vienna, Austria.
 Formerly, it was called EAlib, as it originated from some classes for
 evolutionary algorithms.
 

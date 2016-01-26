@@ -69,6 +69,21 @@ int_param vndnhs("vndnhs","number of VND neighborhoods",0,0,10000);
 	Number of VNS shaking neighborhoods. */
 int_param vnsnhs("vnsnhs","number of VNS neighborhoods",5,0,10000);
 
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
+double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
+
+/** Function spending the given number of seconds by active waiting. 
+	Just for testing purposes. */
+void spendTime(double s=methdel()) {
+	double starttime = mhcputime();
+	double a;
+	while (starttime + s > mhcputime()) {
+		// some meaningless calculation
+		a*=sin(a+0.33);
+	}
+}
+
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
@@ -87,6 +102,7 @@ public:
 	double objective();
 	double delta_obj(const nhmove &m);
 	bool construct(int k) {
+		spendTime();
 		initialize(k); return true;
 	}
 	bool localimp(int k);
@@ -111,6 +127,7 @@ double oneMaxSol::delta_obj(const nhmove &m)
 
 bool oneMaxSol::localimp(int k)
 {
+	spendTime();
 	// a rather meaningless demo local improvement:
 	// "locally optimize" position k, i.e., set it to 1 if 0
 	if (!data[k])
@@ -124,6 +141,7 @@ bool oneMaxSol::localimp(int k)
 
 bool oneMaxSol::shaking(int k)
 {
+	spendTime();
 	for (int j=0; j<k; j++) {
 		int i=random_int(length);
 		data[i]=!data[i];
@@ -150,12 +168,15 @@ public:
 		{ return new onePermSol(*this); }
 	double objective();
 	bool construct(int k) {
+		spendTime();
 		initialize(k); return true;
 	}
 	bool localimp(int k) {
+		spendTime();
 		mutate(k); return true;
 	}
 	bool shaking(int k) {
+		spendTime();
 		mutate(k); return true;
 	}
 };
