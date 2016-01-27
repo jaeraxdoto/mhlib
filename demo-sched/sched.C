@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 		}
 
 		// generate a template solution of the problem specific class
-		mh_solution *tsol;
+		mh_solution *tsol = NULL;
 		switch (prob()) {
 		case 0: tsol = new oneMaxSol; break;
 		case 1: tsol = new onePermSol; break;

@@ -79,6 +79,8 @@ void SchedulerWorker::run() {
 					scheduler->mutex.unlock(); // End of atomic operation
 
 					if(method == NULL) {	// no method could be scheduled
+						if(scheduler->finish) // should the algorithm be terminated due to exhaustion of all available methods
+							break;
 						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
 							break;
 						wait = true; // else, wait for other threads
@@ -480,10 +482,11 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		}
 	}
 
-	if (!constheu.empty())
-		worker->method = constheu.select();
-	else
-		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
+	// there exists no more method whose scheduling would be meaningful.
+	// -> initiate termination
+	finish = true;
+	worker->method = NULL;
+	return;
 }
 
 
