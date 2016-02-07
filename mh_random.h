@@ -122,11 +122,14 @@ public:
 };
 
 /**
- * Pointer to the random number generator object to be used by the current thread.
+ * Returns a reference to the pointer to the random number generator object to be used by the current thread.
  * By default, it points to the default (global) random number generator object.
  * A thread can, however, redicrect the pointer to its own random number generator.
  * All calls to the random number functions are then redirected to that own object. */
-extern thread_local mh_random_number_generator* randomNumberGenerator;
+mh_random_number_generator* &randomNumberGenerator();
+
+// formerly: (does not work with cygwin g++/64
+// extern thread_local mh_random_number_generator* randomNumberGenerator;
 
 //* Inline methods calling the respective methods of the default random number generator object *//
 
@@ -134,66 +137,66 @@ extern thread_local mh_random_number_generator* randomNumberGenerator;
     value; otherwise, use the global parameter seed(). If it is also 0,
     derive a seed value from the current time and pid. */
 inline void random_seed(unsigned int lseed=0) {
-	randomNumberGenerator->random_seed(lseed);
+	randomNumberGenerator()->random_seed(lseed);
 }
 
 /** Random value (0,1).
 	Returns a double random uniformly distributed with 
 	stdandard deviation 1. */
 inline double random_double() {
-	return randomNumberGenerator->random_double();
+	return randomNumberGenerator()->random_double();
 }
 
 /** Returns true with with given probability. */
 inline bool random_prob(double prob) {
-	return randomNumberGenerator->random_prob(prob);
+	return randomNumberGenerator()->random_prob(prob);
 }
 
 /** Returns random boolean.
 	Returns either true or false with equal probability */
 inline bool random_bool() {
-	return randomNumberGenerator->random_bool();
+	return randomNumberGenerator()->random_bool();
 }
 
 /** Returns randomly 0 or 1.
 	Each value is returned with probability 1/2. */
 inline int random_int() {
-	return randomNumberGenerator->random_int();
+	return randomNumberGenerator()->random_int();
 }
 
 /** Returns a random integer in [0,high-1]. */
 inline int random_int(int high) {
-	return randomNumberGenerator->random_int(high);
+	return randomNumberGenerator()->random_int(high);
 }
 
 /** returns an int random number in [low,high] */
 inline int random_int(int low, int high) {
-	return randomNumberGenerator->random_int(low, high);
+	return randomNumberGenerator()->random_int(low, high);
 }
 
 /** returns a double random number uniformly distributed in (low,high) */
 inline double random_double(double low, double high) {
-	return randomNumberGenerator->random_double(low, high);
+	return randomNumberGenerator()->random_double(low, high);
 }
 
 /** returns a double random normally distributed with stdandard deviation 1 */
 inline double random_normal() {
-	return randomNumberGenerator->random_normal();
+	return randomNumberGenerator()->random_normal();
 }
 
 /** returns a normally distributed double random number with given deviation */
 inline double random_normal(double dev) {
-	return randomNumberGenerator->random_normal(dev);
+	return randomNumberGenerator()->random_normal(dev);
 }
 
 /** returns a Poisson-distributed random number for a given mu in [0,inf] */
 inline unsigned int random_poisson(double mu) {
-	return randomNumberGenerator->random_poisson(mu);
+	return randomNumberGenerator()->random_poisson(mu);
 }
 
 /** returns a Poisson-distributed random number for a given mu in [0,maxi-1] */
 inline unsigned int random_poisson(double mu,unsigned maxi) {
-	return randomNumberGenerator->random_poisson(mu, maxi);
+	return randomNumberGenerator()->random_poisson(mu, maxi);
 }
 
 /** A pseudo-random function mapping an unsigned value x to another
@@ -201,7 +204,7 @@ inline unsigned int random_poisson(double mu,unsigned maxi) {
  parameters. Implemented via the pseudo-DES function as described in the book 
  "Numerical Recipes", section 7.5. */
 inline unsigned random_intfunc(unsigned seed, unsigned x) {
-	return randomNumberGenerator->random_intfunc(seed, x);
+	return randomNumberGenerator()->random_intfunc(seed, x);
 }
 
 /** A pseudo-random function mapping an unsigned value x to a double value in [0,1). 
@@ -209,7 +212,7 @@ inline unsigned random_intfunc(unsigned seed, unsigned x) {
   Implemented via the pseudo-DES function as described in the book "Numerical Recipes", 
   section 7.5. */
 inline double random_doublefunc(unsigned seed, unsigned x) {
-	return randomNumberGenerator->random_doublefunc(seed, x);
+	return randomNumberGenerator()->random_doublefunc(seed, x);
 }
 
 /**

@@ -42,7 +42,7 @@ void SchedulerWorker::checkGlobalBest() {
 void SchedulerWorker::run() {
 	try {
 		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
-		randomNumberGenerator = rng;	// set random number generator pointer to the one of this thread
+		randomNumberGenerator() = rng;	// set random number generator pointer to the one of this thread
 
 		if (!scheduler->terminate())
 			for(;;) {
@@ -112,7 +112,7 @@ void SchedulerWorker::run() {
 						// update the global scheduler data and notify the waiting workers
 						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
-						randomNumberGenerator = rng; // reset to thread's rng
+						randomNumberGenerator() = rng; // reset to thread's rng
 
 						// write out log entries for all iterations passed since the last logging:
 						// these entries are identical listing for each iteration the state after the last global update

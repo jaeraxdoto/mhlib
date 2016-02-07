@@ -41,7 +41,13 @@ static const double RNMX=(1.0-EPS);
 
 mh_random_number_generator defaultRNG;
 
-thread_local mh_random_number_generator* randomNumberGenerator = &defaultRNG;
+// thread-local pointer to achtive random number generator
+static thread_local mh_random_number_generator* pRandomNumberGenerator = &defaultRNG;
+
+mh_random_number_generator* &randomNumberGenerator() {
+	return pRandomNumberGenerator;
+}
+
 
 #include<iostream>
 
@@ -378,7 +384,7 @@ double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
 }
 
 void random_resetRNG() {
-	randomNumberGenerator = &defaultRNG;
+	pRandomNumberGenerator = &defaultRNG;
 }
 
 } // end of namespace mhlib
