@@ -164,7 +164,7 @@ public:
 	double startTime;				///< Time when the last method call has been started.
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
-	mh_random_number_generator* rng;///< The random number generator used in this thread.
+	mh_randomNumberGenerator* rng;  ///< The random number generator used in this thread.
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
 	bool terminate;				///< Indicates if this thread specifically is to be terminated.
@@ -190,7 +190,7 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_random_number_generator* _rng, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,

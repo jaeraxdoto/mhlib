@@ -42,7 +42,7 @@ void SchedulerWorker::checkGlobalBest() {
 void SchedulerWorker::run() {
 	try {
 		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
-		randomNumberGenerator() = rng;	// set random number generator pointer to the one of this thread
+		setRandomNumberGenerator(rng);	// set random number generator pointer to the one of this thread
 
 		if (!scheduler->terminate())
 			for(;;) {
@@ -110,9 +110,9 @@ void SchedulerWorker::run() {
 					// ... else, the last thread has reached this point
 					else {
 						// update the global scheduler data and notify the waiting workers
-						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
+						resetRandomNumberGenerator();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
-						randomNumberGenerator() = rng; // reset to thread's rng
+						setRandomNumberGenerator(rng); // reset to thread's rng
 
 						// write out log entries for all iterations passed since the last logging:
 						// these entries are identical listing for each iteration the state after the last global update
@@ -234,7 +234,7 @@ void Scheduler::run() {
 
 	// spawn the worker threads, each with its own random number generator having an own seed
 	for(unsigned int i=0; i < _schthreads; i++) {
-		mh_random_number_generator* rng = new mh_random_number_generator();
+		mh_randomNumberGenerator* rng = new mh_randomNumberGenerator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
 		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), rng);
