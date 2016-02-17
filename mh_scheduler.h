@@ -7,11 +7,13 @@
 #define MH_SCHEDULER_H
 
 #include <assert.h>
+#include <vector>
 #include <string>
 #include "mh_advbase.h"
 #include "mh_pop.h"
 #include "mh_c11threads.h"
 
+namespace mh {
 
 /** \ingroup param
  * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
@@ -49,7 +51,7 @@ extern double_param schpmig;
  */
 class SchedulerMethod {
 public:
-	const string name;			///< The method's (unique) name (possibly including method_par).
+	const std::string name;			///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
@@ -162,11 +164,11 @@ public:
 	double startTime;				///< Time when the last method call has been started.
 
 	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
-	mh_random_number_generator* rng;///< The random number generator used in this thread.
+	mh_randomNumberGenerator* rng;  ///< The random number generator used in this thread.
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
 	bool terminate;				///< Indicates if this thread specifically is to be terminated.
-	vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
+	std::vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -188,7 +190,7 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_random_number_generator* _rng, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
@@ -251,7 +253,7 @@ protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
+	std::vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 
@@ -317,13 +319,14 @@ class Scheduler : public mh_advbase {
 	friend class SchedulerMethodSelector;
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
-	vector<SchedulerMethod*> methodPool;
+	std::vector<SchedulerMethod*> methodPool;
 
 	/* Statistical data on methods */
-	vector<int> nIter;				///< Number of iterations of the particular methods.
-	vector<double> totTime;			///< Total time spent running the particular methods.
-	vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
-	vector<double> sumGain;			///< Total gain achieved by the particular methods.
+	std::vector<int> nIter;			///< Number of iterations of the particular methods.
+	std::vector<double> totTime;	///< Total time spent running the particular methods.
+	std::vector<double> totNetTime;	///< Total netto time spent for the method, excl. VND in case of shaking
+	std::vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
+	std::vector<double> sumGain;			///< Total gain achieved by the particular methods.
 
 	/**
 	 * Optional function pointer to a callback function passed by the interface.
@@ -344,7 +347,7 @@ protected:
 	/**
 	 * The SchedulerWorkers spawned by the scheduler in individual threads.
 	 */
-	vector<SchedulerWorker *> workers;
+	std::vector<SchedulerWorker *> workers;
 
 	/**
 	 * Mutex used for the synchronization of access to the Scheduler data not owned by the workers,
@@ -368,10 +371,10 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	unsigned int _schthreads;		///< Mirrored mhlib parameter #schthreads for performance reasons.
-	bool _schsync;			///< Mirrored mhlib parameter #schsync for performance reasons.
-	int _titer;							///< Mirrored mhlib parameter #titer for performance reasons.
-	double _schpmig; 		///< Mirrored mhlib parameter #schpmig for performance reasons.
+	unsigned int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
+	bool _schsync;			///< Mirrored mh parameter #schsync for performance reasons.
+	int _titer;							///< Mirrored mh parameter #titer for performance reasons.
+	double _schpmig; 		///< Mirrored mh parameter #schpmig for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -421,7 +424,7 @@ public:
 	/**
 	 * Constructor: Initializes the scheduler.
 	 */
-	Scheduler(pop_base &p, const pstring &pg = (pstring) (""));
+	Scheduler(pop_base &p, const std::string &pg = "");
 
 	/**
 	 * Destructor, deletes the used methodPool and the solution objects.
@@ -456,6 +459,7 @@ public:
 		methodPool.push_back(method);
 		nIter.push_back(0);
 		totTime.push_back(0);
+		totNetTime.push_back(0);
 		nSuccess.push_back(0);
 		sumGain.push_back(0);
 	}
@@ -533,17 +537,23 @@ public:
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.
 	 * The output contains the number of iterations used for each method, the number of
-	 * successful iterations, the total and average gain in objective value the method yielded
-	 * and the total and relative time spent with applying the method.
+	 * successful iterations, the total and average gain in objective value the method yielded,
+	 * and the total, relative, and total netto times spent with applying the method.
+	 * The total netto times normally correspond to the total times. Just in case of
+	 * methods that include actions one may consider as auxiliary,
+	 * like in shaking neighborhoods the automatically applied VND, the total netto time
+	 * reports the total times excluding these further actions. It is the responsibility of a
+	 * derived class (like GVNSScheduler below) to set the total netto time to other values
+	 * than the total time.
 	 */
-	virtual void printMethodStatistics(ostream &ostr);
+	virtual void printMethodStatistics(std::ostream &ostr);
 
 	/**
 	 * Prints general statistics on the optimization.
 	 * In particular, the total runtime of the algorithm, the best found objective value, and
 	 * in which iteration and after how much time it was found.
 	 */
-	virtual void printStatistics(ostream &ostr);
+	virtual void printStatistics(std::ostream &ostr);
 };
 
 
@@ -562,8 +572,8 @@ class GVNSScheduler : public Scheduler {
 
 protected:
 	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
-	vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
-	vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
+	std::vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
+	std::vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
 
 	/**
 	 * Indicates whether a construction method has already been scheduled and executed before,
@@ -587,7 +597,7 @@ public:
 	 * finally nshakingnh shaking or large neighborhood search neighborhoods.
 	 */
 	GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-			unsigned int nshakingnh, const pstring &pg = (pstring) (""));
+			unsigned int nshakingnh, const std::string &pg = "");
 
 	/** Cloning is not implemented for this class. */
 	virtual GVNSScheduler* clone() const {
@@ -652,6 +662,6 @@ public:
 	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
 };
 
-
+} // end of namespace mh
 
 #endif /* MH_SCHEDULER_H */

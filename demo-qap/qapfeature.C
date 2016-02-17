@@ -8,7 +8,12 @@
 #include "../mh_nhmove.h"
 #include "mh_util.h"
 
-qapFeature::qapFeature(const pstring &pg) : feature(pg), qi(qapInstance::getInstance()), pv(qi->n*qi->n)
+using namespace mh;
+using namespace std;
+
+namespace qap {
+
+qapFeature::qapFeature(const string &pg) : feature(pg), qi(qapInstance::getInstance()), pv(qi->n*qi->n)
 {
 }
 
@@ -105,3 +110,6 @@ double qapFeature::tuneLambda(mh_solution *c)
 {
 	return glsa(pgroup) * c->obj() / (qi->n*qi->n);
 }
+
+} // namespace qap
+

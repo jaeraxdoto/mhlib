@@ -9,6 +9,8 @@
 
 #include "mh_log.h"
 
+namespace mh {
+
 /** The most abstract base class for all EAs.
 	This abstract base contains methods and attributes that might be
 	needed in any EA.
@@ -18,7 +20,7 @@ class mh_base
 {
 public:
 	/// The Constructor.
-	mh_base( const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	mh_base( const std::string &pg = "") : pgroup(pg) {}
 	/// Virtual destructor.
 	virtual ~mh_base() {}
 	/// Run method.
@@ -26,8 +28,10 @@ public:
 
 public:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 };
+
+} // end of namespace mh
 
 #endif //MH_BASE_H
 

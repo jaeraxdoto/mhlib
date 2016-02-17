@@ -4,10 +4,11 @@
 #include "mh_tabusearch.h"
 #include "mh_util.h"
 
+namespace mh {
 
-tabuSearch::tabuSearch(pop_base &p, const pstring &pg) : lsbase(p,pg)
+tabuSearch::tabuSearch(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
-	tl_ne = new tabulist((pstring)pgroup);
+	tl_ne = new tabulist(pgroup);
 	curChrom = pop->at(0)->clone();
 
 	// dynamic_cast to see if we are using a tabuProvider chromosome
@@ -62,3 +63,6 @@ bool tabuSearch::aspiration(mh_solution *c)
 	else
 		return false;
 }
+
+} // end of namespace mh
+

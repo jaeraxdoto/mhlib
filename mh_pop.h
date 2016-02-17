@@ -8,6 +8,8 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
+namespace mh {
+
 /** \ingroup param
 	The population size.
 	The number of solutions the population contains. */
@@ -51,12 +53,12 @@ public:
 		If binit is set, the new solutions are all initialized, otherwise they
 		are a copy of the template solution.
 		If nohashing is set, hashing is avoided in the population; otherwise it depends on dupelim(). */
-	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const pstring &pg=(pstring)(""));
+	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const std::string &pg="");
 	/** A population of solutions is created.
 		The size is taken from popsize().
 		The template solution is used to create solutions of the same type,
 		which are finally all initialized by calling initialize(). */
-	population(const mh_solution &c_template, const pstring &pg=(pstring)(""));
+	population(const mh_solution &c_template, const std::string &pg="");
 	
 	/** Destructor.
 		The population and all its contained solutions are deleted. */
@@ -89,7 +91,7 @@ public:
 	int findDuplicate(mh_solution *p);
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
-	void write(ostream &ostr);
+	void write(std::ostream &ostr);
 	/** Validate all statistic data of population.
 		If the current statistic data are not valid
 		(!statValid), the determine them. */
@@ -97,5 +99,7 @@ public:
 	/** Set the algorithm for all solutions of the population. */
 	virtual void setAlgorithm(mh_base *alg);
 };
+
+} // end of namespace mh
 
 #endif // MH_POP_H

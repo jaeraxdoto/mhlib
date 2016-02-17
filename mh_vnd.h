@@ -1,30 +1,33 @@
 /*! \file mh_vnd.h
-\brief A general class Variable Neighborhood Descent VND.
+\brief DEPRECATED, better use mh_scheduler; A general class Variable Neighborhood Descent VND.
 */
 
 #ifndef MH_VND_H
 #define MH_VND_H
 
+#include <vector>
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
+namespace mh {
+
 /** \ingroup param
-    If set logging is performed in VND. */
+    DEPRECATED, better use mh_scheduler; If set logging is performed in VND. */
 extern bool_param vndlog;
 
 /** \ingroup param
-    Maximum number of VND neighborhood to be used (0,...,vndnum()). */
+    DEPRECATED, better use mh_scheduler; Maximum number of VND neighborhood to be used (0,...,vndnum()). */
 extern int_param vndnum;
 
 /** \ingroup param
-    VND neighborhood ordering:
+    DEPRECATED, better use mh_scheduler; VND neighborhood ordering:
     - 0: static
     - 1: random
     - 2: adaptive */
 extern int_param vndorder;
 
 
-/** A class for diverse strategies to change the order of the neighborhood
+/** DEPRECATED, better use mh_scheduler; A class for diverse strategies to change the order of the neighborhood
  * structures within VND, VNS etc. */
 class NBStructureOrder
 {
@@ -35,7 +38,7 @@ protected:
 	 * first is the index of the neighborhood structure,
 	 * second a priority value for adaptive strategies whose
 	 * meaning depends on the specific strategy. */
-	vector<pair<int,double> > order;
+	std::vector< std::pair<int,double> > order;
 	/** The strategy for adapting the order:
 	 * - 0: static first to last
 	 * - 1: random order
@@ -57,7 +60,7 @@ public:
 };
 
 
-/** An abstract interface class for solutions
+/** DEPRECATED, better use mh_scheduler; An abstract interface class for solutions
     used in a VND heuristic. */
 class VNDProvider
 {
@@ -74,14 +77,14 @@ public:
 	virtual int getVNDNNum() = 0;
 	/** Returns the number of neighborhood structures to be used,
 	    considering vndnum(). */
-	int get_lmax(const pstring &pg);
+	int get_lmax(const std::string &pg);
 };
 
 
 class VNDStatAggregator;
 
 
-/** VND base class, implementing the variable neighborhood descent.
+/** DEPRECATED, better use mh_scheduler; VND base class, implementing the variable neighborhood descent.
 Not only looking for a possible improvement in one neighborhood, but in
 several different ones.  The chromosome for this algorithm has implement
 the VNDProvider interface.  */
@@ -91,10 +94,10 @@ class VND : public lsbase
 protected:
 	int l; ///< number of current neighborhood structure
 	int lmax;			///< total number of neighborhoods
-	vector<int> nSearch;		///< number of searching calls
-	vector<int> nSearchSuccess;	///< number of successful searches
-	vector<double> sumSearchGain;	///< total gain achieved
-	vector<double> time;	///< total CPU-time used by the NB search
+	std::vector<int> nSearch;		///< number of searching calls
+	std::vector<int> nSearchSuccess;	///< number of successful searches
+	std::vector<double> sumSearchGain;	///< total gain achieved
+	std::vector<double> time;	///< total CPU-time used by the NB search
 	NBStructureOrder *nborder; ///< neighborhood order
 	bool own_nborder; ///< true if the VND created its own NBStructureOrder
 public:
@@ -105,7 +108,7 @@ public:
 		will only use the first chromosome. 
 		If no NBStructureOrder object is provided, the VND creates
 		its own static one. */
-	VND(pop_base &p, const pstring &pg=(pstring)(""), NBStructureOrder *nbo=NULL);
+	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=NULL);
 	/** The destructor. */
 	virtual ~VND() 
 	{
@@ -122,22 +125,22 @@ public:
 	/** Write only meaningful information into log. */
 	virtual void writeLogEntry(bool inAnyCase = false);
 	/** Write detailed statistics on searched neighborhoods. */
-	void printStatisticsVND(ostream &ostr);
+	void printStatisticsVND(std::ostream &ostr);
 	/** General print Statistics method extended. */
-	void printStatistics(ostream &ostr);
+	void printStatistics(std::ostream &ostr);
 };
 
 
-/** A class for aggregating the neighborhood statistics information
+/** DEPRECATED, better use mh_scheduler; A class for aggregating the neighborhood statistics information
     on multiple VND runs. */
 class VNDStatAggregator
 {
 public:
 	int lmax;			///< total number of neighborhoods
-	vector<int> nSearch;		///< number of searching calls
-	vector<int> nSearchSuccess;	///< number of successful searches
-	vector<double> sumSearchGain;	///< total gain achieved
-	vector<double> time;	///< total CPU-time
+	std::vector<int> nSearch;		///< number of searching calls
+	std::vector<int> nSearchSuccess;	///< number of successful searches
+	std::vector<double> sumSearchGain;	///< total gain achieved
+	std::vector<double> time;	///< total CPU-time
 	int vndCalls;			///< total number of VND calls
 
 	/** Initialization with number of neighborhoods. */
@@ -145,9 +148,9 @@ public:
 	/** Add statistics of VND object. */
 	void add(const VND &vnd);
 	/** Write detailed statistics on searched neighborhoods. */
-	void printStatisticsVND(ostream &ostr);
+	void printStatisticsVND(std::ostream &ostr);
 };
 
-
+} // end of namespace mh
 
 #endif //MH_VND_H

@@ -1,13 +1,13 @@
 /*! \file mh_simanneal.h
   \brief Simulated annealing.
-
 */
-
 
 #ifndef MH_SIMANNEAL_H
 #define MH_SIMANNEAL_H
 
 #include "mh_lsbase.h"
+
+namespace mh {
 
 /** \ingroup param
     Slope for geometric cooling scheme method.
@@ -43,13 +43,13 @@ public:
 		An initialized population already containing chromosomes 
 		must be given. Note that the population is NOT owned by the 
 		algorithm and will not be deleted by its destructor. */
-	simulatedAnnealing(pop_base &p, const pstring &pg=(pstring)(""));
+	simulatedAnnealing(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty Algorithm that can only be used as a template. */
-	simulatedAnnealing(const pstring &pg=(pstring)("")) : lsbase(pg) {}
+	simulatedAnnealing(const std::string &pg="") : lsbase(pg) {}
 	/** Create new simulatedAnnealing.
 		Returns a pointer to a new simulatedAnnealing. */
-	mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &pg="")
 		{ return new simulatedAnnealing(p,pg); }
 	/** Performs a single generation.
 		Is called from run() */
@@ -64,5 +64,7 @@ public:
 		defaults to the metropolis criterion. */
 	virtual bool accept( mh_solution *o, mh_solution *n );
 };
+
+} // end of namespace mh
 
 #endif //MH_SIMANNEAL_H

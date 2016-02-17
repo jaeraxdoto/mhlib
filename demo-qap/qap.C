@@ -27,9 +27,18 @@
 #include "qapsol.h"
 #include "qapinstance.h"
 
+using namespace std;
+using namespace mh;
+
+/// Namespace for demo-qap, the demo program for solving the QAP.
+namespace qap {
 
 /// Name of file to save best solution.
 string_param sfile("sfile","name of file to save solution to","");
+
+} // qap namespace
+
+using namespace qap;
 
 /** The example main function.
 	It should remain small. It contains only the creation 
@@ -67,7 +76,7 @@ int main(int argc, char *argv[])
 
 		// initialize the global qapinst
 		qi = qapInstance::getInstance();
-		qi->initialize(qapfile());
+		qi->initialize(ifile());
 		
 		// generate a template solution of the problem specific qapSol tsol;
 		qapSol tsol;
@@ -94,10 +103,10 @@ int main(int argc, char *argv[])
 	}
 	// catch all exceptions and write error message
 	catch (std::string &s)
-	{ cerr << s << endl; return 1; }
+	{ writeErrorMessage(s);  return 1; }
 	catch (exception &e)
-	{ cerr << "Standard exception occured" << e.what() << endl; return 1; }
+	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
 	catch (...)
-	{ cerr << "Unknown exception occured" << endl; return 1; }
+	{ writeErrorMessage("Unknown exception occured"); return 1; }
 	return 0;
 }

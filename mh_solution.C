@@ -7,6 +7,10 @@
 #include "mh_random.h"
 #include "mh_util.h"
 
+namespace mh {
+
+using namespace std;
+
 bool_param maxi("maxi","should be maximized?",true);
 
 int_param mvnbop( "mvnbop", "Neighbour function selection to use", 0, 0, 2 );
@@ -63,3 +67,6 @@ void mh_solution::selectNeighbour()
 			break;
 	}
 }
+
+} // end of namespace mh
+

@@ -5,6 +5,8 @@
 #include "mh_simanneal.h"
 #include "mh_util.h"
 
+namespace mh {
+
 /// Cooling-Slope
 double_param saca( "saca", "slope for geometric cooling", 0.95, 1.0, UPPER );
 
@@ -14,7 +16,7 @@ int_param sacint( "sacint", "interval between cooling steps", 1, 1, LOWER_EQUAL 
 /// Anfangstemperatur
 double_param satemp( "satemp", "initial temperature for simulated annealing", 1.0, 0.0, LOWER );
 
-simulatedAnnealing::simulatedAnnealing(pop_base &p, const pstring &pg) : lsbase(p,pg)
+simulatedAnnealing::simulatedAnnealing(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
 	T = satemp(pgroup);
 }
@@ -57,3 +59,6 @@ bool simulatedAnnealing::accept( mh_solution *o, mh_solution *n )
 	/// Metropolis criterion.
 	return random_prob( exp( -fabs( ( n->obj() - o->obj() ) / T ) ) );
 }
+
+} // end of namespace mh
+

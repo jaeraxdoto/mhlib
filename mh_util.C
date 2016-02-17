@@ -4,13 +4,18 @@
 #include <ctime>
 #include <iostream>
 #include "mh_util.h"
+#include "mh_log.h"
 #include <chrono>
+
+namespace mh {
+
+using namespace std;
 
 void mherror(const std::string &msg, const std::string &par1, const std::string &par2,
 		const std::string &par3)
 {
-	stringstream ss;
-	ss << "\n" << msg;
+	std::stringstream ss;
+	ss << msg;
 	if (!par1.empty())
 	{
 		ss << ": " << par1;
@@ -24,9 +29,19 @@ void mherror(const std::string &msg, const std::string &par1, const std::string 
 	}
 	else
 		ss << "!";
-	ss << endl;
+	ss << std::endl;
 
 	throw ss.str();
+}
+
+void writeErrorMessage(const string &msg)
+{
+	if (!out.isCout()) {
+		out() << endl << "ERROR: " << msg << endl;
+		out().flush();
+		logstr.flush();
+	}
+	cerr << "ERROR: " << msg << endl;
 }
 
 
@@ -142,15 +157,18 @@ double mhcputime()
 #endif // NEVER
 
 // wall clock start time of the program; current time minus the process' cpu time so far
-static double wctime_start = chrono::duration_cast<chrono::duration<double> >
-	(chrono::steady_clock::now().time_since_epoch()).count() -
+static double wctime_start = std::chrono::duration_cast<std::chrono::duration<double> >
+	(std::chrono::steady_clock::now().time_since_epoch()).count() -
 	mhcputime();
 
 double mhwctime() {
-	chrono::steady_clock::time_point t = chrono::steady_clock::now();
-	return chrono::duration_cast<chrono::duration<double> >(t.time_since_epoch()).count() - wctime_start;
+	std::chrono::steady_clock::time_point t = std::chrono::steady_clock::now();
+	return std::chrono::duration_cast<std::chrono::duration<double> >(t.time_since_epoch()).count() - wctime_start;
 }
 
-string mhversion() {
-	return string("mhlib version: ")+string(VERSION);
+std::string mhversion() {
+	return std::string("mhlib version: ")+std::string(VERSION);
 }
+
+} // end of namespace mh
+

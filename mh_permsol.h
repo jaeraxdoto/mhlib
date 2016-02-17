@@ -10,6 +10,8 @@
 #include "mh_nhmove.h"
 #include "mh_stringsol.h"
 
+namespace mh {
+
 /** \ingroup param
 	Used crossover operator for permSol:
 	- 0: random choice,
@@ -60,8 +62,8 @@ protected:
 
 public:
 	permSol(const mh_solution &c);
-	permSol(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringSol<permSolVarType>(l,l-1,t,pg) { }
-	permSol(int l, const pstring &pg=(pstring)("")) : stringSol<permSolVarType>(l,l-1,pg) { }
+	permSol(int l, mh_base *t, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,t,pg) { }
+	permSol(int l, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,pg) { }
 	/** Initialization with random permutation. */
 	void initialize(int count);
 	/** Calls concrete mutation method. Controlled by paramter permmop(). */
@@ -72,5 +74,7 @@ public:
 	        This will only work with a swapMove. */
 	void applyMove(const nhmove &m);
 };
+
+} // end of namespace mh
 
 #endif //MH_PERMSOL_H

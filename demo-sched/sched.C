@@ -1,16 +1,16 @@
-/*! \file schedtest.C
+/*! \file sched.C
     \brief A template main program for the Scheduler algorithm and multithreading.  
 
 	A  main program demonstrating the Scheduler algorithm 	
 	class, which allows exploiting multithreading and presents a uniform
 	framework for implementing GRASP, VNS, VLNS ans similar metaheuristics.
-	This simple exemplary program solves the simple ONEMAX and ONEPERM problems.
-	Additionally performs a basic test of multithreading if parameter 	
+	This exemplary program solves the simple ONEMAX and ONEPERM problems.
+	Additionally, it applies a basic test of multithreading if parameter 	
 	mthreadtest ist set to 1.
 
 	Use this main program as a basis for writing your own application based
 	on the Scheduler.
-	\include schedtest.C */
+	\include sched.C */
 
 #include <cstdlib>
 #include <iostream>
@@ -19,7 +19,7 @@
 #include "mh_util.h"
 #include "mh_param.h"
 #include "mh_random.h"
-#include "mh_allalgs.h"
+//#include "mh_allalgs.h"
 
 #include "mh_pop.h"
 #include "mh_advbase.h"
@@ -31,23 +31,59 @@
 #include "mh_c11threads.h"
 #include "mh_scheduler.h"
 
+using namespace std;
+using namespace mh;
 
+/// Namespace for demo-sched, the demo program for using the scheduler classes.
+namespace sched {
 
-/** Problem specific parameters (the number of variablens). */
-int_param vars("vars","number of variables",20,1,10000);
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
+int_param prob("prob","problem to be solved (0:ONEMAX,1:ONEPERM)",0,0,1);
 
+/** \ingroup param
+	Number of variables in the ONEMAX/ONEPERM problem. 
+	May be overriden by an instance file if one is specified by parameter
+	ifile. */ 
+int_param vars("vars","number of variables",20,1,100000);
 
-/** Number of construction heuristics. */
-int_param constheus("constheus","number of construcction heuristics",1,0,10000);
+/** \ingroup param
+	Problem instance file name. If a problem instance file is given, it is
+	expected to just contain the values for parameters prob and vars,
+	which are overwritten. */ 
+string_param ifile("ifile","problem instance file name","");
 
-/** Number of VNS shaking neighborhoods. */
+/** \ingroup param
+	Name of file to save best solution. */
+string_param sfile("sfile","name of file to save solution to","");
+
+/** \ingroup param
+	Number of construction heuristics. */
+int_param constheus("constheus","number of construction heuristics",1,0,10000);
+
+/** \ingroup param
+	Number of VND shaking neighborhoods. */
 int_param vndnhs("vndnhs","number of VND neighborhoods",0,0,10000);
 
-/** Number of VNS shaking neighborhoods. */
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
 int_param vnsnhs("vnsnhs","number of VNS neighborhoods",5,0,10000);
 
-/** Name of file to save best solution. */
-string_param sfile("sfile","name of file to save solution to","");
+/** \ingroup param
+	Number of VNS shaking neighborhoods. */
+double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
+
+/** Function spending the given number of seconds by active waiting. 
+	Just for testing purposes. */
+void spendTime(double s=methdel()) {
+	double starttime = mhcputime();
+	double a;
+	while (starttime + s > mhcputime()) {
+		// some meaningless calculation
+		a*=sin(a+0.33);
+	}
+}
+
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
@@ -66,6 +102,7 @@ public:
 	double objective();
 	double delta_obj(const nhmove &m);
 	bool construct(int k) {
+		spendTime();
 		initialize(k); return true;
 	}
 	bool localimp(int k);
@@ -90,6 +127,7 @@ double oneMaxSol::delta_obj(const nhmove &m)
 
 bool oneMaxSol::localimp(int k)
 {
+	spendTime();
 	// a rather meaningless demo local improvement:
 	// "locally optimize" position k, i.e., set it to 1 if 0
 	if (!data[k])
@@ -103,6 +141,7 @@ bool oneMaxSol::localimp(int k)
 
 bool oneMaxSol::shaking(int k)
 {
+	spendTime();
 	for (int j=0; j<k; j++) {
 		int i=random_int(length);
 		data[i]=!data[i];
@@ -111,6 +150,7 @@ bool oneMaxSol::shaking(int k)
 	// mutate(k);
 	return true;
 }
+
 
 //-- 2. example problem: ONEPERM -----------------------------------------
 
@@ -128,12 +168,15 @@ public:
 		{ return new onePermSol(*this); }
 	double objective();
 	bool construct(int k) {
+		spendTime();
 		initialize(k); return true;
 	}
 	bool localimp(int k) {
+		spendTime();
 		mutate(k); return true;
 	}
 	bool shaking(int k) {
+		spendTime();
 		mutate(k); return true;
 	}
 };
@@ -142,6 +185,10 @@ public:
  permutation 0,1,...vars()-1. */
 double onePermSol::objective()
 {
+	// check for uninitialized solution (0,...,0) and return -1 as it
+	// is not feasible in case of ONEPERM
+	if (data[0]==0 && data[1]==0)
+		return -1;
 	int sum=0;
 	for (int i=0;i<length;i++) 
 		if (int(data[i])==i) 
@@ -199,8 +246,26 @@ static void testmultithreading()
 		cerr << "Time: " << mhcputime() << endl;
 }
 
+} // sched namespace
 
 //------------------------------------------------------------------------
+
+using namespace sched;
+
+/** Template function for registering the problem-specific scheduler methods in the algorithm.
+ * When considering just one kind of problem, this does not need to be a template function
+ * but can directly be implemented in the main function. */
+template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
+	for (int i=1;i<=constheus();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
+			&SolClass::construct,i,0));
+	for (int i=0;i<vndnhs();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
+			&SolClass::localimp,i,1));
+	for (int i=1;i<=vnsnhs();i++)
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("shake"+tostring(i),
+			&SolClass::shaking,i,1));
+}
 
 /** The example main function.
 	It should remain small. It contains only the creation 
@@ -238,27 +303,43 @@ int main(int argc, char *argv[])
 		if (threadstest())
 			testmultithreading();
 
+		if (ifile()!="") {
+			// problem instance file given, read it, overwriting 
+			// parameters prob and vars 
+			ifstream is(ifile());
+			if (!is)
+				mherror("Cannot open problem instance file", ifile());
+			int p=0,v=0;
+			is >> p >> v;
+			if (!is)
+				mherror("Invalid problem instance file", ifile());
+			prob.set(p);
+			vars.set(v);
+		}
+
 		// generate a template solution of the problem specific class
-		typedef oneMaxSol usedSol;
-		// typedef onePermSol usedSol;
-		usedSol tchrom;
+		mh_solution *tsol = NULL;
+		switch (prob()) {
+		case 0: tsol = new oneMaxSol; break;
+		case 1: tsol = new onePermSol; break;
+		default: mherror("Invalid problem", tostring(prob()));
+		}
 		// generate a population of uninitialized solutions; don't use hashing
-		population p(tchrom,popsize(),false,false);
+		// be aware that the third parameter indicates that the initial solution is
+		// not initialized here, i.e., it is the solution (0,0,...,0), which even
+		// is invalid in case of ONEPERM; we consider this in objective().
+		population p(*tsol,popsize(),false,false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
 		GVNSScheduler *alg;
 		alg=new GVNSScheduler(p,constheus(),vndnhs(),vnsnhs());
-		for (int i=1;i<=constheus();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("conh"+tostring(i),
-				&usedSol::construct,i,0));
-		for (int i=0;i<vndnhs();i++)
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("locim"+tostring(i),
-				&usedSol::localimp,i,1));
-		for (int i=1;i<=vnsnhs();i++) {
-			alg->addSchedulerMethod(new SolMemberSchedulerMethod<usedSol>("shake"+tostring(i),
-				&usedSol::shaking,i,1));
+		switch (prob()) {
+		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
+		case 1: registerSchedulerMethods<onePermSol>(alg); break;
+		default: mherror("Invalid problem", tostring(prob()));
 		}
+
 		alg->run();		// run Scheduler until termination cond.
 		
 	    // p.write(out());	// write out final population
@@ -267,6 +348,7 @@ int main(int argc, char *argv[])
 		alg->printStatistics(out());	// write result & statistics
 
 		delete alg;
+		delete tsol;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;
@@ -275,10 +357,11 @@ int main(int argc, char *argv[])
 	}
 	// catch all exceptions and write error message
 	catch (std::string &s)
-	{ cerr << s << endl; return 1; }
+	{ writeErrorMessage(s);  return 1; }
 	catch (exception &e)
-	{ cerr << "Standard exception occured" << e.what() << endl; return 1; }
+	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
 	catch (...)
-	{ cerr << "Unknown exception occured" << endl; return 1; }
+	{ writeErrorMessage("Unknown exception occured"); return 1; }
 	return 0;
 }
+

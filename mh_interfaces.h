@@ -6,6 +6,8 @@
 
 #include "mh_tabulist.h"
 
+namespace mh {
+
 class mh_solution;
 class feature;
 class guidedLS;
@@ -98,5 +100,6 @@ public:
 	virtual void greedyConstruct() = 0;
 };
 
+} // end of namespace mh
 
 #endif //MH_INTERFACES_H

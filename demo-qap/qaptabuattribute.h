@@ -8,13 +8,15 @@
 #include "mh_nhmove.h"
 #include "mh_tabuattribute.h"
 
+namespace qap {
+
 /** A simple specialized tabuAttribute class for the quadratic assignment. */
-class qapTabuAttribute : public swapMove, public tabuAttribute
+class qapTabuAttribute : public mh::swapMove, public mh::tabuAttribute
 {
 	friend class qapSol;
 
 protected:
-	static const qapTabuAttribute &toQAPTabuAttribute(const tabuAttribute &ref)
+	static const qapTabuAttribute &toQAPTabuAttribute(const mh::tabuAttribute &ref)
 		{ return (dynamic_cast<const qapTabuAttribute &>(ref)); }
 
 public:
@@ -22,7 +24,7 @@ public:
 	
 		\param pg Parametergroup
 	*/
-	qapTabuAttribute(const pstring &pg=(pstring)("")) : swapMove(), tabuAttribute(pg)  {};
+	qapTabuAttribute(const std::string &pg="") : mh::swapMove(), mh::tabuAttribute(pg)  {};
 
 	/** Copy constructor.
 	
@@ -33,12 +35,12 @@ public:
 	/** Copy constructor.
 		\param m Object to copy from.
 	*/
-	qapTabuAttribute(const swapMove &m) : swapMove(m) {};
+	qapTabuAttribute(const mh::swapMove &m) : mh::swapMove(m) {};
 
 	/** Comparison of two tabuAttributes.
 		\param o Object to compare to.
 	*/
-	bool equals( const tabuAttribute &o ) const;
+	bool equals( const mh::tabuAttribute &o ) const;
 
 	/** Hashing function.
 		This function returns a hash-value for the tabuAttribute.
@@ -49,5 +51,6 @@ public:
 	unsigned long int hashvalue() const;
 };
 
+} // namespace qap
 
 #endif //MH_QAPTABUATTRIBUTE_H

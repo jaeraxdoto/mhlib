@@ -11,6 +11,11 @@
 #include "qapfeature.h"
 #include "mh_tabusearch.h"
 
+using namespace mh;
+using namespace std;
+
+namespace qap {
+
 /// Alpha parameter for GRASP
 double_param graspa( "graspa", "alpha for grasp", 0.25, 0.0, 1.0, UPPER_INCLUSIVE );
 
@@ -90,7 +95,7 @@ double qapSol::objective()
 void qapSol::mutate(int count) 
 {
 	tabuSearch *ts = dynamic_cast<tabuSearch*>(alg);
-	qapTabuAttribute qta((pstring)pgroup);
+	qapTabuAttribute qta(pgroup);
 	swapMove qm;
 
 	if (!objval_valid)
@@ -240,7 +245,7 @@ void qapSol::selectImprovement(bool find_best)
 
 	// other local stuff
 	bool cont=true;
-	qapTabuAttribute qta((pstring)pgroup);
+	qapTabuAttribute qta(pgroup);
 	swapMove qm;
 	tabuSearch *ts = dynamic_cast<tabuSearch*>(alg);
 
@@ -291,7 +296,7 @@ void qapSol::selectImprovement(bool find_best)
 
 feature* qapSol::getFeature()
 {
-	return new qapFeature( (pstring)pgroup );
+	return new qapFeature( pgroup );
 }
 
 void qapSol::greedyConstruct()
@@ -402,3 +407,6 @@ void qapSol::greedyConstruct()
 		data[a[i]] = b[i];
 	}
 }
+
+} // qap namespace
+

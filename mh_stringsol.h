@@ -7,10 +7,15 @@
 #define MH_STRINGSOL_H
 
 #include <iostream>
+#include <fstream>
+#include <cmath>
 #include <vector>
 #include "mh_solution.h"
 #include "mh_random.h"
+#include "mh_stringsol.h"
+#include "mh_util.h"
 
+namespace mh {
 
 /** \ingroup param
 	Used crossover operator for string solutionosomes:
@@ -41,7 +46,7 @@ extern int_param strmop;
 template <class T> class stringSol : public mh_solution
 {
 protected:
-	vector<T> data;	/** Actual gene vector. */
+	std::vector<T> data;	/** Actual gene vector. */
 	T vmax; 	/** Maximum value. */
 
 	static const stringSol &toSSol(const mh_solution &ref)
@@ -75,9 +80,9 @@ public:
 	stringSol(const mh_solution &c);
 	/** normal constructor, number of genes must be passed to base
 		class, as well as maximum value for each gene. */
-	stringSol(int l, int v, mh_base *t, const pstring &pg=(pstring)("")) : mh_solution(l,t,pg), data(l)
+	stringSol(int l, int v, mh_base *t, const std::string &pg="") : mh_solution(l,t,pg), data(l)
 		{ vmax=v; }
-	stringSol(int l, int v, const pstring &pg=(pstring)("")) : mh_solution(l,NULL,pg), data(l)
+	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,NULL,pg), data(l)
 		{ vmax=v; }
 	/** copy all data from a given solution into the current one. */
 	virtual void copy(const mh_solution &orig);
@@ -92,7 +97,7 @@ public:
 	void mutate(int count);
 	/** Calls a crossover method, controlled by the parameter strxop(). */
 	void crossover(const mh_solution &parA,const mh_solution &parB);
-	void write(ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) const;
 	void save(const char *fname);
 	void load(const char *fname);
 	/** Calculates a hash-value out of the binary string. */
@@ -115,12 +120,6 @@ typedef stringSol<unsigned char> charStringSol;
 typedef stringSol<unsigned int> intStringSol;
 
 //---------------------- Implementation of stringSol -------------------------
-
-#include <cmath>
-#include <fstream>
-#include "mh_stringsol.h"
-#include "mh_util.h"
-
 
 template <class T> stringSol<T>::stringSol(const mh_solution &c) :
 	mh_solution(c),data(length)
@@ -177,7 +176,7 @@ template <class T> void stringSol<T>::get_cutpoints(int &a, int &b)
 		b = random_int(length);
 	while (a==b);
 	if (a>b)
-		swap(a,b);
+		std::swap(a,b);
 }
 
 template <class T> void stringSol<T>::mutate(int count)
@@ -325,7 +324,7 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &pa
 	invalidate();
 }
 
-template <class T> void stringSol<T>::write(ostream &ostr,int detailed) const
+template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed) const
 {
 	for (int i=0;i<length;i++)
 		ostr << int(data[i]) << ' ';
@@ -333,19 +332,19 @@ template <class T> void stringSol<T>::write(ostream &ostr,int detailed) const
 
 template <class T> void stringSol<T>::save(const char *fname)
 {
-	ofstream of(fname);
+	std::ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);
 	for (int i=0;i<length;i++)
 		of << int(data[i]) << ' ';
-	of << endl;
+	of << std::endl;
 	if (!of)
 		mherror("Cannot open file",fname);
 }
 
 template <class T> void stringSol<T>::load(const char *fname)
 {
-	ifstream inf(fname);
+	std::ifstream inf(fname);
 	if (!inf)
 		mherror("Cannot open file",fname);
 	for (int i=0;i<length;i++)
@@ -369,5 +368,7 @@ template <class T> unsigned long int stringSol<T>::hashvalue()
 			h^=data[i]<<(i%window);
 	return h;
 }
+
+} // end of namespace mh
 
 #endif // MH_STRINGSOL_H

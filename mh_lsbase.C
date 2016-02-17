@@ -4,7 +4,9 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
-lsbase::lsbase(pop_base &p, const pstring &pg) : mh_advbase(p,pg)
+namespace mh {
+
+lsbase::lsbase(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
 {
 	checkPopulation();
 	wheap.set(false,pgroup);
@@ -24,3 +26,6 @@ mh_solution *lsbase::replace(mh_solution *p)
 	checkBest();
 	return replaced;
 }
+
+} // end of namespace mh
+

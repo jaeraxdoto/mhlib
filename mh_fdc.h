@@ -13,6 +13,8 @@
 #include "mh_log.h"
 #include "mh_param.h"
 
+namespace mh {
+
 /** \ingroup param
 	The number of solutions that are created for the fitness-distance
 	correlation analysis. 0 means no FDC should be performed. */
@@ -32,7 +34,7 @@ class FitnessDistanceCorrelation
 {
 protected:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	struct FitDist
@@ -41,7 +43,7 @@ public:
 	};
 	/** Fitness/distance values. The entry with index 0 corresponds to
 		the given optimum. */
-	vector<FitDist> vals;
+	std::vector<FitDist> vals;
 
 	// values determined by perform():
 	double favg;	///< average value of fitness values
@@ -50,7 +52,7 @@ public:
 	double distbetween;	///< average distance between samples
 
 	/// The constructor
-	FitnessDistanceCorrelation( const pstring &pg=(pstring)("") ) : pgroup(pg.s) {};
+	FitnessDistanceCorrelation( const std::string &pg="") : pgroup(pg) {};
 	
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
@@ -58,14 +60,14 @@ public:
 		 vals. If optfile is not NULL, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
-	double perform(mh_solution *opt, const string &optfile, int n);
+	double perform(mh_solution *opt, const std::string &optfile, int n);
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
 		 values and distances to the given optimum solution in
 		 vals. If optfile is not NULL, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
-	double perform(mh_solution *opt, const string &optfile)
+	double perform(mh_solution *opt, const std::string &optfile)
 		{ return perform( opt, optfile, fdcn(pgroup) ); }
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
@@ -79,7 +81,7 @@ public:
 	/** Writes out a message with the correlation coefficient of the
 		last performed FDC and the fitness/distance-pairs to a file
 		with the given name (if not NULL). */
-	void write(outStream &out, const string &fname);
+	void write(outStream &out, const std::string &fname);
 	
 	/** Writes out a message with the correlation coefficient of the
 		last performed FDC and the fitness/distance-pairs to a file
@@ -93,6 +95,8 @@ public:
 
 	virtual ~FitnessDistanceCorrelation() {}
 };
+
+} // end of namespace mh
 
 #endif // MH_FDC_H
 

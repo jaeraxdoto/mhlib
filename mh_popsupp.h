@@ -7,20 +7,19 @@
 
 #include <list>
 #include <map>
-#include <ext/hash_map>
+#include <unordered_map>
 #include "mh_base.h"
 #include "mh_popbase.h"
 #include "mh_util.h"
 
-using namespace __gnu_cxx;
-
+namespace mh {
 
 /** Compare functor for worstheap. */
-struct worstcompare : public binary_function<double,double,bool>
+struct worstcompare : public std::binary_function<double,double,bool>
 {
 	/// Parametergroup.
-	string pgroup;
-	worstcompare(const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	std::string pgroup;
+	worstcompare(const std::string &pg="") : pgroup(pg) {}
 
 	/// Compare function.
 	bool operator()(const double &a, const double &b) const;
@@ -35,7 +34,7 @@ struct worstcompare : public binary_function<double,double,bool>
 extern bool_param wheap;
 
 
-typedef multimap<double,int,worstcompare>::iterator worstheap_item;
+typedef std::multimap<double,int,worstcompare>::iterator worstheap_item;
 
 /** An element of pophashtable. */
 struct pophashtable_elem
@@ -56,17 +55,17 @@ class pophashtable
 {
 protected:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 
-	hash_map<unsigned long int,list<pophashtable_elem> > table;
+	std::unordered_map<unsigned long int,std::list<pophashtable_elem> > table;
 	/** heap to obtain worst solution efficiently.
 		Only maintained if wheap is set. 
 		The info component is the index in the population. */
-	multimap<double,int,worstcompare> worstheap;
+	std::multimap<double,int,worstcompare> worstheap;
 
 public:
 	/// Initialize the hash-table to be empty.
-	pophashtable(const pstring &pg=(pstring)("")) : pgroup(pg.s), worstheap(worstcompare(pg)) {}
+	pophashtable(const std::string &pg="") : pgroup(pg), worstheap(worstcompare(pg)) {}
 	/// Cleans up.
 	virtual ~pophashtable() {}
 	/// Removes all entries in the hash-table.
@@ -87,8 +86,10 @@ public:
 	int worstIndex();
 };
 
-istream & operator>>(istream &is,pophashtable_elem &e);
-ostream & operator<<(ostream &os,const pophashtable_elem &e);
+std::istream & operator>>(std::istream &is,pophashtable_elem &e);
+std::ostream & operator<<(std::ostream &os,const pophashtable_elem &e);
+
+} // end of namespace mh
 
 #endif //MH_POPSUPP_H
 

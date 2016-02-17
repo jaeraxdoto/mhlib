@@ -1,11 +1,15 @@
 /**! \file mh_vns.C
  \include mh_vns.C */
 
-#include "mh_subpop.h"
 #include <cmath>
+#include "mh_subpop.h"
 #include "stdio.h"
 #include "mh_vnd.h"
 #include "mh_vns.h"
+
+namespace mh {
+
+using namespace std;
 
 int_param vnsnum("vnsnum", "Maximum number of VNS neighborhood used",10000,0,10000);
 
@@ -15,8 +19,8 @@ int_param vnsvndtiter("vnsvndtgen","tgen for VND embedded in VSN",100000,-1,1000
 
 int_param vnsvndttime("vnsvndttime","ttime for VND embedded in VSN",-1);
 
-VNS::VNS(pop_base &p, const pstring &pg) : 
-	lsbase(p,pg), vndpg(pgroupext((pstring)pgroup,"vnd"))
+VNS::VNS(pop_base &p, const string &pg) :
+	lsbase(p,pg), vndpg(pgroupext(pgroup,"vnd"))
 {
 	if ( dynamic_cast<VNSProvider*>(tmpSol) == 0 )
 		mherror("Chromosome is not an VNSProvider");
@@ -29,14 +33,14 @@ VNS::VNS(pop_base &p, const pstring &pg) :
 	// start with best chromosome
 	// spop->at(0)->reproduce(*pop->bestSol());
 	VNSProvider *vns = dynamic_cast<VNSProvider *> (spop->at(0));
-	kmax = min(vns->getVNSNNum(),vnsnum(pg.s));
-	nborder=new NBStructureOrder(kmax,vnsorder(pg.s));
-	k = (vndnum(vndpg.s)>0?0:1); // When using VND, do not shake in 1st iteration
+	kmax = min(vns->getVNSNNum(),vnsnum(pg));
+	nborder=new NBStructureOrder(kmax,vnsorder(pg));
+	k = (vndnum(vndpg)>0?0:1); // When using VND, do not shake in 1st iteration
 	nShake.assign(kmax+1,0);
 	nShakeSuccess.assign(kmax+1,0);
 	sumShakeGain.assign(kmax+1,0.0);
 	nFullIter=0;
-	if (vndnum(vndpg.s)>0)
+	if (vndnum(vndpg)>0)
 	{
 		VNDProvider *vndsol = dynamic_cast<VNDProvider *>(tmpSol);
 
@@ -45,7 +49,7 @@ VNS::VNS(pop_base &p, const pstring &pg) :
 
 		int lmax = vndsol->get_lmax(vndpg);
 		vndstat=new VNDStatAggregator(lmax);
-		vnd_nborder=new NBStructureOrder(lmax,vndorder(vndpg.s));
+		vnd_nborder=new NBStructureOrder(lmax,vndorder(vndpg));
 	}
 }
 
@@ -53,7 +57,7 @@ VNS::~VNS()
 {
 	delete spop;
 	delete nborder;
-	if (vndnum(vndpg.s)>0)
+	if (vndnum(vndpg)>0)
 	{
 		delete vnd_nborder;
 		delete vndstat;
@@ -84,7 +88,7 @@ void VNS::performIteration()
 	}
 
 	// apply selected local search:
-	if (vndnum(vndpg.s)>0)
+	if (vndnum(vndpg)>0)
 	{
 		vnd_nborder->calculateNewOrder();
 		VND *alg=new VND(*spop,vndpg,vnd_nborder);
@@ -206,8 +210,9 @@ void VNS::printStatistics(ostream &ostr)
 	//ostr << "deteriorations\t" << nDeteriorations << endl;
 	//ostr << "aspirations:\t" << nAspirations << endl;
 	//ostr << "tabus:\t\t" << nTabus << endl;
-	if (vndnum(vndpg.s)>0)
+	if (vndnum(vndpg)>0)
 		vndstat->printStatisticsVND(ostr);
 	printStatisticsShaking(ostr);
 }
 
+} // end of namespace mh

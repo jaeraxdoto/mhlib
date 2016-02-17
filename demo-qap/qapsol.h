@@ -13,23 +13,27 @@
 #include "qapinstance.h"
 #include "qaptabuattribute.h"
 
+using namespace mh;
+
+namespace qap {
+
 /** \ingroup param
     Alpha parameter for GRASP.
 
     Used for candidate restriction.
  */
-extern double_param graspa;
+extern mh::double_param graspa;
 
 /** \ingroup param
     Beta parameter for GRASP.
 
     Used for candidate restriction.
  */
-extern double_param graspb;
+extern mh::double_param graspb;
 
 
 /** A concrete solution class for the quadratic assignment problem. */
-class qapSol : public mh_solution, public featureProvider, public tabuProvider, public gcProvider
+class qapSol : public mh::mh_solution, public mh::featureProvider, public mh::tabuProvider, public mh::gcProvider
 {
 	friend class qapFeature;
 	
@@ -38,54 +42,54 @@ class qapSol : public mh_solution, public featureProvider, public tabuProvider, 
 	
 protected:
 	/// Actual gene string.
-	vector<int> data;
+	std::vector<int> data;
 
 	/** Dynamically cast a solution reference to a qapSol reference.
 		If the original object was of the correct type.
 	
 		\param ref Object to dynamically cast
 	*/
-	static const qapSol &toQAPSol(const mh_solution &ref)
+	static const qapSol &toQAPSol(const mh::mh_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
 	mh_solution *createUninitialized() const
-		{ return new qapSol(alg, (pstring)(pgroup)); }
+		{ return new qapSol(alg, pgroup); }
 	mh_solution *clone() const
-		{ return new qapSol((mh_solution&)*this); }
+		{ return new qapSol((mh::mh_solution&)*this); }
 	double objective();
 
 	/** Copy constructor.
 		\param c Object to copy from.
 	*/
-	qapSol(const mh_solution &c);
+	qapSol(const mh::mh_solution &c);
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param t Associated algorithm object
 		\param pg Parametergroup
 	*/
-	qapSol(mh_base* t, const pstring &pg=(pstring)("")) : mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
+	qapSol(mh::mh_base* t, const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
 		{}
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param pg Parametergroup
 	*/
-	qapSol(const pstring &pg=(pstring)("")) : mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
+	qapSol(const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
 		{}
 	
 	/** Copy all data from a given solution into the current one.
 		\param orig Object to copy from.
 	*/
-	void copy(const mh_solution &orig);
+	void copy(const mh::mh_solution &orig);
 	
 	/** Return true if the current solution is equal to *orig.
 		\param orig Object to compare to.
 	*/
-	bool equals( mh_solution &orig);
+	bool equals(mh::mh_solution &orig);
 	
 	/** Returns the hamming distance.
 		\param c Solution to compute distance to.
 	*/
-	double dist(mh_solution &c);
+	double dist(mh::mh_solution &c);
 	
 	/** Randomly initializes with an uniformly generated permutation.
 		\param count Does not have any effect.
@@ -101,7 +105,7 @@ public:
 		\param parA Parent A for crossover.
 		\param parB Parent B for crossover.
 	*/
-	void crossover(const mh_solution &parA,const mh_solution &parB);
+	void crossover(const mh::mh_solution &parA,const mh::mh_solution &parB);
 	
 	/** Writes the solution to an ostream.
 		The values of the permutation are incremented by one for better human readability.
@@ -110,7 +114,7 @@ public:
 		\param ostr Stream to use.
 		\param detailed Does not have any effect.
 	*/
-	void write(ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) const;
 	
 	/** Saves a solution to a file.
 		The values of the permutation are incremented by
@@ -158,5 +162,6 @@ public:
 	void greedyConstruct();
 };
 
+} // namespace qap
 
 #endif //MH_QAPCHROM_H

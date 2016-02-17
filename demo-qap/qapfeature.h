@@ -10,20 +10,22 @@
 #include "mh_feature.h"
 #include "qapsol.h"
 
+namespace qap {
+
 /** A quadratic assignment feature class. */
-class qapFeature : public feature
+class qapFeature : public mh::feature
 {
 	/// Pointer to the current QAP instance.
 	qapInstance *qi;
 	
 protected:
 	/// The penalty values.
-	vector<double> pv;
+	std::vector<double> pv;
 	
 public:
 	/** Normal constructor.
 	 \param pg Parametergroup */
-	qapFeature(const pstring &pg=(pstring)("") );
+	qapFeature(const std::string &pg="" );
  	
 	/** Function for getting the penalty.
 		The penalty is computed with respect to a passed solution.
@@ -31,7 +33,7 @@ public:
 		\param c The solution to be penalized.
 		\return The penalty.
 	*/
-	virtual double penalty(const mh_solution *c);
+	virtual double penalty(const mh::mh_solution *c);
 	
 	/** Function for getting the change in the penalty.
 		The change in the objective function if a certain move is applied is computed.
@@ -42,14 +44,14 @@ public:
 		\param m The move to be evaluated.
 		\return The change of the penalty.
 	*/
-	virtual double delta_penalty(const mh_solution *c, const nhmove *m);
+	virtual double delta_penalty(const mh::mh_solution *c, const mh::nhmove *m);
 	
 	/** Update penalty values.
 		With respect to a given solution.
 	
 		\param c The solution whose features are used for the penalty update.
 	*/
-	virtual void updatePenalties(const mh_solution *c);
+	virtual void updatePenalties(const mh::mh_solution *c);
 	
 	/** Reset penalties of all features to zero. */
 	virtual void resetPenalties();
@@ -59,7 +61,9 @@ public:
 	
 		\param c The solution 
 	*/
-	virtual double tuneLambda(mh_solution *c);
+	virtual double tuneLambda(mh::mh_solution *c);
 };
+
+} // namespace qap
 
 #endif //MH_QAPFEATURE_H

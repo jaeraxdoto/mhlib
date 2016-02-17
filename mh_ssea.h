@@ -7,6 +7,8 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mh {
+
 /** \ingroup param 
 Don't count duplicates as generation. If this parameter is set, the
 generation counter for the statistics is not incremented for created
@@ -36,13 +38,13 @@ public:
 		An initialized population already containing chromosomes 
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
-	steadyStateEA(pop_base &p, const pstring &pg=(pstring)("")) : mh_advbase(p,pg) {};
+	steadyStateEA(pop_base &p, const std::string &pg="") : mh_advbase(p,pg) {};
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
-	steadyStateEA(const pstring &pg=(pstring)("")) : mh_advbase(pg) {};
+	steadyStateEA(const std::string &pg="") : mh_advbase(pg) {};
 	/** Create new steadyStateGA.
 		Returns a pointer to a new steadyStateEA. */
-	mh_advbase *clone(pop_base &p,const pstring &pg=(pstring)(""))
+	mh_advbase *clone(pop_base &p,const std::string &pg="")
 	    { return new steadyStateEA(p,pg); }
 	/** Performs a single generation. */
 	void performIteration();
@@ -52,5 +54,7 @@ public:
 	virtual int select()
 		{ nSelections++; return tournamentSelection(); }
 };
+
+} // end of namespace mh
 
 #endif //MH_SSEA_H

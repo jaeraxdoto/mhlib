@@ -3,8 +3,13 @@
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include "mh_log.h"
 #include "mh_util.h"
+
+namespace mh {
+
+using namespace std;
 
 string_param oname("oname","base-name for all output files ('@':stdout,'NULL':no output)","@");
 
@@ -248,3 +253,6 @@ void initOutAndLogstr()
 	out.init(outext(),oname(),odir());
 	logstr.st.init(logext(),oname(),odir());
 }
+
+} // end of namespace mh
+

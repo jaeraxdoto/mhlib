@@ -9,8 +9,7 @@ mhlib is a collection of modules supporting the efficient and simple implementat
 This library is available under the GNU General Public License Version 3
 available at https://www.gnu.org/copyleft/gpl.html
 
-(c) Algorithms and Complexity Structures Group  
-Vienna University of Technology  
+(c) Algorithms and Complexity Group, TU Wien
 http://www.ac.tuwien.ac.at  
 Mainly responsible is Günther Raidl <raidl@ac.tuwien.ac.at>
 
@@ -35,8 +34,9 @@ This library is intended to be a problem-independent C++ library
 suitable for the development of efficient metaheuristics for 
 combinatorial optimization problems.
 
-The library is in development since 1999 at the Vienna University of Technology,
-Institute of Computer Graphics and Algorithms, Vienna, Austria.
+The library is in development since 1999 at the 
+Algorithms and Complexity Group,
+Institute of Computer Graphics and Algorithms, TU Wien, Vienna, Austria.
 Formerly, it was called EAlib, as it originated from some classes for
 evolutionary algorithms.
 
@@ -48,11 +48,58 @@ Please report any problems to him. Thank you.
 algorithms and an extensive example for the QAP and many minor changes or
 improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Prandtstetter*, and *Frederico Dusberger*.
 
+Besides the actual C++ library, mhlib also contains 
+
+- **demo-sched**: A demonstration program using mhlib and in particular its
+  mh_scheduler module for solving the ONEMAX and ONEPERM problems by means
+  of variable neighborhood search (VNS). This demo should be used as
+  template for new applications realizing a VNS, VND, GRASP, or Large
+  Neighborhood Search. It also supports multi-threading, for which the
+  demo also contains a test function.
+
+- **summary.pl**: A Perl script used to statistically summarize many runs
+  over many instances.
+
+- **aggregate.R**: An R (https://www.r-project.org/) script used to
+  further aggregate the results obtained by summary.pl and in particular
+  to make statistical tests for showing the significance of different
+  configurations. Furthermore, this script also contains some exemplary
+  functions for drawing graphs.
+
+- **irace**: An exemplare configuration for applying irace
+  (http://iridia.ulb.ac.be/irace/files/README.html) to systematically
+  tune parameters. In this example just the number of used VNS
+  neighborhoods is tuned for demo-sched. Use this configuration as a
+  template for your own mhlib applications. irace must be installed
+  within R, and the environment variable IRACE_HOME must be set and
+  point to the main irace directory, which is usually 
+  /usr/lib/R/site-library/irace or ~/.R_libs/irace.
+
+- **demo-onemax** and **demo-qap**: These are demonstration programs in
+  particular for the classes realizing evolutionary algorithms, but also
+  simulated annealing and tabu search. The also demonstrated mh_vns and mh_vnd
+  are deprecated; new implementations should use mh_scheduler for
+  realizing VNS, VND, GRASP, and Large Neighborhood Search. 
+  While demo-onemax solves the ONEMAX and ONEPERM problems, demo-qap
+  solves the quadratic assignment problem.
+
 ## Changelog: major changes over major releases ##
+
+### Version 4.3 ###
+
+All parts of the mhlib have been put under the new namespace "mh"; to
+compile programs using an older version of mhlib, include `using
+namespace "mh";` in your source. Diverse cleaning and improvements in
+demo applications, especially demo-sched. Exemplary scripts to use the
+automated parameter tuning software http://iridia.ulb.ac.be/irace have
+been added in directory irace. Major improvements and fixes in
+mh_scheduler (primarily already in versions 4.1 and 4.2). Cleaning and
+improvements in the documentation. Diverse
+further smaller improvements, which, however, should not affect compatibility.
 
 ### Version 4.0 ###
 
-A module mh_scheduler and corresponding demo program demo_schedtest have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.
+A module mh_scheduler and corresponding demo program demo_sched have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.
 
 
 ## Installing mhlib ##
@@ -74,7 +121,7 @@ A more complex example for the quadratic assignment problem is provided
 in the demo-qap directory.
 
 More recently, in version 4.0, a Scheduler module has been added that supports
-variants of variable neighborhood search, GRASP, and large neighborhood search more efficiently and even with multithreading. For an example see the demo-schedtest directory.
+variants of variable neighborhood search, GRASP, and large neighborhood search more efficiently and even with multithreading. For an example see the demo-sched directory.
 
 Then, its probably best to look at the documentation of all the include 
 files, which can best be browsed by using doxygen to produce HTML-documentation from the include files (call 'make doc'). Since mhlib has an own parameter handling mechanism and many global parameters controlling the behavior of the library, you should also take a look at them in particular.

@@ -7,12 +7,18 @@
 #include <exception>
 #include <stdexcept>
 #include <assert.h>
+#include <stdlib.h>
+#include <cmath>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"
 #include "mh_util.h"
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
+
+namespace mh {
+
+using namespace std;
 
 int_param schthreads("schthreads", "scheduler: number of threads used", 1, 1, 100);
 
@@ -36,7 +42,7 @@ void SchedulerWorker::checkGlobalBest() {
 void SchedulerWorker::run() {
 	try {
 		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
-		randomNumberGenerator = rng;	// set random number generator pointer to the one of this thread
+		setRandomNumberGenerator(rng);	// set random number generator pointer to the one of this thread
 
 		if (!scheduler->terminate())
 			for(;;) {
@@ -73,6 +79,8 @@ void SchedulerWorker::run() {
 					scheduler->mutex.unlock(); // End of atomic operation
 
 					if(method == NULL) {	// no method could be scheduled
+						if(scheduler->finish) // should the algorithm be terminated due to exhaustion of all available methods
+							break;
 						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
 							break;
 						wait = true; // else, wait for other threads
@@ -102,9 +110,9 @@ void SchedulerWorker::run() {
 					// ... else, the last thread has reached this point
 					else {
 						// update the global scheduler data and notify the waiting workers
-						random_resetRNG();	// use default rng during the global update, as the current thread is unknown
+						resetRandomNumberGenerator();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
-						randomNumberGenerator = rng; // reset to thread's rng
+						setRandomNumberGenerator(rng); // reset to thread's rng
 
 						// write out log entries for all iterations passed since the last logging:
 						// these entries are identical listing for each iteration the state after the last global update
@@ -204,7 +212,7 @@ void SchedulerWorker::run() {
 
 //--------------------------------- Scheduler ---------------------------------------------
 
-Scheduler::Scheduler(pop_base &p, const pstring &pg)
+Scheduler::Scheduler(pop_base &p, const std::string &pg)
 		: mh_advbase(p, pg), callback(NULL), finish(false) {
 	_schthreads = schthreads(pgroup);
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
@@ -226,7 +234,7 @@ void Scheduler::run() {
 
 	// spawn the worker threads, each with its own random number generator having an own seed
 	for(unsigned int i=0; i < _schthreads; i++) {
-		mh_random_number_generator* rng = new mh_random_number_generator();
+		mh_randomNumberGenerator* rng = new mh_randomNumberGenerator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
 		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), rng);
@@ -288,7 +296,7 @@ bool Scheduler::terminate() {
 
 void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
-	totTime[idx] += methodTime;
+	totNetTime[idx] = (totTime[idx] += methodTime);
 	nIter[idx]++;
 	nIteration++;
 	// if the applied method was successful, update the success-counter and the total obj-gain
@@ -299,27 +307,31 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
+	double totSchedulerTime = mhcputime() - timStart;
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
 	for (unsigned int k=0;k<methodPool.size();k++) {
 		sumSuccess+=nSuccess[k];
 		sumIter+=nIter[k];
-		sumTime+= totTime[k];
+		sumTime+=totNetTime[k];
 	}
 	ostr << "total num of iterations:\t" << sumIter << endl;
-	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
-	ostr << "method\titerations\tsuccessful\tsuccess rate\ttotal obj-gain\tavg obj-gain\t rel success\ttotal time\t rel time" << endl;
+	ostr << "total num of successes iterations:\t" << sumSuccess << endl;
+	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
+	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
 	for (unsigned int k = 0; k < methodPool.size(); k++) {
 		char tmp[200];
-		sprintf(tmp,"%7s\t%6d\t\t%6d\t\t%9.4f %%\t%10.5f\t%10.5f\t%9.4f %%\t%9.4f\t%9.4f %%",
+		sprintf(tmp,"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
 			double(sumGain[k])/double(nIter[k]),
 			double(nSuccess[k])/double(sumSuccess)*100.0,
 			totTime[k],
-			double(totTime[k])/double(sumTime)*100.0);
+			double(totTime[k])/totSchedulerTime*100.0,
+			totNetTime[k],
+			double(totNetTime[k])/double(sumTime)*100.0);
 		ostr << tmp << endl;
 	}
 	ostr << endl;
@@ -402,7 +414,7 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 //--------------------------------- VNSScheduler ---------------------------------------------
 
 GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-		unsigned int nshakingnh, const pstring &pg) :
+		unsigned int nshakingnh, const std::string &pg) :
 		Scheduler(p, pg),
 		constheu(this, SchedulerMethodSelector::MSSequentialOnce) {
 	initialSolutionExists = false;
@@ -470,10 +482,11 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 		}
 	}
 
-	if (!constheu.empty())
-		worker->method = constheu.select();
-	else
-		mherror("Cannot find a suitable method in VNSScheduler::getNextMethod");
+	// there exists no more method whose scheduling would be meaningful.
+	// -> initiate termination
+	finish = true;
+	worker->method = NULL;
+	return;
 }
 
 
@@ -579,9 +592,13 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	if (worker->method->idx < constheu.size() + locimpnh[0]->size())
 		Scheduler::updateMethodStatistics(worker, methodTime);
-	else
+	else {
 		nIteration++;
-	    // skip shaking method statistics updated; will be done separately
+		// skip shaking method statistics update except adding to totNetTime;
+		// all remaining will be done separately when all local improvement neighborhoods have finished
+		int idx=worker->method->idx;
+		totNetTime[idx] += methodTime;
+	}
 }
 
 void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
@@ -597,3 +614,6 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 		}
 	}
 }
+
+} // end of namespace mh
+

@@ -9,6 +9,8 @@
 #include "mh_popsupp.h"
 #include "mh_random.h"
 
+namespace mh {
+
 /** The population size.
 	The number of solutions the population contains. */
 extern int_param popsize;
@@ -64,20 +66,20 @@ protected:
 	pophashtable *phash;
 
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/** The Constructor.
 	        Calls the Init-Method with default population size according to parameter popsize. */
-	pop_base(int psize, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+	pop_base(int psize, const std::string &pg="") : pgroup(pg) { init( psize ); }
 
 	/** The Constructor.
   	        Calls the Init-Method with a specific population size. */
-	pop_base(const pstring &pg=pstring("") ) : pgroup(pg.s) { init( popsize(pgroup) ); }
+	pop_base(const std::string &pg="" ) : pgroup(pg) { init( popsize(pgroup) ); }
 
 	/** The Constructor.
 	        Calls the Init-Method with the population size and nohashing parameter. */
-	pop_base(int psize, bool nohashing = false, const pstring &pg=pstring("")) : pgroup(pg.s) { init( psize ); }
+	pop_base(int psize, bool nohashing = false, const std::string &pg="") : pgroup(pg) { init( psize ); }
 
 	/** Destructor. */
 	virtual ~pop_base();
@@ -120,7 +122,7 @@ public:
 	virtual int findDuplicate(mh_solution *p) = 0;
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
-	virtual void write(ostream &ostr) = 0;
+	virtual void write(std::ostream &ostr) = 0;
 	/** Determines mean objective value of population. */
 	double getMean()
 		{ validateStat(); return statMean; }
@@ -140,5 +142,7 @@ public:
 		is using them. */
 	virtual void setAlgorithm(mh_base *alg) = 0;
 };
+
+} // end of namespace mh
 
 #endif //MH_POPBASE_H

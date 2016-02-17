@@ -12,6 +12,8 @@
 #include "mh_nhmove.h"
 #include "mh_param.h"
 
+namespace mh {
+
 /** \ingroup param
 	Should be maximized?
 	True if maximization, false for minimization. */
@@ -53,7 +55,7 @@ protected:
 	mh_base *alg;
 
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 
 public:
 	/** Copy constructor.
@@ -66,14 +68,14 @@ public:
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, mh_base *t, const pstring &pg=(pstring)("")) : length(l), alg(t), pgroup(pg.s)
+	mh_solution(int l, mh_base *t, const std::string &pg="") : length(l), alg(t), pgroup(pg)
 		{ objval_valid=false; objval=0; }
 	/** Constructor for unitinialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, const pstring &pg=(pstring)("") ) : length(l), alg(0), pgroup(pg.s)
+	mh_solution(int l, const std::string &pg="") : length(l), alg(0), pgroup(pg)
 		{ objval_valid=false; objval=0; }
 	/** Creates an uninitialized object of the same class as the
 		current object.
@@ -130,7 +132,7 @@ public:
 	/** Function to apply a certain move.
 	        The solution is changed according to the move, but
 		the objective value is not invalidated. */
-	virtual void applyMove(const nhmove &m){ cerr << "BUG: applyMove() not implemented !" << endl;}; 
+	virtual void applyMove(const nhmove &m){ std::cerr << "BUG: applyMove() not implemented !" << std::endl;};
 	/** Initialization function.
 		The solution is initialized (usually randomly).
 		Must be overloaded accordingly.
@@ -184,15 +186,15 @@ public:
 		@param ostr the output stream
 		@param detailed tells how detailed the description
 		should be (0...least detailed). */
-	virtual void write(ostream &ostr,int detailed=0) const=0;
+	virtual void write(std::ostream &ostr,int detailed=0) const=0;
 	/** Saves a solution to a file. (Not necessarily needed.) */
 	virtual void save(const char *fname) {}
 	/** Saves a solution to a file. (Not necessarily needed.) */
-	void save(const string &fname) { save(fname.c_str()); }
+	void save(const std::string &fname) { save(fname.c_str()); }
 	/** Loads a solution from a file. (Not necessarily needed.) */
 	virtual void load(const char *fname) {}
 	/** Loads a solution from a file. (Not necessarily needed.) */
-	void load(const string &fname) { load(fname.c_str()); }
+	void load(const std::string &fname) { load(fname.c_str()); }
 	/** Compare the fitness.
 		returns true if the current solution is fitter than that
 		given as parameter. Takes care on parameter maxi. */
@@ -260,5 +262,6 @@ inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
 	sol.write(ostr); return ostr;
 }
 
+} // end of namespace mh
 
 #endif //MH_SOLUTION_H

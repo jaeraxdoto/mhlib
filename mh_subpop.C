@@ -5,6 +5,10 @@
 #include "mh_subpop.h"
 #include "mh_util.h"
 
+namespace mh {
+
+using namespace std;
+
 void subPopulation::determineBest()
 {
 	indexBest=0;
@@ -32,7 +36,7 @@ int subPopulation::determineWorst() const
 	return idx;
 }
 
-subPopulation::subPopulation(pop_base *super,int from,int to, const pstring &pg)
+subPopulation::subPopulation(pop_base *super,int from,int to, const string &pg)
 	: pop_base(to-from+1,pg)
 {
 	superPopulation=super;
@@ -111,3 +115,6 @@ void subPopulation::setAlgorithm(mh_base *alg)
 	for (int i=0;i<nSolutions;i++)
 		at(i)->setAlgorithm(alg);
 }
+
+} // end of namespace mh
+

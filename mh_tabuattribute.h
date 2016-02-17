@@ -7,16 +7,18 @@
 #include <iostream>
 #include "mh_param.h"
 
+namespace mh {
+
 /** An element of a tabulist. */
 class tabuAttribute
 {
 protected:
 	/// Parametergroup
-	string pgroup;
+	std::string pgroup;
 	
 public:
 	/// The constructor
-	tabuAttribute( const pstring &pg=(pstring)("")) : pgroup(pg.s) {}
+	tabuAttribute( const std::string &pg="") : pgroup(pg) {}
 	
 	/// virtual destructor
 	virtual ~tabuAttribute() {};
@@ -33,5 +35,7 @@ public:
 		The default implementation return simply 0.0. */
 	virtual unsigned long int hashvalue() const = 0;
 };
+
+} // end of namespace mh
 
 #endif //MH_TABUATTRIBUTE_H

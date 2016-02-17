@@ -7,6 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
+namespace mh {
 
 /** \ingroup param
 	The number of islands.
@@ -34,14 +35,14 @@ class islandModelEA : public mh_advbase
 public:
 	/** The constructor.
 		If no sub-EA template is given, a steady-state EA is used. */
-	islandModelEA(pop_base &p, mh_advbase *mh_templ, const pstring &pg=(pstring)(""));
-	islandModelEA(pop_base &p, const pstring &pg=(pstring)(""));
+	islandModelEA(pop_base &p, mh_advbase *mh_templ, const std::string &pg="");
+	islandModelEA(pop_base &p, const std::string &pg="");
 	/** The destructor.
 		Deletes sub-EAs. */
 	~islandModelEA();
 	/** Create new islandModelEA.
 		Returns a pointer to a new islandModelEA. */
-	mh_advbase *clone(pop_base &p, const pstring &ps=(pstring)(""))
+	mh_advbase *clone(pop_base &p, const std::string &ps="")
 	    { return new islandModelEA(p,ps); }
 	/** The EA's main loop.
 		Performs generations and migration until the termination
@@ -61,5 +62,7 @@ protected:
 	
 	mh_advbase **subEAs;  // Sub-EAs used for the islands.
 };
+
+} // end of namespace mh
 
 #endif //MH_ISLAND_H

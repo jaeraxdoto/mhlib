@@ -3,16 +3,15 @@
 #include <fstream>
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include "mh_param.h"
 #include "mh_util.h"
 
-pstring pgroupext( const pstring &pg, const string &n)
-{
-	if (pg.s=="")
-		return (pstring)(n);
-	else
-		return (pstring)(pg.s+"."+n);
-}
+namespace mh {
+
+using namespace std;
+
+
 
 //------------------------ param ---------------------------
 
@@ -45,39 +44,39 @@ name(nam), description(descr), validator(val)
 		list=this;
 }
 
-void param::printAll(ostream &os)
+void param::printAll(std::ostream &os)
 {
-	os << "# params:" << endl;
+	os << "# params:" << std::endl;
 	for (param *p=list;p;p=p->next)
 		p->print(os);
 }
 
-void param::printAllHelp(ostream &os)
+void param::printAllHelp(std::ostream &os)
 {
-	os << "Valid parameters (default values) [valid ranges]:" << endl;
-	os << "@\tread parameters from specified file" << endl;
+	os << "Valid parameters (default values) [valid ranges]:" << std::endl;
+	os << "@\tread parameters from specified file" << std::endl;
 	for (param *p=list;p;p=p->next)
 		p->printHelp(os);
 }
 
-void param::validate(const string pgroup) const
+void param::validate(const std::string pgroup) const
 {
 	if (validator) 
 		(*validator)(*this,pgroup);
 }
 
-void param::printHelp(ostream &os) const
+void param::printHelp(std::ostream &os) const
 {
 	os << name << "\t(" << getStringDefValue() << ") ";
 	if (validator) 
 		validator->printHelp(os);
 	os << description;
-	os << endl;
+	os << std::endl;
 }
 
-void param::print(ostream &os) const
+void param::print(std::ostream &os) const
 { 
-	os << getName() << '\t' << getStringValue() << endl;
+	os << getName() << '\t' << getStringValue() << std::endl;
 }
 
 void param::parseArgs(int argc, char *argv[])
@@ -91,17 +90,23 @@ void param::parseArgs(int argc, char *argv[])
 		mherror("Uneven number of parameters in command line");
 	for (int i=1;i<argc;i+=2)
 	{
-		setParam(argv[i],argv[i+1]);
+		char *purename=argv[i];
+		// skip '-'s at the beginning of parameter names
+		while (purename[0]=='-')
+			purename++;
+		if (purename[0]==0)
+			mherror("Empty parameter name:",argv[i]);
+		setParam(purename,argv[i+1]);
 	}
 }
 
 void param::setParam(const char nam[],const char sval[])
 {
-	string rnam(nam);
-	string pgroup;
-	string::size_type pos = rnam.rfind('.');
+	std::string rnam(nam);
+	std::string pgroup;
+	std::string::size_type pos = rnam.rfind('.');
 
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 	{
 		pgroup = rnam.substr(0,pos);
 		rnam.erase(0,pos+1);
@@ -128,19 +133,25 @@ void param::setParam(const char nam[],const char sval[])
 			return;
 		}
 	}
-	mherror("Unknown parameter (use -h for a list of possible parameters)"
-		,rnam.c_str(),sval);
+	mherror("Unknown parameter (use -h for a list of possible parameters)",
+		rnam.c_str(),sval);
 }
 
 void param::parseFile(const char fname[])
 {
-	ifstream ifil(fname);
+	std::ifstream ifil(fname);
 	if (!ifil)
 		mherror("Cannot open parameter file",fname);
 	char nam[200],val[400];
 	ifil >> nam;
 	while (!ifil.eof())
 	{
+		// skip "--" at the beginning of parameter names
+		char *purename = nam;
+		while (purename[0]=='-')
+			purename++;
+		if (purename[0]==0)
+			mherror("Empty parameter name:",nam);
 		if (nam[0]=='#')	// ignore to end of line
 		{
 			ifil.getline(val,sizeof(val));
@@ -151,7 +162,7 @@ void param::parseFile(const char fname[])
 			if (!ifil)
 				mherror("Error in reading parameter file",
 					fname,nam);
-			setParam(nam,val);
+			setParam(purename,val);
 		}
 		ifil >> nam;
 	}
@@ -160,16 +171,16 @@ void param::parseFile(const char fname[])
 			
 //------------------------ paramValidator ---------------------------
 
-void paramValidator::operator()(const param &par,const string pgroup) const
+void paramValidator::operator()(const param &par,const std::string pgroup) const
 	{ if (!validate(par,pgroup)) error(par,pgroup); }
 
-bool paramValidator::validate(const param &,const string) const
+bool paramValidator::validate(const param &,const std::string) const
 	{ return true; }
 
-void paramValidator::error(const param &par,const string pgroup) const
+void paramValidator::error(const param &par,const std::string pgroup) const
 { 
 	char buf[500];
-	if ( pgroup == "" )
+	if ( pgroup.empty() )
 		strcpy(buf,par.getName());
 	else
 	{
@@ -185,5 +196,5 @@ void paramValidator::error(const param &par,const string pgroup) const
 
 //------------------------ gen_param<T> ---------------------------
 
-
+} // end of namespace mh
 

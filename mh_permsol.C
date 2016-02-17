@@ -4,6 +4,10 @@
 #include "mh_permsol.h"
 #include "mh_util.h"
 
+namespace mh {
+
+using namespace std;
+
 int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,50);
 // 6:erx 7:eerx 8:mpx not yet implemented
 
@@ -139,7 +143,7 @@ void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 
 	get_cutpoints(c1,c2);
 
-	std::vector<int> m(length,-1); // m defines the mapping
+	vector<int> m(length,-1); // m defines the mapping
     
 	// all variables between c1-c2 are taken from parent A
 	// and their mapping is stored in m
@@ -451,3 +455,6 @@ void permSol::applyMove(const nhmove &m)
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
 	swap(data[qm.r],data[qm.s]);
 }
+
+} // end of namespace mh
+

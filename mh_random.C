@@ -4,10 +4,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <sstream>
 #include <sys/timeb.h>
-#include "mh_hash.h"
 #include "mh_random.h"
 #include "mh_util.h"
 
@@ -19,7 +18,9 @@
 #define GETPID getpid
 #endif
 
-using namespace __gnu_cxx;
+namespace mh {
+
+using namespace std;
 
 int_param seed("seed","seed value for the random number generator",0);
 
@@ -38,13 +39,27 @@ static const long NDIV=(1+IMM1/NTAB);
 static const double EPS=1.2e-7;
 static const double RNMX=(1.0-EPS);
 
-mh_random_number_generator defaultRNG;
+mh_randomNumberGenerator defaultRNG;
 
-thread_local mh_random_number_generator* randomNumberGenerator = &defaultRNG;
+// thread-local pointer to achtive random number generator
+static thread_local mh_randomNumberGenerator* pRandomNumberGenerator = &defaultRNG;
+
+mh_randomNumberGenerator* randomNumberGenerator() {
+	return pRandomNumberGenerator;
+}
+
+void setRandomNumberGenerator(mh_randomNumberGenerator *rng) {
+	pRandomNumberGenerator = rng;
+}
+
+void resetRandomNumberGenerator() {
+	pRandomNumberGenerator = &defaultRNG;
+}
+
 
 #include<iostream>
 
-mh_random_number_generator::mh_random_number_generator(){
+mh_randomNumberGenerator::mh_randomNumberGenerator(){
 	idum2=123456789L;
 	iy=0;
 	iv = new long[NTAB];
@@ -52,7 +67,7 @@ mh_random_number_generator::mh_random_number_generator(){
 	iseed = 0;
 }
 
-void mh_random_number_generator::random_seed(unsigned int lseed)
+void mh_randomNumberGenerator::random_seed(unsigned int lseed)
 {
 	rndmutex.lock();
 	// when lseed==0 use seed parameter; if also 0 use time & pid
@@ -83,7 +98,7 @@ void mh_random_number_generator::random_seed(unsigned int lseed)
 }
 
 
-void mh_random_number_generator::rndseed(unsigned int seed)
+void mh_randomNumberGenerator::rndseed(unsigned int seed)
 {
 	int j;
 	long k;
@@ -105,7 +120,7 @@ void mh_random_number_generator::rndseed(unsigned int seed)
 }
 
 
-double mh_random_number_generator::random_double()
+double mh_randomNumberGenerator::random_double()
 {
 	rndmutex.lock();
 	int j;
@@ -148,7 +163,7 @@ double random_double()
 }
 */
 
-double mh_random_number_generator::random_normal()
+double mh_randomNumberGenerator::random_normal()
 {
 	rndnormalmutex.lock();
 	static bool cached=false;
@@ -180,12 +195,12 @@ double mh_random_number_generator::random_normal()
 
 //---------- a separate, faster random number generator for bits -----------
 
-void mh_random_number_generator::bitseed(unsigned int seed)
+void mh_randomNumberGenerator::bitseed(unsigned int seed)
 {
 	iseed = seed;
 }
 
-bool mh_random_number_generator::random_bool()
+bool mh_randomNumberGenerator::random_bool()
 {
 	rndmutex.lock();
 	// return random_int()?true:false;
@@ -250,13 +265,13 @@ poisson_cache::poisson_cache(double mu):
 	dens[maxidx]=1;
 }
 
-unsigned int mh_random_number_generator::random_poisson(double mu)
+unsigned int mh_randomNumberGenerator::random_poisson(double mu)
 {
 	double r=random_double();
 
 	rndmutex.lock();
 	typedef poisson_cache *ppoisson_cache;
-	static hash_map<double,ppoisson_cache,hashdouble> cache(4);
+	static unordered_map<double,ppoisson_cache> cache(4);
 
 	poisson_cache *pc;
 	if (cache.count(mu)==0)
@@ -291,12 +306,11 @@ unsigned int mh_random_number_generator::random_poisson(double mu)
 	return k;
 }
 
-unsigned mh_random_number_generator::random_intfunc(unsigned seed, unsigned x)
+unsigned random_intfunc(unsigned seed, unsigned x)
 //static void psdes(unsigned long *lword, unsigned long *irword)
 // Pseudo-DES hashing of the 64-bit word (lword,irword). Both 32-bit arguments
 // are returned hashed on all bits.
 {
-	rndmutex.lock();
 	unsigned long i,ia,ib,iswap,itmph=0,itmpl=0;
 	static unsigned long c1[4]={
 		0xbaa96887L, 0x1e17d32cL, 0x03bcdc3cL, 0x0f33d1b2L};
@@ -313,7 +327,6 @@ unsigned mh_random_number_generator::random_intfunc(unsigned seed, unsigned x)
 		((ib & 0xffff) << 16)) ^ c2[i])+itmpl*itmph);
 		seed=iswap;
 	}
-	rndmutex.unlock();
 	return x;
 }
 
@@ -351,7 +364,7 @@ unsigned mh_random_number_generator::random_intfunc(unsigned seed, unsigned x)
 //	return (*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 //}
 
-double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
+double random_doublefunc(unsigned seed, unsigned x)
 {
 	union
 	{
@@ -376,6 +389,5 @@ double mh_random_number_generator::random_doublefunc(unsigned seed, unsigned x)
 	//return double(*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 }
 
-void random_resetRNG() {
-	randomNumberGenerator = &defaultRNG;
-}
+} // end of namespace mh
+

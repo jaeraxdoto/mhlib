@@ -10,6 +10,8 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
+namespace mh {
+
 /** \defgroup param Global parameters */
 
 /** \ingroup param 
@@ -132,10 +134,10 @@ public:
 		An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
-	mh_advbase(pop_base &p, const pstring &pg=(pstring)(""));
+	mh_advbase(pop_base &p, const std::string &pg="");
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
-	mh_advbase(const pstring &pg=(pstring)(""));
+	mh_advbase(const std::string &pg="");
 	/** The destructor.
 		It does delete the temporary solution, but not the
 		population. */
@@ -143,7 +145,7 @@ public:
 	/** Create new object of same class.
 		Virtual method, uses the classes constructor to create a
 		new EA object of the same class as the called object. */
-	virtual mh_advbase *clone(pop_base &p, const pstring &pg=(pstring)(""));
+	virtual mh_advbase *clone(pop_base &p, const std::string &pg="");
 	/** The EA's main loop.
 		Performs iterations until the termination criterion is
 		fulfilled.
@@ -179,7 +181,7 @@ public:
 	/** Print statistic informations.
 		Prints out various statistic informations including
 		the best solution of the population.. */
-	virtual void printStatistics(ostream &ostr);
+	virtual void printStatistics(std::ostream &ostr);
 	/** Writes the log entry for the current iteration.
 		If inAnyCase is set, then the entry is written in any case. */
 	virtual void writeLogEntry(bool inAnyCase=false);
@@ -252,7 +254,9 @@ protected:
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called
 
-	bool _wctime;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
+	bool _wctime;	///< Mirrored mh parameter wall_clock_time for performance reasons.
 };
+
+} // end of namespace mh
 
 #endif //MH_ADVBASE_H

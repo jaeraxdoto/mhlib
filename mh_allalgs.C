@@ -16,10 +16,12 @@
 #include "mh_vnd.h"
 #include "mh_vns.h"
 
+namespace mh {
+
 int_param mhalg("mhalg","algorithm to use (0:ss 1:gen 2:ss-isl 3:gen-isl 4:ls 5:sa 6:ts 7:grasp 8:gls 9:vns 10: vnd)",
         0,0,10);
 
-mh_advbase *create_mh(pop_base &p,int a, const pstring &pg)
+mh_advbase *create_mh(pop_base &p,int a, const std::string &pg)
 {
 	mh_advbase *ea=NULL;
 	switch (a)
@@ -59,10 +61,12 @@ mh_advbase *create_mh(pop_base &p,int a, const pstring &pg)
 			break;
 		default:
 			mherror("Invalid parameter for mhalg()",
-				mhalg.getStringValue(pg.s).c_str());
+				mhalg.getStringValue(pg).c_str());
 			return NULL;
 	}
 	return ea;
 }
+
+} // end of namespace mh
 
 

@@ -4,6 +4,10 @@
 #include <iomanip>
 #include "mh_pop.h"
 
+namespace mh {
+
+using namespace std;
+
 void population::determineBest()
 {
 	indexBest=0;
@@ -30,7 +34,7 @@ int population::determineWorst() const
 	return idx;
 }
 
-population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const pstring &pg)
+population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
 	: pop_base(psize,pg)
 {
 	chroms=new mh_solution *[nSolutions];
@@ -44,7 +48,7 @@ population::population(const mh_solution &c_template, int psize, bool binit, boo
 	determineBest();
 }
 
-population::population(const mh_solution &c_template, const pstring &pg)
+population::population(const mh_solution &c_template, const std::string &pg)
 	: pop_base(pg)
 {
 	chroms=new mh_solution *[nSolutions];
@@ -161,3 +165,6 @@ void population::setAlgorithm(mh_base *alg)
 	for (int i=0;i<nSolutions;i++)
 		chroms[i]->setAlgorithm(alg);
 }
+
+} // end of namespace mh
+

@@ -7,6 +7,7 @@
 
 #include "mh_stringsol.h"
 
+namespace mh {
 
 /** A binary string solution. */
 class binStringSol : public stringSol<bool>
@@ -17,13 +18,15 @@ protected:
 public:
 	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }
 	/** Normal constructor, number of genes must be passed to base class. */
-	binStringSol(int l, mh_base *t, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,t,pg) { }
-	binStringSol(int l, const pstring &pg=(pstring)("")) : stringSol<bool>(l,1,pg) { }
+	binStringSol(int l, mh_base *t, const std::string &pg="") : stringSol<bool>(l,1,t,pg) { }
+	binStringSol(int l, const std::string &pg="") : stringSol<bool>(l,1,pg) { }
 	/** Writes out the binary string. */
-	void write(ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) const;
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
 	void applyMove(const nhmove &m);
 };
+
+} // end of namespace mh
 
 #endif //MH_BINSTRINGSOL_H

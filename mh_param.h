@@ -5,21 +5,24 @@
 	in separate object files by a single-line object definition.
 	The parameter values can then be used by the overloaded ()-operator
 	(thus, just write "paramname"()).
-	Use the typedefs \ref int_param, \ref double_param, \ref bool_param, 
-	and \ref string_param which instanciate the generic class gen_param.
-	These parameters get their values either by a
-	an argument in the command line, from a configuration file 
+	Use the typedefs #mh::int_param, #mh::double_param,
+	#mh::bool_param, and mh::string_param which instanciate the
+	generic class mh::gen_param.  These parameters get their values
+	either by a an argument in the command line, from a configuration file 
 	(name given as command line argument), or by using a default value. 
 	In order to initialize and read command line arguments,
 	param::parseArgs() must be called in main(). 
 	Giving "-h" as command line argument will print out all existing
 	parameters with their default values, ranges and a brief
-	explanation.
+	explanation. In the argument list parameter names may optionally be prefixed
+	by "-" or "--". By parameter "@ <filename>" parameter settings are read from
+	the specified file, in which, again, parameter names may be optionally prefixed
+	by "-" or "--".
 
-	To allow fine grained control it is possible to define parametergroups
+	To allow fine grained control it is possible to define parameter-groups
 	for which each parameter can have an individual value. The name of a
-	parametergroup can be passed to the constructor of a class to let the
-	created object use this parametergroup instead of the global parameter
+	parameter-group can be passed to the constructor of a class to let the
+	created object use this parameter-group instead of the global parameter
 	values.
 */
 
@@ -27,36 +30,29 @@
 #define MH_PARAM_H
 
 #include <iostream>
-#include <ext/hash_map>
+#include <unordered_map>
 #include <sstream>
 #include <string>
-#include "mh_hash.h"
 #include "mh_util.h"
 
-using namespace std;
-using namespace __gnu_cxx;
+/*! mh's namespace. */ 
+namespace mh {
 
 class param;
 
-/**
- * A simple class encapsulating a parameter name.
- */
-class pstring
+/** Extend the parameter-group pg with n.
+    This method prepends the string n to the existing parameter-group p.
+
+    pgroupext( "", "ls" ) => "ls"
+
+    pgroupext( "foo", "bar" ) => "bar.foo" */
+inline std::string pgroupext( const std::string &pg, const std::string &n)
 {
-public:
-	string s;
-
-	explicit pstring( const char *_s ) : s(_s) {};
-	explicit pstring( const string &_s ) : s(_s) {};
-};
-
-/** Extend the parametergroup p with n.
-    This method prepends the string n to the existing parametergroup p.
-
-    pgroupext( "", "ls" ) == "ls"
-
-    pgroupext( "foo", "bar" ) == "bar.foo" */
-pstring pgroupext( const pstring &pg, const string &n);
+	if (pg.empty())
+		return n;
+	else
+		return pg + "." + n;
+}
 
 /** Abstract validator object for validating a value to be set for a 
 	parameter. 
@@ -70,12 +66,12 @@ public:
 		Function call operator for actually performing validation
 		in case of invalidity, error is called which calls by default
 		error will be called. */
-	void operator()(const param &par,const string pgroup = "") const;
+	void operator()(const param &par,const std::string pgroup = "") const;
 	/** actual validation function; returns true if parameter is okay
 		defaults to "everything is valid" */
-	virtual bool validate(const param &par, const string pgroup = "") const;
+	virtual bool validate(const param &par, const std::string pgroup = "") const;
 	/// called in case of an invalid parameter; calls eaerror
-	virtual void error(const param &par, const string pgroup = "") const;
+	virtual void error(const param &par, const std::string pgroup = "") const;
 	/// write out short help for valid values
 	virtual void printHelp(std::ostream &os) const { }
 };
@@ -92,26 +88,26 @@ public:
 	param(const char *nam,const char *descr,
 		const paramValidator *val=0);
 	/// Write parameter with its value to an ostream.
-	virtual void print(ostream &os) const;
+	virtual void print(std::ostream &os) const;
 	/// Write list of all parameters with their values to an ostream.
-	static void printAll(ostream &os);
+	static void printAll(std::ostream &os);
 	/// Read value from istream.
-	virtual void read(istream &os, const string pgroup = "")=0;
+	virtual void read(std::istream &os, const std::string pgroup = "")=0;
 	/// Get parameter name as string.
 	const char *getName() const
 		{ return name; }
 	/// Get parameter value as string.
-	virtual string getStringValue(const string &pgroup = "" ) const =0;
+	virtual std::string getStringValue(const std::string &pgroup = "" ) const =0;
 	/// Get default value as string.
-	virtual string getStringDefValue() const =0;
+	virtual std::string getStringDefValue() const =0;
 	/// Checks value with optionally privided validator.
-	void validate( const string pgroup = "" ) const;
+	void validate( const std::string pgroup = "" ) const;
 	/** Writes out a helping message for the parameter
 		(with description, default value,...). */
-	void printHelp(ostream &os) const;
+	void printHelp(std::ostream &os) const;
 	/** Writes out a help message for all registered parameters
 		(with description, default value,...). */
-	static void printAllHelp(ostream &os);
+	static void printAllHelp(std::ostream &os);
 	/** Parse argument vector.
 		All existing arguments are supposed to be parameters! */
 	static void parseArgs(int argc,char *argv[]);
@@ -170,9 +166,9 @@ public:
 	/// Give upper and lower bound as parameters and type of rangecheck to constructor.
 	rangeValidator(T low, T high, rangecheck c) : lbound(low), ubound(high), check(c) {}
 	/// It is checked if the value lies in [low,high].
-	bool validate(const param &par, const string pgroup="") const;
+	bool validate(const param &par, const std::string pgroup="") const;
 	/// Write out short help for valid values.
-	virtual void printHelp(ostream &os) const;
+	virtual void printHelp(std::ostream &os) const;
 private:
 	// lower and upper bounds
 	const T lbound,ubound;
@@ -206,9 +202,9 @@ public:
 	/// Give a value and type ofcheck as parameters to constructor.
 	unaryValidator(T v, unarycheck c) : value(v), check(c) {}
 	/// It is checked if the value conforms to the unarycheck.
-	bool validate(const param &par, const string pgroup="") const;
+	bool validate(const param &par, const std::string pgroup="") const;
 	/// Write out short help for valid values.
-	virtual void printHelp(ostream &os) const;
+	virtual void printHelp(std::ostream &os) const;
 private:
 	/// value to check
 	const T value;
@@ -247,50 +243,57 @@ public:
 		param(nam,descr,new unaryValidator<T>(value,check)),
 		value(def), defval(def)
 		{ validate(); }
-	/** Access of a parameters value. 
+	/** Access of a parameter's value without a specified parameter-group.
+		Parameter values should be accessed by using this
+		operator, therefore by the function call notation. */
+	const T operator()() const
+		{ return value; }
+	/** Access of a parameters value with specified parameter group.
 		Parameter values should be accessed by using this 
 		operator, therefore by the function call notation. */
-	T operator()( const string pgroup = ""  ) const
-		{ if (pgroup == "" || qvals.count(pgroup)==0)
-			return value;
-		else
-			return (*qvals.find(pgroup)).second; }
+	const T operator()( const std::string pgroup) const
+		{
+			auto it = qvals.find(pgroup);
+			if (it == qvals.end())
+				return value;
+			else
+				return it->second; }
 	/// Set a new value and default value for a parameter.
 	void setDefault(const T &newval)
 		{ defval=value=newval; validate(); }
 	/// If you really have to explicitly set the parameter to a value.
-	void set(const T &newval, const string pgroup = "" ) {
-		if ( pgroup == "" ) {
+	void set(const T &newval, const std::string pgroup = "" ) {
+		if ( pgroup.empty() ) {
 			value=newval; validate(); }
 		else {
 			qvals[pgroup] = newval; validate( pgroup ); } }
 	/// Determine string representation for value.
-	string getStringValue( const string &pgroup = "" ) const
-		{ if ( pgroup == "" )
+	std::string getStringValue( const std::string &pgroup = "" ) const
+		{ if ( pgroup.empty() )
 			return getStringValue_impl(value);
 		else
 			return getStringValue_impl((*qvals.find(pgroup)).second); }
 	/// Determine string representation for default value.
-	string getStringDefValue() const
+	std::string getStringDefValue() const
 		{ return getStringValue_impl(defval); }
 	/// Read value from ostream.
-	void read(istream &is, const string pgroup = "")
-		{ if ( pgroup == "" ) {
+	void read(std::istream &is, const std::string pgroup = "")
+		{ if ( pgroup.empty() ) {
 			is >> value; validate(); }
 		else {
 			is >> qvals[pgroup]; validate( pgroup ); } }
-	void print(ostream &os) const
+	void print(std::ostream &os) const
 		{
-			string i;
+			std::string i;
 
 			param::print(os);
 
-			typename hash_map<string,T,hashstring>::const_iterator it = qvals.begin();
+			auto it = qvals.begin();
 
 			while (it != qvals.end())
 			{
 				os << (*it).first << "." << getName() << '\t' << getStringValue((*it).first);
-				os << endl;
+				os << std::endl;
 				it++;
 			}
 		}
@@ -301,8 +304,8 @@ private:
 	// the default value
 	T defval;
 	// the additional qualified parameter values
-	hash_map<string,T,hashstring>  qvals;
-	string getStringValue_impl(const T &val) const;
+	std::unordered_map<std::string,T>  qvals;
+	std::string getStringValue_impl(const T &val) const;
 };
 
 //template<class T> T twice(T t);
@@ -316,12 +319,12 @@ typedef gen_param<double> double_param;
 /// A global bool parameter.
 typedef gen_param<bool> bool_param;
 /// A global string parameter.
-typedef gen_param<string> string_param;
+typedef gen_param<std::string> string_param;
 
 
 //------------------- larger inline functions -------------------------
 
-template <class T> bool rangeValidator<T>::validate(const param &par, const string pgroup) 
+template <class T> bool rangeValidator<T>::validate(const param &par, const std::string pgroup)
 	const
 { 
 	const gen_param<T> &p=dynamic_cast<const gen_param<T> &>(par);
@@ -342,7 +345,7 @@ template <class T> bool rangeValidator<T>::validate(const param &par, const stri
 	}
 }
 
-template <class T> void rangeValidator<T>::printHelp(ostream &os)
+template <class T> void rangeValidator<T>::printHelp(std::ostream &os)
 	const 
 {
 	switch (check)
@@ -366,7 +369,7 @@ template <class T> void rangeValidator<T>::printHelp(ostream &os)
 	}
 }
 
-template <class T> bool unaryValidator<T>::validate(const param &par, const string pgroup) 
+template <class T> bool unaryValidator<T>::validate(const param &par, const std::string pgroup)
 	const
 { 
 	const gen_param<T> &p=dynamic_cast<const gen_param<T> &>(par);
@@ -387,7 +390,7 @@ template <class T> bool unaryValidator<T>::validate(const param &par, const stri
 	}
 }
 
-template <class T> void unaryValidator<T>::printHelp(ostream &os)
+template <class T> void unaryValidator<T>::printHelp(std::ostream &os)
 	const
 {
 	switch (check)
@@ -412,12 +415,14 @@ template <class T> void unaryValidator<T>::printHelp(ostream &os)
 	}
 }
 
-template <class T> string gen_param<T>::getStringValue_impl(const T &val)
+template <class T> std::string gen_param<T>::getStringValue_impl(const T &val)
 	const
 {
-	ostringstream os("");
+	std::ostringstream os("");
 	os << val;
 	return os.str();
 }
+
+} // end of namespace mh
 
 #endif //MH_PARAM_H

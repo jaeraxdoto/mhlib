@@ -16,6 +16,10 @@
 #include "mh_vnd.h"
 #include "mh_vns.h"
 
+namespace mh {
+
+using namespace std;
+
 double_param pcross("pcross","crossover probability",1.0,0.0,1.0);
 
 double_param pmut("pmut","mutation probability",-1.0,-2000.0,1000.0);
@@ -46,7 +50,7 @@ bool_param ltime("ltime","log time for iterations",true);
 bool_param wctime("wctime", "use wall clock time instead of cpu time", false);
 
 
-mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
+mh_advbase::mh_advbase(pop_base &p, const string &pg) : mh_base(pg)
 {
 	pop = &p;
 	pop->setAlgorithm(this);
@@ -78,7 +82,7 @@ mh_advbase::mh_advbase(pop_base &p, const pstring &pg) : mh_base(pg)
 	_wctime = wctime(pgroup);
 }
 
-mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
+mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 {
 	pop=NULL;
 	tmpSol=NULL;
@@ -102,7 +106,7 @@ mh_advbase::mh_advbase(const pstring &pg) : mh_base(pg)
 	_wctime = wctime(pgroup);
 }
 
-mh_advbase *mh_advbase::clone(pop_base &p, const pstring &pg)
+mh_advbase *mh_advbase::clone(pop_base &p, const string &pg)
 {
 	mherror("clone in class derived from mh_advbase not supported");
 	return NULL;
@@ -394,4 +398,6 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 		nDeteriorations    += a->nDeteriorations;
 	}
 }
+
+} // end of namespace mh
 

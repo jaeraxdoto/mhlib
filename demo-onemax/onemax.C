@@ -27,7 +27,11 @@
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
 
+using namespace std;
+using namespace mh;
 
+/// Namespace for demo-onemax, the demo program for solving the onemax and oneperm problems.
+namespace onemax {
 
 /** Problem specific parameters (the number of variables). */
 int_param vars("vars","number of variables",20,1,10000);
@@ -38,7 +42,7 @@ string_param sfile("sfile","name of file to save solution to","");
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
 /** This is the solution class for the OneMax problem.
-	In larger appications, it should be implemented in a separate
+	In larger applications, it should be implemented in a separate
 	module. */
 class oneMaxSol : public binStringSol, public gcProvider
 {
@@ -115,6 +119,10 @@ void onePermSol::greedyConstruct()
 		data[i] = i;
 }
 
+} // onemax namespace
+
+using namespace onemax;
+
 //------------------------------------------------------------------------
 
 /** The example main function.
@@ -175,10 +183,10 @@ int main(int argc, char *argv[])
 	}
 	// catch all exceptions and write error message
 	catch (std::string &s)
-	{ cerr << s << endl; return 1; }
+	{ writeErrorMessage(s);  return 1; }
 	catch (exception &e)
-	{ cerr << "Standard exception occured" << e.what() << endl; return 1; }
+	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
 	catch (...)
-	{ cerr << "Unknown exception occured" << endl; return 1; }
+	{ writeErrorMessage("Unknown exception occured"); return 1; }
 	return 0;
 }
