@@ -3,7 +3,7 @@
 
 #include "qaptabuattribute.h"
 
-using namespace mhlib;
+using namespace mh;
 using namespace std;
 
 namespace qap { 

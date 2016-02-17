@@ -7,7 +7,7 @@
 
 #include "mh_stringsol.h"
 
-namespace mhlib {
+namespace mh {
 
 /** A binary string solution. */
 class binStringSol : public stringSol<bool>
@@ -27,6 +27,6 @@ public:
 	void applyMove(const nhmove &m);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_BINSTRINGSOL_H

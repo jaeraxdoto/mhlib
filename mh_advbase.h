@@ -10,7 +10,7 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \defgroup param Global parameters */
 
@@ -254,9 +254,9 @@ protected:
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called
 
-	bool _wctime;	///< Mirrored mhlib parameter wall_clock_time for performance reasons.
+	bool _wctime;	///< Mirrored mh parameter wall_clock_time for performance reasons.
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_ADVBASE_H

@@ -4,7 +4,7 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 void localSearch::performIteration()
 {
@@ -31,5 +31,5 @@ void localSearch::performIteration()
 	perfIterEndCallback();
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

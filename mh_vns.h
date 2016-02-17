@@ -10,7 +10,7 @@
 #include "mh_lsbase.h"
 #include "mh_vnd.h"
 
-namespace mhlib {
+namespace mh {
 
 /** DEPRECATED, better use mh_scheduler; \ingroup param
  	Maximum value of used shaking NHs. */
@@ -95,6 +95,6 @@ public:
 	void printStatistics(std::ostream &ostr);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // VNS_H

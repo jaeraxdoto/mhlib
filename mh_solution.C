@@ -7,7 +7,7 @@
 #include "mh_random.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -68,5 +68,5 @@ void mh_solution::selectNeighbour()
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

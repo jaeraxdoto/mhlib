@@ -16,7 +16,7 @@
 #include <iostream>
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Default-basename (without extension) for all output files.
@@ -223,7 +223,7 @@ extern logging logstr;
 /** Reinitialize out and logstr according to the parameter settings, i.e. possibly to a file. */
 void initOutAndLogstr();
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // MH_LOG_H
 

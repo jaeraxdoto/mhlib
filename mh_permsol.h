@@ -10,7 +10,7 @@
 #include "mh_nhmove.h"
 #include "mh_stringsol.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Used crossover operator for permSol:
@@ -75,6 +75,6 @@ public:
 	void applyMove(const nhmove &m);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_PERMSOL_H

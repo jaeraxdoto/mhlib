@@ -4,7 +4,7 @@
 #include "mh_permsol.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -456,5 +456,5 @@ void permSol::applyMove(const nhmove &m)
 	swap(data[qm.r],data[qm.s]);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

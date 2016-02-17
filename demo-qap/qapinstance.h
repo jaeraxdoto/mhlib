@@ -15,7 +15,7 @@ namespace qap {
 /** \ingroup param
     Filename of the problem instance.
 */
-extern mhlib::string_param ifile;
+extern mh::string_param ifile;
 
 
 /** A class for instances of quadratic assignment problems. */

@@ -11,12 +11,12 @@
 namespace qap {
 
 /** A simple specialized tabuAttribute class for the quadratic assignment. */
-class qapTabuAttribute : public mhlib::swapMove, public mhlib::tabuAttribute
+class qapTabuAttribute : public mh::swapMove, public mh::tabuAttribute
 {
 	friend class qapSol;
 
 protected:
-	static const qapTabuAttribute &toQAPTabuAttribute(const mhlib::tabuAttribute &ref)
+	static const qapTabuAttribute &toQAPTabuAttribute(const mh::tabuAttribute &ref)
 		{ return (dynamic_cast<const qapTabuAttribute &>(ref)); }
 
 public:
@@ -24,7 +24,7 @@ public:
 	
 		\param pg Parametergroup
 	*/
-	qapTabuAttribute(const std::string &pg="") : mhlib::swapMove(), mhlib::tabuAttribute(pg)  {};
+	qapTabuAttribute(const std::string &pg="") : mh::swapMove(), mh::tabuAttribute(pg)  {};
 
 	/** Copy constructor.
 	
@@ -35,12 +35,12 @@ public:
 	/** Copy constructor.
 		\param m Object to copy from.
 	*/
-	qapTabuAttribute(const mhlib::swapMove &m) : mhlib::swapMove(m) {};
+	qapTabuAttribute(const mh::swapMove &m) : mh::swapMove(m) {};
 
 	/** Comparison of two tabuAttributes.
 		\param o Object to compare to.
 	*/
-	bool equals( const mhlib::tabuAttribute &o ) const;
+	bool equals( const mh::tabuAttribute &o ) const;
 
 	/** Hashing function.
 		This function returns a hash-value for the tabuAttribute.

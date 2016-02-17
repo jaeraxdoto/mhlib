@@ -7,7 +7,7 @@
 #include "mh_pop.h"
 #include "mh_popbase.h"
 
-namespace mhlib {
+namespace mh {
 
 /** The island model EA sub-population.
 	This class implements a sub-population for use in the island model. */
@@ -58,6 +58,6 @@ public:
 	virtual void setAlgorithm(mh_base *alg);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_SUBPOP_H

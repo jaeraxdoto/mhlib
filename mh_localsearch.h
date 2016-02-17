@@ -8,7 +8,7 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** Simple local search.
 	During each iteration, a move in the neighborhood is performed
@@ -34,6 +34,6 @@ public:
 	void performIteration();
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_LOCALSEARCH_H

@@ -7,7 +7,7 @@
 
 #include "mh_lsbase.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
     Slope for geometric cooling scheme method.
@@ -65,6 +65,6 @@ public:
 	virtual bool accept( mh_solution *o, mh_solution *n );
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_SIMANNEAL_H

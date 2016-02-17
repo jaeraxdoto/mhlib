@@ -13,7 +13,7 @@
 #include "mh_pop.h"
 #include "mh_c11threads.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
  * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
@@ -371,10 +371,10 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	unsigned int _schthreads;		///< Mirrored mhlib parameter #schthreads for performance reasons.
-	bool _schsync;			///< Mirrored mhlib parameter #schsync for performance reasons.
-	int _titer;							///< Mirrored mhlib parameter #titer for performance reasons.
-	double _schpmig; 		///< Mirrored mhlib parameter #schpmig for performance reasons.
+	unsigned int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
+	bool _schsync;			///< Mirrored mh parameter #schsync for performance reasons.
+	int _titer;							///< Mirrored mh parameter #titer for performance reasons.
+	double _schpmig; 		///< Mirrored mh parameter #schpmig for performance reasons.
 
 	/**
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
@@ -662,6 +662,6 @@ public:
 	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif /* MH_SCHEDULER_H */

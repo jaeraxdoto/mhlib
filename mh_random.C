@@ -18,7 +18,7 @@
 #define GETPID getpid
 #endif
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -389,5 +389,5 @@ double random_doublefunc(unsigned seed, unsigned x)
 	//return double(*(float *)&itemp)-1.0; // Subtraction moves range to 0. to 1.
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

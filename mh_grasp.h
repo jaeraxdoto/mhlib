@@ -7,7 +7,7 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** Greedy adaptive randomized search procedure.
 	A randomized construction heuristic generates solutions which
@@ -40,6 +40,6 @@ public:
 	virtual void performIteration();
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_GRASP_H

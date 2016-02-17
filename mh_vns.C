@@ -7,7 +7,7 @@
 #include "mh_vnd.h"
 #include "mh_vns.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -215,4 +215,4 @@ void VNS::printStatistics(ostream &ostr)
 	printStatisticsShaking(ostr);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh

@@ -4,7 +4,7 @@
 #include "mh_ssea.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 lsbase::lsbase(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
 {
@@ -27,5 +27,5 @@ mh_solution *lsbase::replace(mh_solution *p)
 	return replaced;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

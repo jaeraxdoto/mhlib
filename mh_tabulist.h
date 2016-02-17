@@ -9,7 +9,7 @@
 #include "mh_param.h"
 #include "mh_tabuattribute.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
     Number of tabuattributes per tabulist. */
@@ -70,6 +70,6 @@ public:
 	virtual bool match( const tabuAttribute *t );
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_TABULIST_H

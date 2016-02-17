@@ -28,7 +28,7 @@
 #include "mh_permsol.h"
 
 using namespace std;
-using namespace mhlib;
+using namespace mh;
 
 /// Namespace for demo-onemax, the demo program for solving the onemax and oneperm problems.
 namespace onemax {

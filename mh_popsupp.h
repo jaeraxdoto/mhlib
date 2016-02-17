@@ -12,7 +12,7 @@
 #include "mh_popbase.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 /** Compare functor for worstheap. */
 struct worstcompare : public std::binary_function<double,double,bool>
@@ -89,7 +89,7 @@ public:
 std::istream & operator>>(std::istream &is,pophashtable_elem &e);
 std::ostream & operator<<(std::ostream &os,const pophashtable_elem &e);
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_POPSUPP_H
 

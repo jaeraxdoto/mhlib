@@ -7,7 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** An abstract base class for local search alike algorithms. */
 class lsbase : public mh_advbase
@@ -25,6 +25,6 @@ public:
 	mh_solution *replace(mh_solution *p);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_LSBASE_H

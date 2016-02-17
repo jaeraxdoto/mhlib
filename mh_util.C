@@ -7,7 +7,7 @@
 #include "mh_log.h"
 #include <chrono>
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -170,5 +170,5 @@ std::string mhversion() {
 	return std::string("mhlib version: ")+std::string(VERSION);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

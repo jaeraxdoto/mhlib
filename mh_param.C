@@ -7,7 +7,7 @@
 #include "mh_param.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -196,5 +196,5 @@ void paramValidator::error(const param &par,const std::string pgroup) const
 
 //------------------------ gen_param<T> ---------------------------
 
-} // end of namespace mhlib
+} // end of namespace mh
 

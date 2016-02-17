@@ -6,7 +6,7 @@
 #include "mh_subpop.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 int_param islk("islk","island count",4,2,100);
 
@@ -140,5 +140,5 @@ void islandModelEA::sumStatistics()
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

@@ -9,7 +9,7 @@
 
 #include "mh_log.h"
 
-namespace mhlib {
+namespace mh {
 
 /** The most abstract base class for all EAs.
 	This abstract base contains methods and attributes that might be
@@ -31,7 +31,7 @@ public:
 	std::string pgroup;
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_BASE_H
 

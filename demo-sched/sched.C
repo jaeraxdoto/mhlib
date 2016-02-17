@@ -32,7 +32,7 @@
 #include "mh_scheduler.h"
 
 using namespace std;
-using namespace mhlib;
+using namespace mh;
 
 /// Namespace for demo-sched, the demo program for using the scheduler classes.
 namespace sched {

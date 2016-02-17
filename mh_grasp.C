@@ -6,7 +6,7 @@
 #include "mh_util.h"
 #include "mh_allalgs.h"
 
-namespace mhlib {
+namespace mh {
 
 GRASP::GRASP(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
@@ -52,5 +52,5 @@ void GRASP::performIteration()
 	perfIterEndCallback();
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

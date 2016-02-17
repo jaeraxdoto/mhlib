@@ -8,7 +8,7 @@
 #include "../mh_nhmove.h"
 #include "mh_util.h"
 
-using namespace mhlib;
+using namespace mh;
 using namespace std;
 
 namespace qap {

@@ -5,9 +5,9 @@
 	in separate object files by a single-line object definition.
 	The parameter values can then be used by the overloaded ()-operator
 	(thus, just write "paramname"()).
-	Use the typedefs #mhlib::int_param, #mhlib::double_param,
-	#mhlib::bool_param, and mhlib::string_param which instanciate the
-	generic class mhlib::gen_param.  These parameters get their values
+	Use the typedefs #mh::int_param, #mh::double_param,
+	#mh::bool_param, and mh::string_param which instanciate the
+	generic class mh::gen_param.  These parameters get their values
 	either by a an argument in the command line, from a configuration file 
 	(name given as command line argument), or by using a default value. 
 	In order to initialize and read command line arguments,
@@ -35,8 +35,8 @@
 #include <string>
 #include "mh_util.h"
 
-/*! mhlib's namespace. */ 
-namespace mhlib {
+/*! mh's namespace. */ 
+namespace mh {
 
 class param;
 
@@ -423,6 +423,6 @@ template <class T> std::string gen_param<T>::getStringValue_impl(const T &val)
 	return os.str();
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_PARAM_H

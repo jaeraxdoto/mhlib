@@ -11,7 +11,7 @@
 #include "qapfeature.h"
 #include "mh_tabusearch.h"
 
-using namespace mhlib;
+using namespace mh;
 using namespace std;
 
 namespace qap {

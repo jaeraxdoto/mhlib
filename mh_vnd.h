@@ -9,7 +9,7 @@
 #include "mh_lsbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
     DEPRECATED, better use mh_scheduler; If set logging is performed in VND. */
@@ -151,6 +151,6 @@ public:
 	void printStatisticsVND(std::ostream &ostr);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_VND_H

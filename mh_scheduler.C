@@ -16,7 +16,7 @@
 #include "mh_c11threads.h"
 #include <bits/exception_ptr.h>
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -615,5 +615,5 @@ void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool 
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

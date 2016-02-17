@@ -5,7 +5,7 @@
 #include "mh_subpop.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -116,5 +116,5 @@ void subPopulation::setAlgorithm(mh_base *alg)
 		at(i)->setAlgorithm(alg);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

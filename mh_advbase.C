@@ -16,7 +16,7 @@
 #include "mh_vnd.h"
 #include "mh_vns.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -399,5 +399,5 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

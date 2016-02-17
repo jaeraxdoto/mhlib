@@ -8,7 +8,7 @@
 #include "qapsol.h"
 #include "qapinstance.h"
 
-using namespace mhlib;
+using namespace mh;
 using namespace std;
 
 namespace qap {

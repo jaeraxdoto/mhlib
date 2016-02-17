@@ -7,7 +7,7 @@
 #include "mh_util.h"
 #include "mh_vnd.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -314,5 +314,5 @@ void NBStructureOrder::calculateNewOrder()
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

@@ -13,7 +13,7 @@
 #include "mh_log.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	The number of solutions that are created for the fitness-distance
@@ -96,7 +96,7 @@ public:
 	virtual ~FitnessDistanceCorrelation() {}
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // MH_FDC_H
 

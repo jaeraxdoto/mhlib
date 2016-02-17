@@ -3,7 +3,7 @@
 #include "mh_tabulist.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 /// Length of tabulists
 int_param tlsize( "tlsize", "length of tabulists", 10, 1, LOWER_EQUAL );
@@ -41,5 +41,5 @@ bool tabulist::match( const tabuAttribute *t )
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

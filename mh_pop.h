@@ -8,7 +8,7 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	The population size.
@@ -100,6 +100,6 @@ public:
 	virtual void setAlgorithm(mh_base *alg);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // MH_POP_H

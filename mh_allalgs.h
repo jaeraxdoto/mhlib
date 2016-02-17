@@ -11,7 +11,7 @@
 #include "mh_param.h"
 #include "mh_popbase.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \defgroup param Global parameters */
 
@@ -41,6 +41,6 @@ extern int_param mhalg;
 	inline mh_advbase *create_mh(pop_base &p, const std::string &pg="")
 	{ return create_mh(p,mhalg(pg),pg); }
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_ALLALGS_H

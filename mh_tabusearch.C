@@ -4,7 +4,7 @@
 #include "mh_tabusearch.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 tabuSearch::tabuSearch(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
@@ -64,5 +64,5 @@ bool tabuSearch::aspiration(mh_solution *c)
 		return false;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

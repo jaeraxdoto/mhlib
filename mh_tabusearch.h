@@ -10,7 +10,7 @@
 #include "mh_lsbase.h"
 #include "mh_tabulist.h"
 
-namespace mhlib {
+namespace mh {
 
 /** Tabu search.
 	During each iteration the best neighbour of the current solution
@@ -52,6 +52,6 @@ public:
 	virtual bool aspiration(mh_solution *c);
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_TABUSEARCH_H

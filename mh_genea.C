@@ -4,7 +4,7 @@
 #include "mh_util.h"
 #include "mh_genea.h"
 
-namespace mhlib {
+namespace mh {
 
 bool_param elit("elit","use elitism?",true);
 
@@ -92,5 +92,5 @@ void generationalEA::createNextGeneration()
 		}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

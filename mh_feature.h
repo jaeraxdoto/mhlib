@@ -9,7 +9,7 @@
 #include "mh_solution.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
     Penalty influence tuning parameter for GLS. */
@@ -46,6 +46,6 @@ public:
 	virtual double tuneLambda(mh_solution *c) = 0;
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_FEATURE_H

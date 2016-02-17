@@ -7,7 +7,7 @@
 #include <iostream>
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** An element of a tabulist. */
 class tabuAttribute
@@ -36,6 +36,6 @@ public:
 	virtual unsigned long int hashvalue() const = 0;
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_TABUATTRIBUTE_H

@@ -7,7 +7,7 @@
 #include "mh_log.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -254,5 +254,5 @@ void initOutAndLogstr()
 	logstr.st.init(logext(),oname(),odir());
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

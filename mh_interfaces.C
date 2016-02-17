@@ -3,7 +3,7 @@
 #include "mh_guidedls.h"
 #include "mh_interfaces.h"
 
-namespace mhlib {
+namespace mh {
 
 inline double glsSubAlgorithm::aobj(mh_solution *c)
 {
@@ -21,5 +21,5 @@ inline double glsSubAlgorithm::delta_aobj(mh_solution *c, const nhmove *m)
 		return 0.0;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

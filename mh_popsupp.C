@@ -2,7 +2,7 @@
 
 #include "mh_popsupp.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -66,5 +66,5 @@ istream & operator>>(istream &is,pophashtable_elem &e)
 ostream & operator<<(ostream &os,const pophashtable_elem &e)
 { os << e.p << " # " << e.idx; return os; }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

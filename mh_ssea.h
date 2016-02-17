@@ -7,7 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param 
 Don't count duplicates as generation. If this parameter is set, the
@@ -55,6 +55,6 @@ public:
 		{ nSelections++; return tournamentSelection(); }
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_SSEA_H

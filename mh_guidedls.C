@@ -6,7 +6,7 @@
 #include "mh_util.h"
 #include "mh_allalgs.h"
 
-namespace mhlib {
+namespace mh {
 
 /// Interval for penalty resets.
 int_param glsri("glsri","Interval for penalty resets.", 0, 0, LOWER_EQUAL );
@@ -83,5 +83,5 @@ double guidedLS::delta_aobj(mh_solution *c, const nhmove *m)
 	return lambda * f->delta_penalty(c,m);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

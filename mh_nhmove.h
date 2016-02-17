@@ -5,7 +5,7 @@
 #ifndef MH_NHMOVE_H
 #define MH_NHMOVE_H
 
-namespace mhlib {
+namespace mh {
 
 /** Abstract nhmove class.
         A concrete class must be derived for a specific
@@ -66,6 +66,6 @@ public:
 	xchgMove( const int _r, const T &_o, const T &_n ) : r(_r), o(_o), n(_n) {}
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_MOVE_H

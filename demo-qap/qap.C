@@ -28,7 +28,7 @@
 #include "qapinstance.h"
 
 using namespace std;
-using namespace mhlib;
+using namespace mh;
 
 /// Namespace for demo-qap, the demo program for solving the QAP.
 namespace qap {

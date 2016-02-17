@@ -9,7 +9,7 @@
 #include "mh_popsupp.h"
 #include "mh_random.h"
 
-namespace mhlib {
+namespace mh {
 
 /** The population size.
 	The number of solutions the population contains. */
@@ -143,6 +143,6 @@ public:
 	virtual void setAlgorithm(mh_base *alg) = 0;
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_POPBASE_H

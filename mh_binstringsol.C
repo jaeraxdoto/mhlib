@@ -5,7 +5,7 @@
 #include "mh_nhmove.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -24,5 +24,5 @@ void binStringSol::applyMove(const nhmove &m)
 	data[qm.r] = !data[qm.r];
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

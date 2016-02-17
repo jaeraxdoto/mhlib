@@ -15,7 +15,7 @@
 #include "mh_stringsol.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Used crossover operator for string solutionosomes:
@@ -369,6 +369,6 @@ template <class T> unsigned long int stringSol<T>::hashvalue()
 	return h;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // MH_STRINGSOL_H

@@ -2,10 +2,10 @@
 
 #include "mh_feature.h"
 
-namespace mhlib {
+namespace mh {
 
 /// Penalty influence tuning parameter for GLS.
 double_param glsa("glsa","Penalty influence tuning parameter for GLS.", 0.5, 0, 1, UPPER_INCLUSIVE );
 
-} // end of namespace mhlib
+} // end of namespace mh
 

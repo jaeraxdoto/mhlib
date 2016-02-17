@@ -5,7 +5,7 @@
 #include "mh_fdc.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -92,5 +92,5 @@ void FitnessDistanceCorrelation::write(outStream &out, const string &fname)
 	}
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

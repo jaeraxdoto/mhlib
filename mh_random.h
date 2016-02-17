@@ -12,7 +12,7 @@
 #include "mh_c11threads.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Seed value for the random number generator.
@@ -185,7 +185,7 @@ unsigned random_intfunc(unsigned seed, unsigned x);
   section 7.5. */
 double random_doublefunc(unsigned seed, unsigned x);
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_RANDOM_H
 

@@ -9,7 +9,7 @@
 #include <string>
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** Writes an error message and exits.
 	This function is used to present an error message together with up
@@ -41,7 +41,7 @@ template < typename T > std::string tostring( const T& n )
 /** Returns a string stating the git version of the mhlib source. */
 std::string mhversion();
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif // MH_UTIL_H
 

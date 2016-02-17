@@ -2,7 +2,7 @@
 
 #include "mh_popbase.h"
 
-namespace mhlib {
+namespace mh {
 
 int_param popsize("popsize","size of the population",100,1,10000000);
 
@@ -25,5 +25,5 @@ pop_base::~pop_base()
 		delete phash;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

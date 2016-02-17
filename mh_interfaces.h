@@ -6,7 +6,7 @@
 
 #include "mh_tabulist.h"
 
-namespace mhlib {
+namespace mh {
 
 class mh_solution;
 class feature;
@@ -100,6 +100,6 @@ public:
 	virtual void greedyConstruct() = 0;
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_INTERFACES_H

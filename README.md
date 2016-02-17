@@ -85,6 +85,18 @@ Besides the actual C++ library, mhlib also contains
 
 ## Changelog: major changes over major releases ##
 
+### Version 4.3 ###
+
+All parts of the mhlib have been put under the new namespace "mh"; to
+compile programs using an older version of mhlib, include `using
+namespace "mh";` in your source. Diverse cleaning and improvements in
+demo applications, especially demo-sched. Exemplary scripts to use the
+automated parameter tuning software http://iridia.ulb.ac.be/irace have
+been added in directory irace. Major improvements and fixes in
+mh_scheduler (primarily already in versions 4.1 and 4.2). Cleaning and
+improvements in the documentation. Diverse
+further smaller improvements, which, however, should not affect compatibility.
+
 ### Version 4.0 ###
 
 A module mh_scheduler and corresponding demo program demo_sched have been introduced. This module unites and generalizes VND, VNS, GRASP, VLNS and related approaches and provides support for multithreading. It is still under development. Furthermore, some general modules have been refactored.

@@ -7,7 +7,7 @@
 #include "mh_advbase.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Should elitism be used?.
@@ -52,6 +52,6 @@ protected:
 	mh_solution **nextGeneration;  // used to build the next generation
 };
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_GENGA_H

@@ -5,7 +5,7 @@
 #include "mh_simanneal.h"
 #include "mh_util.h"
 
-namespace mhlib {
+namespace mh {
 
 /// Cooling-Slope
 double_param saca( "saca", "slope for geometric cooling", 0.95, 1.0, UPPER );
@@ -60,5 +60,5 @@ bool simulatedAnnealing::accept( mh_solution *o, mh_solution *n )
 	return random_prob( exp( -fabs( ( n->obj() - o->obj() ) / T ) ) );
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

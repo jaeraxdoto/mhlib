@@ -4,7 +4,7 @@
 #include <iomanip>
 #include "mh_pop.h"
 
-namespace mhlib {
+namespace mh {
 
 using namespace std;
 
@@ -166,5 +166,5 @@ void population::setAlgorithm(mh_base *alg)
 		chroms[i]->setAlgorithm(alg);
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 

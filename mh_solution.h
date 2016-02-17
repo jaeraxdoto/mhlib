@@ -12,7 +12,7 @@
 #include "mh_nhmove.h"
 #include "mh_param.h"
 
-namespace mhlib {
+namespace mh {
 
 /** \ingroup param
 	Should be maximized?
@@ -262,6 +262,6 @@ inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
 	sol.write(ostr); return ostr;
 }
 
-} // end of namespace mhlib
+} // end of namespace mh
 
 #endif //MH_SOLUTION_H

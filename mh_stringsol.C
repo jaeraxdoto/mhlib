@@ -2,7 +2,7 @@
 
 #include "mh_stringsol.h"
 
-namespace mhlib {
+namespace mh {
 
 int_param strxop("strxop","crossover operator for stringSol (0:random 1:uniform 2:multi-point)",
 	1,0,50);
@@ -17,5 +17,5 @@ int_param strxpts("strxpts","number of x-over points, for k-point crossover",
 template class stringSol<unsigned char>;
 template class stringSol<unsigned int>;
 
-} // end of namespace mhlib
+} // end of namespace mh
 
