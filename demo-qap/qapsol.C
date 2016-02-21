@@ -158,7 +158,7 @@ void qapSol::write(ostream &ostr,int detailed) const
 	ostr << endl;
 }
 
-void qapSol::save(const char *fname)
+void qapSol::save(const std::string &fname)
 {
 	char s[40];
 	sprintf(s,nformat(pgroup).c_str(),obj());
@@ -171,13 +171,13 @@ void qapSol::save(const char *fname)
 		of << data[i]+1 << ' ';
 	of << endl;
 	if (!of)
-		mherror("Cannot open file",fname);
+		mherror("Cannot write file",fname);
 }
 
-void qapSol::load(const char *fname)
+void qapSol::load(const string &fname)
 {
 	ifstream inf(fname);
-	int d;
+	double d;
 	if (!inf)
 		mherror("Cannot open file",fname);
 	inf >> d >> d;
@@ -185,8 +185,8 @@ void qapSol::load(const char *fname)
 	{
 		inf >> d;
 		if (!inf)
-			mherror("Cannot open file",fname);
-		data[i]=int(d-1);
+			mherror("Cannot read file",fname);
+		data[i]=int(d)-1;
 	}
 }
 

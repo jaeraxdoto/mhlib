@@ -98,8 +98,8 @@ public:
 	/** Calls a crossover method, controlled by the parameter strxop(). */
 	void crossover(const mh_solution &parA,const mh_solution &parB);
 	void write(std::ostream &ostr,int detailed=0) const;
-	void save(const char *fname);
-	void load(const char *fname);
+	void save(const std::string &fname);
+	void load(const std::string &fname);
 	/** Calculates a hash-value out of the binary string. */
 	unsigned long int hashvalue();
 	/** Returns the gene with given index. */
@@ -330,7 +330,7 @@ template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed) con
 		ostr << int(data[i]) << ' ';
 }
 
-template <class T> void stringSol<T>::save(const char *fname)
+template <class T> void stringSol<T>::save(const std::string &fname)
 {
 	std::ofstream of(fname);
 	if (!of)
@@ -342,7 +342,7 @@ template <class T> void stringSol<T>::save(const char *fname)
 		mherror("Cannot open file",fname);
 }
 
-template <class T> void stringSol<T>::load(const char *fname)
+template <class T> void stringSol<T>::load(const std::string &fname)
 {
 	std::ifstream inf(fname);
 	if (!inf)

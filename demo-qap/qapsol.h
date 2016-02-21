@@ -122,12 +122,12 @@ public:
 	
 		\param fname Filename for the solution to save..
 	*/
-	void save(const char *fname);
+	void save(const std::string &fname);
 	
 	/** Loads a solution from a file.
 		\param fname Filename of the solution to load.
 	*/
-	void load(const char *fname);
+	void load(const std::string &fname);
 	
 	/** Calculates a hash-value out of the permutation. */
 	unsigned long int hashvalue();

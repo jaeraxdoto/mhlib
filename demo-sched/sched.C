@@ -387,9 +387,12 @@ int main(int argc, char *argv[])
 
 		alg->run();		// run Scheduler until a termination condition is fulfilled
 		
-	    // p.write(out());	// write out final population
+		mh_solution *bestSol = p.bestSol();	// final solution
+
+	    // p.write(out(),1);	// write out final population in detailed form
 		if (sfile()!="")	// save best solution in file if sfile() given
-			p.bestSol()->save(sfile());
+			bestSol->save(sfile());
+
 		alg->printStatistics(out());	// write result & statistics
 
 		delete alg;

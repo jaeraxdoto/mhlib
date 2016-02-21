@@ -167,8 +167,8 @@ public:
 	/** Generic crossover operator.
 		Builds new genotype out of two given parents. Must 
 		call invalidate() when the genotype changes. */
-	virtual void crossover(const mh_solution &parA,const mh_solution &parB)
-	{ }
+	virtual void crossover(const mh_solution &parA,const mh_solution &parB) {
+		mherror("mh_solution::crossover: not implemented"); }
 	/** Locally improve the current solution.
 		Optional local improve the current solution.
 		Must call invalidate() when the genotype changes. */
@@ -188,13 +188,11 @@ public:
 		should be (0...least detailed). */
 	virtual void write(std::ostream &ostr,int detailed=0) const=0;
 	/** Saves a solution to a file. (Not necessarily needed.) */
-	virtual void save(const char *fname) {}
-	/** Saves a solution to a file. (Not necessarily needed.) */
-	void save(const std::string &fname) { save(fname.c_str()); }
+	virtual void save(const std::string &fname) { 
+		mherror("mh_solution::save: not implemented"); }
 	/** Loads a solution from a file. (Not necessarily needed.) */
-	virtual void load(const char *fname) {}
-	/** Loads a solution from a file. (Not necessarily needed.) */
-	void load(const std::string &fname) { load(fname.c_str()); }
+	virtual void load(const std::string &fname) { 
+		mherror("mh_solution::load: not implemented"); }
 	/** Compare the fitness.
 		returns true if the current solution is fitter than that
 		given as parameter. Takes care on parameter maxi. */
