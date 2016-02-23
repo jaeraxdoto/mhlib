@@ -9,6 +9,8 @@
 #include <string>
 #include "mh_param.h"
 
+/** The mhlib has this single namespace containing all its components.
+	Only the demo applications have their own namespaces. */
 namespace mh {
 
 /** Writes an error message and exits.
