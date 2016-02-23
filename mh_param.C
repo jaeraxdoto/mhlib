@@ -18,7 +18,7 @@ using namespace std;
 // pointer to begin of list
 param *param::list=0;
 
-param::param(const char *nam,const char *descr,
+param::param(const std::string &nam,const std::string &descr,
 	const paramValidator *val) :
 name(nam), description(descr), validator(val)
 {
@@ -26,7 +26,7 @@ name(nam), description(descr), validator(val)
 	param *p,*op=0;
 	for (p=list;p;op=p,p=p->next)
 	{
-		int c=strcmp(name,p->name);
+		int c=name.compare(p->name);
 		if (c<=0)
 		{
 			// place found
@@ -100,7 +100,7 @@ void param::parseArgs(int argc, char *argv[])
 	}
 }
 
-void param::setParam(const char nam[],const char sval[])
+void param::setParam(const std::string &nam,const std::string &sval)
 {
 	std::string rnam(nam);
 	std::string pgroup;
@@ -137,7 +137,7 @@ void param::setParam(const char nam[],const char sval[])
 		rnam.c_str(),sval);
 }
 
-void param::parseFile(const char fname[])
+void param::parseFile(const std::string &fname)
 {
 	std::ifstream ifil(fname);
 	if (!ifil)
@@ -181,12 +181,12 @@ void paramValidator::error(const param &par,const std::string pgroup) const
 { 
 	char buf[500];
 	if ( pgroup.empty() )
-		strcpy(buf,par.getName());
+		strcpy(buf,par.getName().c_str());
 	else
 	{
 		strcpy(buf,pgroup.c_str());
 		strcat(buf,".");
-		strcat(buf,par.getName());
+		strcat(buf,par.getName().c_str());
 	}
 	strcat(buf,"=\"");
 	strcat(buf,par.getStringValue(pgroup).c_str());

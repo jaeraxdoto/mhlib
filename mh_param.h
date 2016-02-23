@@ -85,7 +85,7 @@ class param
 public:
 	/** Register parameter with its name and description.
 		An optional validator can be provided. */
-	param(const char *nam,const char *descr,
+	param(const std::string &nam,const std::string &descr,
 		const paramValidator *val=0);
 	/// Write parameter with its value to an ostream.
 	virtual void print(std::ostream &os) const;
@@ -94,13 +94,13 @@ public:
 	/// Read value from istream.
 	virtual void read(std::istream &os, const std::string pgroup = "")=0;
 	/// Get parameter name as string.
-	const char *getName() const
+	const std::string &getName() const
 		{ return name; }
 	/// Get parameter value as string.
 	virtual std::string getStringValue(const std::string &pgroup = "" ) const =0;
 	/// Get default value as string.
 	virtual std::string getStringDefValue() const =0;
-	/// Checks value with optionally privided validator.
+	/// Checks value with optionally provided validator.
 	void validate( const std::string pgroup = "" ) const;
 	/** Writes out a helping message for the parameter
 		(with description, default value,...). */
@@ -113,9 +113,9 @@ public:
 	static void parseArgs(int argc,char *argv[]);
 	/** Set a parameter given by its name to a new value 
 		given by a string. */
-	static void setParam(const char nam[],const char sval[]);
+	static void setParam(const std::string &nam,const std::string &sval);
 	/// Read a parameter file.
-	static void parseFile(const char fname[]);
+	static void parseFile(const std::string &fname);
 	/// Destructor deletes owned validator.
 	virtual ~param() 
 		{ if (validator) delete validator; }
@@ -125,9 +125,9 @@ private:
 	// pointer for linear linking of objects
 	param *next;
 	// name of parameter
-	const char *name;
+	const std::string name;
 	// description for parameter
-	const char *description;
+	const std::string description;
 	// validator
 	const paramValidator *validator;
 };
@@ -223,22 +223,35 @@ template <class T> class gen_param : public param
 {
 public:
 	/** Register a parameter.
-		Most important for generating a parameter (without a valid
-		range of values). The description must be only a few words.
-		def is the default value. */ 
-	gen_param(const char *nam,const char *descr,const T &def) :
+		Used for generating a parameter without a valid
+		range of values. 
+		*/ 
+	gen_param(const std::string &nam,const std::string &descr,const T &def) :
 		param(nam,descr), value(def), defval(def) 
 		{ validate(); }
 	/** Register a parameter with a valid range;
-		A range check validator is automatically created. */
-	gen_param(const char *nam,const char *descr,const T &def,
+		A range check validator is automatically created. 
+		\param nam Short name of parameter, corresponding to variable name.
+		\param descr Short description (less than one line).
+		\param def Default value.
+		\param low Lower bound of allowed range of values.
+		\param high Upper bound of allowed range of values.
+		\param check The kind of bounds, i.e., inclusive or exclusive.
+		*/
+	gen_param(const std::string &nam,const std::string &descr,const T &def,
 		const T low,const T high,const rangecheck check=INCLUSIVE) :
 		param(nam,descr,new rangeValidator<T>(low,high,check)), 
 		value(def), defval(def)
 		{ validate(); }
 	/** Register a parameter with an unary check;
-		An unary check validator is automatically created. */
-	gen_param(const char *nam,const char *descr,const T &def,
+		An unary check validator is automatically created. 
+		\param nam Short name of parameter, corresponding to variable name.
+		\param descr Short description (less than one line).
+		\param def Default value.
+		\param value Value for unary check, i.e., lower or upper bound.
+		\param check Kind of bound specified by value.
+		*/
+	gen_param(const std::string &nam,const std::string &descr,const T &def,
 		const T value,const unarycheck check) :
 		param(nam,descr,new unaryValidator<T>(value,check)),
 		value(def), defval(def)
@@ -312,13 +325,13 @@ private:
 
 // typedefs for using int, double, bool and string parameters in an easy way:
 
-/** A global int parameter.  */
+/** A global int parameter. See template class #mh::gen_param for methods. */
 typedef gen_param<int> int_param;
-/// A global double parameter.
+/** A global double parameter. See template class #mh::gen_param for methods. */
 typedef gen_param<double> double_param;
-/// A global bool parameter.
+/** A global bool parameter. See template class #mh::gen_param for methods. */
 typedef gen_param<bool> bool_param;
-/// A global string parameter.
+/** A global string parameter. See template class #mh::gen_param for methods. */
 typedef gen_param<std::string> string_param;
 
 
