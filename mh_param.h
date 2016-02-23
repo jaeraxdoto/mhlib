@@ -225,6 +225,9 @@ public:
 	/** Register a parameter.
 		Used for generating a parameter without a valid
 		range of values. 
+		\param nam Short name of parameter, corresponding to variable name.
+		\param descr Short description (less than one line).
+		\param def Default value.
 		*/ 
 	gen_param(const std::string &nam,const std::string &descr,const T &def) :
 		param(nam,descr), value(def), defval(def) 
