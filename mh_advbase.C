@@ -302,10 +302,10 @@ void mh_advbase::printStatistics(ostream &ostr)
 	double tim = (_wctime ? (mhwctime() - timStart) : mhcputime());
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in iteration:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
 	best->write(ostr,0);

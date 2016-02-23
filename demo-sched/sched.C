@@ -90,6 +90,7 @@ void spendTime(double s=methdel()) {
 	}
 }
 
+#include <limits>
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 

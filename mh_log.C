@@ -69,12 +69,12 @@ void outStream::init(const string &fext, const string &fname, const string &fdir
 		isCoutFlag=false;
 		char name[400];
 		if (fdir!="")
-			sprintf(name, "%s/%s%s",
+			snprintf(name, sizeof(name), "%s/%s%s",
 				fdir.c_str(),
 				fname.c_str(),
 				fext.c_str());
 		else
-			sprintf(name, "%s%s",
+			snprintf(name, sizeof(name), "%s%s",
 				fname.c_str(),
 				fext.c_str());
 		str=new ofstream(name);
@@ -204,7 +204,7 @@ void logging::write(int val)
 void logging::write(double val)
 {
 	char s[40];
-	sprintf(s,nformat().c_str(),val);
+	snprintf(s,sizeof(s),nformat().c_str(),val);
 	curStream << delimiter << s;
 }
 

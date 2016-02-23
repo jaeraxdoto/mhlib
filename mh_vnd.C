@@ -176,7 +176,7 @@ void VND::printStatisticsVND(ostream &ostr)
 	for (int l = 1; l <= lmax; l++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
+		snprintf(tmp,sizeof(tmp),"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
 		l,nSearch[l],nSearchSuccess[l],
 		double(nSearchSuccess[l])/double(nSearch[l])*100.0,
 		double(sumSearchGain[l])/double(nSearch[l]),
@@ -196,10 +196,10 @@ void VND::printStatistics(ostream &ostr)
 	double tim=mhcputime();
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in generation:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);
@@ -263,7 +263,7 @@ void VNDStatAggregator::printStatisticsVND(ostream &ostr)
 	for (int l = 1; l <= lmax; l++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
+		snprintf(tmp,sizeof(tmp),"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
 		l,nSearch[l],nSearchSuccess[l],
 		double(nSearchSuccess[l])/double(nSearch[l])*100.0,
 		double(sumSearchGain[l])/double(nSearch[l]),

@@ -167,7 +167,7 @@ void VNS::printStatisticsShaking(ostream &ostr)
 	for (int k = 1; k <= kmax; k++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VNS-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%",
+		snprintf(tmp,sizeof(tmp),"VNS-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%",
 		k,nShake[k],nShakeSuccess[k],
 		double(nShakeSuccess[k])/double(nShake[k])*100.0,
 		double(sumShakeGain[k])/double(nShake[k]),
@@ -186,10 +186,10 @@ void VNS::printStatistics(ostream &ostr)
 	double tim=mhcputime();
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in generation:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);

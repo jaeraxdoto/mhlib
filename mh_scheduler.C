@@ -321,8 +321,8 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
 	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
 	for (unsigned int k = 0; k < methodPool.size(); k++) {
-		char tmp[200];
-		sprintf(tmp,"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
+		char tmp[250];
+		snprintf(tmp,sizeof(tmp),"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
@@ -347,10 +347,10 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in iteration:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
 	best->write(ostr,0);
