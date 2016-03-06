@@ -50,12 +50,17 @@ improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Pr
 
 Besides the actual C++ library, mhlib also contains 
 
-- **demo-sched**: A demonstration program using mhlib and in particular its
-  mh_scheduler module for solving the ONEMAX and ONEPERM problems by means
-  of variable neighborhood search (VNS). This demo should be used as
-  template for new applications realizing a VNS, VND, GRASP, or Large
-  Neighborhood Search. It also supports multi-threading, for which the
-  demo also contains a test function.
+- **demo-maxsat**: A template/demonstration program using mhlib and in
+  particular its mh_scheduler module for solving the MAXSAT problem by
+  means of generalized variable neighborhood search (GVNS). This demo
+  should be used as template for new applications realizing a VNS, VND,
+  GVNS, GRASP, Large Neighborhood Search and related (hybrid) metaheuristics.
+  It also supports multi-threading.
+
+- **demo-sched**: Another demo program using mhlib and in particular its
+  mh_scheduler module for solving the ONEMAX and ONEPERM problems by
+  means of variable neighborhood search (VNS).  This program also
+  includes some specific functions for testing multithreading.
 
 - **summary.pl**: A Perl script used to statistically summarize many runs
   over many instances.
