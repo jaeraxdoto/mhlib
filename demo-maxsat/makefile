@@ -1,4 +1,4 @@
-# makefile for building this application
+# makefile for building thid application
 
 # default location of MHLIB is parent directory
 ifndef MHLIB
@@ -8,11 +8,11 @@ endif
 include $(MHLIB)/makefile.common
 CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
-EXE=onemax
+EXE=maxsat
 
 HEADERS=
 
-SRCS=onemax.C
+SRCS=maxsat.C maxsat_inst.C maxsat_sol.C
 
 OBJS=$(SRCS:.C=.o)
 

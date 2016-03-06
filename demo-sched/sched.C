@@ -21,17 +21,13 @@
 #include "mh_util.h"
 #include "mh_param.h"
 #include "mh_random.h"
-//#include "mh_allalgs.h"
-
 #include "mh_pop.h"
 #include "mh_advbase.h"
 #include "mh_log.h"
-//#include "mh_interfaces.h"
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
-
-#include "mh_c11threads.h"
 #include "mh_scheduler.h"
+#include "mh_c11threads.h"
 
 using namespace std;
 using namespace mh;
@@ -63,16 +59,17 @@ string_param ifile("ifile","problem instance file name","");
 string_param sfile("sfile","name of file to save solution to","");
 
 /** \ingroup param
-	Number of construction heuristics. */
-int_param constheus("constheus","number of construction heuristics",1,0,10000);
+	Number of construction heuristics. This parameter is just to demonstrate
+	that multiple construction heuristics can be used. */
+int_param methsch("methsch","number of construction heuristics",1,0,100000);
 
 /** \ingroup param
-	Number of VND shaking neighborhoods. */
-int_param vndnhs("vndnhs","number of VND neighborhoods",0,0,10000);
+	Number of local search (VND) methods (neighborhoods). */
+int_param methsls("methsls","number of local search methods",1,0,1000);
 
 /** \ingroup param
-	Number of VNS shaking neighborhoods. */
-int_param vnsnhs("vnsnhs","number of VNS neighborhoods",5,0,10000);
+	Number of shaking (VNS) methods (neighborhoods). */
+int_param methssh("methssh","number of shaking methods",5,0,10000);
 
 /** \ingroup param
 	A value in seconds by which each method is delayed by active waiting
@@ -90,7 +87,6 @@ void spendTime(double s=methdel()) {
 	}
 }
 
-#include <limits>
 
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
@@ -298,13 +294,13 @@ using namespace sched;
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
 template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
-	for (int i=1;i<=constheus();i++)
+	for (int i=1;i<=methsch();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
 			&SolClass::construct,i,0));
-	for (int i=1;i<=vndnhs();i++)
+	for (int i=1;i<=methsls();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
 			&SolClass::localimp,i,1));
-	for (int i=1;i<=vnsnhs();i++)
+	for (int i=1;i<=methssh();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("shake"+tostring(i),
 			&SolClass::shaking,i,1));
 }
@@ -321,7 +317,7 @@ int main(int argc, char *argv[])
 	try 
 	{
 		// Probably set some parameters to new default values
-		//pmut.setDefault(2);
+		maxi.setDefault(1);
 		popsize.setDefault(1);
 		
 		// parse arguments and initialize random number generator
@@ -379,7 +375,7 @@ int main(int argc, char *argv[])
 
 		// generate the Scheduler and add SchedulableMethods
 		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,constheus(),vndnhs(),vnsnhs());
+		alg=new GVNSScheduler(p,methsch(),methsls(),methssh());
 		switch (prob()) {
 		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
 		case 1: registerSchedulerMethods<onePermSol>(alg); break;

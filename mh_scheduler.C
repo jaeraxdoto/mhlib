@@ -464,9 +464,10 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	}
 	// perform next shaking method
 	if (!shakingnh[0]->empty()) {
-		// if the worker's method is NULL, i.e. no construction method has been scheduled before
-		// for this worker, check if globally a solution has already been constructed by some worker.
-		if(worker->method == NULL) {
+		// if the worker's method is NULL and no local improvement methods are available,
+		// this means that no construction method has been scheduled before for this worker,
+		// then check if globally a solution has already been constructed by some worker.
+		if(worker->method == NULL && locimpnh[0]->empty()) {
 			if(!initialSolutionExists)
 				return;	// no, then there is no need to schedule an improvement method, yet.
 			else {
