@@ -25,6 +25,9 @@ public:
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
 	void applyMove(const nhmove &m);
+	/** Performs a best improvement k-flip local search, returning
+	    true if an improved solution has been found. */
+	bool k_flip_localsearch(int k);
 };
 
 } // end of namespace mh

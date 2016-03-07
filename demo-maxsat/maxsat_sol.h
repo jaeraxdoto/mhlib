@@ -21,6 +21,9 @@ namespace maxsat {
   It is derived from mh_solution so that the algorithms
   within mhlib can deal with it. Here, we derive it more specifically from
   binStringSol, which implements methods for dealing with binary strings.
+  Note that while in binStringSol the variables are indexed from 0 on,
+  MAXSATInst assumes variables to be indexed from 1 on, and therefore
+  a corresponding transformation is done in the objective function.
  */
 class MAXSATSol : public mh::binStringSol {
 public:
@@ -50,10 +53,9 @@ public:
 	double objective();
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly. Returns true as the solution
-	 * has (most likely) changed.
-	 */
+	 * has (most likely) changed. */
 	bool construct(int k);
-	/** A local improvement function which currently does nothing. */
+	/** A best improvement local search in the k-flip neighborhood. */
 	bool localimp(int k);
 	/** A simple shaking method: Flip k randomly chosen positions. */
 	bool shaking(int k);

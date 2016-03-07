@@ -37,12 +37,12 @@ bool MAXSATSol::construct(int k) {
 bool MAXSATSol::localimp(int k)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return false;	// no change
+	return k_flip_localsearch(k);
 }
 
 bool MAXSATSol::shaking(int k)
 {
-	mutate(k);
+	mutate_flip(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
 	return true;		// solution changed in general
 }

@@ -33,5 +33,5 @@
 # mutation        "--mutation="        o  ("none", "very low", "low", "medium", "high", "very high", "all")
 #unused         "-u "                c  (1, 2, 10, 20)
 
-vnsnhs		"vnsnhs "	i	(1,5)
+methssh		"methssh "	i	(1,5)
 
