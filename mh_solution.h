@@ -153,7 +153,7 @@ public:
 		This method finally calls mutate(int count) with the
 		number of mutations that should actually be performed, if
 		count>0.  Does not call invalidate() itself. This is
-		expected to be done in mutate when the genotype is actually
+		expected to be done in mutate when the solution is actually
 		changed.  Returns the number of actually performed
 		mutations.  Need usually not to be overloaded in a derived
 		class. */
@@ -161,17 +161,17 @@ public:
 	/** Actual mutation function which must be overloaded
 	    when implementing mutation.
 		Perform the given number of mutations and call invalidate()
-		if the genotype changes. */
+		if the solution changes. */
 	virtual void mutate(int count)
 	{ }
 	/** Generic crossover operator.
-		Builds new genotype out of two given parents. Must 
-		call invalidate() when the genotype changes. */
+		Builds new solution out of two given parental solutions. Must
+		call invalidate() when the solution changes. */
 	virtual void crossover(const mh_solution &parA,const mh_solution &parB) {
 		mherror("mh_solution::crossover: not implemented"); }
 	/** Locally improve the current solution.
 		Optional local improve the current solution.
-		Must call invalidate() when the genotype changes. */
+		Must call invalidate() when the solution changes. */
 	virtual void locallyImprove()
 	{ }
 	/** Reproduce a solution from a parent.
@@ -193,22 +193,22 @@ public:
 	/** Loads a solution from a file. (Not necessarily needed.) */
 	virtual void load(const std::string &fname) { 
 		mherror("mh_solution::load: not implemented"); }
-	/** Compare the fitness.
-		returns true if the current solution is fitter than that
-		given as parameter. Takes care on parameter maxi. */
+	/** Returns true if the current solution is better in terms
+		of the objective function than the one
+		given as parameter. Takes care on parameter mh::maxi. */
 	bool isBetter(mh_solution &p)
 		{ return maxi(pgroup)?obj()>p.obj():
 			obj()<p.obj(); }
-	/** Compare the fitness.
-		returns true if the current solution is worse than that
-		given as parameter. Takes care on parameter maxi. */
+	/** Returns true if the current solution is worse in terms
+		of the objective function than the one
+		given as parameter. Takes care on parameter mh::maxi. */
 	bool isWorse(mh_solution &p)
 		{ return maxi(pgroup)?obj()<p.obj():
 			obj()>p.obj(); }
 	/** Invalidates the solution.
 		Sets objval to be invalid. During the next call to obj(), the
 		solution is evaluated anew. Must be called when the
-		genotype changes. */
+		solution changes. */
 	void invalidate()
 		{ objval_valid=false; }
 	/** Hashing function.
