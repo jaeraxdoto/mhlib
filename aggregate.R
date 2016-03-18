@@ -6,10 +6,36 @@
 # from two different algorithms on the same instances, and they are compared
 # including a Wilcoxon rank sum test
 #
+# Important: For the aggregation to work correctly, adapt in particular
+# below definitions of categ, categ2 and categbase according to your
+# conventions for the filenames encoding instance and run information.
+#
 # Consider this R script more as an example or template. It is adopted
 # from the BBSS project and contains some quite specific functions for 
 # this particular project which are not meaningful for other
 # projects.
+
+
+#--------------------------------------------------------------------------------
+# determine the category name to aggregate over from the given file name
+
+# for aggregating a single table of raw data: 
+# return category name for a given filen name
+#categ <- function(x) sub("^(.*B_)(.*)_(.*)_(.*)_(.*)_([^-]*)(-.*)?.out","\\1\\2_\\5_\\6",x,perl=TRUE)
+#categ <- function(x) sub("^(.*)/.*(T.*)-(.*)___etherapy(.*)_it(.*).res","\\1\\2_\\3",x,perl=TRUE)
+categ <- function(x) sub("^(.*)/(T.*)-(.*)_(.*).res","\\1/\\2-\\3",x,perl=TRUE)
+
+# for aggregating two tables corresponding to two different
+# configurations that shall be compared:
+# return category name for a given filen name
+#categ2 <- function(x) sub("^.*(B_.*)_(.*)_(.*)_(.*)_([^-]*)(-.*)?.out","\\1_\\2_\\4_\\5",x,perl=TRUE)
+categ2 <- function(x) sub("^(.*)/(T.*)-(.*)_(.*).res","\\2-\\3",x,perl=TRUE)
+
+# for aggregating two tables corresponding to two different configurations that shall be compared
+# return detailed name of run (basename) that should match a corresponding one
+# of the other configuration
+# categbase <- function(x) sub("^.*B_([^-]*)(-00)?(-.*)?\\.out","\\1\\3",x,perl=TRUE)
+categbase <- function(x) sub("^.*/(T.*)-(.*)_(.*).res","\\1-\\2-\\3",x,perl=TRUE)
 
 
 options(width=10000) # default line width for print, i.e., do not break lines
@@ -36,15 +62,9 @@ printagg_exact <- function (a) {
   write.table(a,quote=FALSE) 
 }
 
-# determine the category name to aggregate over from the given file name
-categ <- function(x) sub("^(.*B_)(.*)_(.*)_(.*)_(.*)_([^-]*)(-.*)?.out","\\1\\2_\\5_\\6",x,perl=TRUE)
-categ2 <- function(x) sub("^.*(B_.*)_(.*)_(.*)_(.*)_([^-]*)(-.*)?.out","\\1_\\2_\\4_\\5",x,perl=TRUE)
-# determine basename of file name
-categbase <- function(x) sub("^.*B_([^-]*)(-00)?(-.*)?\\.out","\\1\\3",x,perl=TRUE)
-
 
 #-------------------------------------------------------------------------
-# Aggregation of one CSV-file obtained from heu_sum.pl
+# Aggregation of one CSV-file obtained from summary.pl
 
 # determine aggregated results for one raw table
 aggregate <- function(rawdata,categfactor=factor(sapply(as.vector(rawdata$file),categ))) {
@@ -153,7 +173,7 @@ agg_print <- function(rawdata) {
 }
 
 #-------------------------------------------------------------------------
-# Aggregation and comparison of two CSV-files obtained from heu_sum.pl
+# Aggregation and comparison of two CSV-files obtained from summary.pl
 
 #library(BSDA)
 
@@ -253,7 +273,7 @@ boxplotalpha <- function(x,df) {
 }
 
 evalalpha <- function() {
-  # system("./heu_sum.pl -f petrina/grasp/test_alpha*/*/*out > grasp-alpha.csv")
+  # system("./summary.pl -f petrina/grasp/test_alpha*/*/*out > grasp-alpha.csv")
   grasp.alpha <- readraw("grasp-alpha.csv")
   grasp.alpha$alpha <- sapply(grasp.alpha$file,getalpha)
   grasp.alpha$class <- sapply(grasp.alpha$file,categbasealpha)

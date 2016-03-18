@@ -42,7 +42,7 @@ sub processlist
 					{ $itbest=$1 }
 				if ($_=~/^solution time for best:\s(\d+.?\d*)$/) 
 					{ $tbest=$1; }
-				if ($_=~/^CPU-time:\s(\d+.?\d*)$/) 
+				if ($_=~/^CPU time:\s(\d+.?\d*)/) 
 					{ $ttot=$1; }
 				if ($_=~/^iterations:\s(\d+.?\d*)$/) 
 					{ $ittot=$1; $resfound=1; }
