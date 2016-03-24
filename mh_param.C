@@ -83,8 +83,8 @@ void param::parseArgs(int argc, char *argv[])
 {
 	if (argc>=2 && !strcmp(argv[1],"-h"))
 	{
-		param::printAllHelp(cerr);
-		exit(-1);
+		param::printAllHelp(cout);
+		exit(0);
 	}
 	if (argc%2!=1)
 		mherror("Uneven number of parameters in command line");
