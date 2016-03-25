@@ -11,9 +11,9 @@ namespace mh {
 
 using namespace std;
 
-bool_param vndlog("vndlog","Logging is performed in VND",false);
+bool_param vndlog("vndlog","logging is performed in VND",false);
 
-int_param vndnum("vndnum","Max. number of VND neighborhood to be used",10000,0,10000);
+int_param vndnum("vndnum","max. number of VND neighborhood to be used",10000,0,10000);
 
 int_param vndorder("vndorder","VND nb-order 0:static, 1:random, 2:adaptive",0,0,2);
 

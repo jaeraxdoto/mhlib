@@ -108,7 +108,7 @@ public:
 		will only use the first chromosome. 
 		If no NBStructureOrder object is provided, the VND creates
 		its own static one. */
-	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=NULL);
+	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=nullptr);
 	/** The destructor. */
 	virtual ~VND() 
 	{

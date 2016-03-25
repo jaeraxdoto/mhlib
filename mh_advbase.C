@@ -27,8 +27,7 @@ double_param pmut("pmut","mutation probability",-1.0,-2000.0,1000.0);
 double_param plocim("plocim","probability for applying local improvement",
 	0.0,0.0,1.0);
 
-int_param tcond("tcond","(DEPRICATED) term. crit. (0:gens, 1:conv, 2:obj,\
--1:auto)",-1,-1,2);
+int_param tcond("tcond","(DEPRICATED) term. crit. 0:gens, 1:conv, 2:obj, -1:auto",-1,-1,2);
 
 int_param tciter("tciter","termination on convergence iterations",-1,-1,100000000);
 
@@ -40,7 +39,7 @@ double_param ttime("ttime","time limit for termination (in seconds)" ,-1.0, -1.0
 
 int_param tselk("tselk","group size for tournament selection",2,1,10000);
 
-int_param repl("repl","replacement scheme (0:random, 1:worst, -k:TS)",
+int_param repl("repl","replacement scheme 0:random, 1:worst, -k:TS",
 	1,-1000,1);
 
 bool_param ldups("ldups","log number of eliminated dupslicates",false);
@@ -84,8 +83,8 @@ mh_advbase::mh_advbase(pop_base &p, const string &pg) : mh_base(pg)
 
 mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 {
-	pop=NULL;
-	tmpSol=NULL;
+	pop=nullptr;
+	tmpSol=nullptr;
 	nIteration=0;
 	nSubIterations=0;
 	nSelections=0;
@@ -109,7 +108,7 @@ mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 mh_advbase *mh_advbase::clone(pop_base &p, const string &pg)
 {
 	mherror("clone in class derived from mh_advbase not supported");
-	return NULL;
+	return nullptr;
 }
 
 mh_advbase::~mh_advbase()
@@ -362,7 +361,7 @@ void mh_advbase::writeLogHeader()
 
 void mh_advbase::checkPopulation()
 {
-	if (pop==NULL)
+	if (pop==nullptr)
 		mherror("No population set");
 }
 
@@ -383,7 +382,7 @@ void mh_advbase::checkBest()
 
 void mh_advbase::addStatistics(const mh_advbase *a)
 {
-	if ( a!=NULL )
+	if ( a!=nullptr )
 	{
 		nSubIterations    += a->nIteration+a->nSubIterations;
 		nSelections        += a->nSelections;

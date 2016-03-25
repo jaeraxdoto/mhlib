@@ -36,7 +36,7 @@ class simulatedAnnealing : public lsbase
 {
 protected:
 	/** Temperature of the annealing process. */
-	double T;
+	double T=0;
 
 public:
 	/** The constructor.

@@ -10,7 +10,7 @@ int_param tlsize( "tlsize", "length of tabulists", 10, 1, LOWER_EQUAL );
 
 void tabulist::add( tabuAttribute *t )
 {
-	if ( t!=NULL )
+	if ( t!=nullptr )
 	{
 		tabulist_entry n( t );
 		tlist[n]++;
@@ -30,7 +30,7 @@ void tabulist::add( tabuAttribute *t )
 
 bool tabulist::match( const tabuAttribute *t )
 {
-	if ( t!=NULL )
+	if ( t!=nullptr )
 	{
 		tabulist_entry n( t );
 		return ( tlist.count( n ) > 0 );

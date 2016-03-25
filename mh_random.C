@@ -78,7 +78,7 @@ void mh_randomNumberGenerator::random_seed(unsigned int lseed)
 		while(lseed == 0) 
 		{
 			unsigned long int tmp;
-			unsigned long tim = time(NULL);
+			unsigned long tim = time(nullptr);
 			timeb tb;
 			ftime(&tb);
 

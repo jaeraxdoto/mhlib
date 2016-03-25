@@ -78,14 +78,14 @@ void SchedulerWorker::run() {
 					}
 					scheduler->mutex.unlock(); // End of atomic operation
 
-					if(method == NULL) {	// no method could be scheduled
+					if(method == nullptr) {	// no method could be scheduled
 						if(scheduler->finish) // should the algorithm be terminated due to exhaustion of all available methods
 							break;
 						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
 							break;
 						wait = true; // else, wait for other threads
 					}
-				} while (method == NULL);
+				} while (method == nullptr);
 
 				if (scheduler->finish) // if in the meanwhile, termination has been started, terminate this thread as well
 					break;
@@ -145,7 +145,7 @@ void SchedulerWorker::run() {
 						scheduler->mutex.unlock();
 					}
 
-					if(method == NULL)
+					if(method == nullptr)
 						continue;
 					if(terminate)
 						break;
@@ -213,7 +213,7 @@ void SchedulerWorker::run() {
 //--------------------------------- Scheduler ---------------------------------------------
 
 Scheduler::Scheduler(pop_base &p, const std::string &pg)
-		: mh_advbase(p, pg), callback(NULL), finish(false) {
+		: mh_advbase(p, pg), callback(nullptr), finish(false) {
 	_schthreads = schthreads(pgroup);
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
@@ -275,7 +275,7 @@ void Scheduler::run() {
 bool Scheduler::terminate() {
 	if (finish)
 		return true;
-	if (callback != NULL && callback(pop->bestObj())) {
+	if (callback != nullptr && callback(pop->bestObj())) {
 		finish = true;
 		return true;
 	}
@@ -365,7 +365,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 
 SchedulerMethod *SchedulerMethodSelector::select() {
 	if (methodList.empty())
-		return NULL;
+		return nullptr;
 	switch (strategy) {
 	case MSSequential:
 	case MSSequentialOnce:
@@ -373,7 +373,7 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 			if (strategy == MSSequential)
 				lastMethod = 0;
 			else
-				return NULL;	// MSSequentialOnce
+				return nullptr;	// MSSequentialOnce
 		}
 		else
 			lastMethod++;
@@ -383,7 +383,7 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		return scheduler->methodPool[methodList[random_int(methodList.size())]];
 	case MSRandomOnce: {
 		if (unsigned(lastMethod) == methodList.size()-1)
-			return NULL;	// no more methods
+			return nullptr;	// no more methods
 		lastMethod++;
 		// Choose randomly a not yet selected method and swap it to position lastMethod
 		int r = random_int(lastMethod, methodList.size()-1);
@@ -400,12 +400,12 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 	default:
 		mherror("Invalid strategy in SchedulerMethodSelector::select",tostring(strategy));
 	}
-	return NULL;
+	return nullptr;
 }
 
 SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 	if (lastMethod == -1)
-		return NULL;
+		return nullptr;
 	else
 		return scheduler->methodPool[methodList[lastMethod]];
 }
@@ -448,15 +448,15 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 
 	// perform a construction method, either, because there is still a method available that
 	// has not been applied, yet, or because the worker has just been created.
-	if (!constheu.empty() && (worker->method == NULL || constheu.hasFurtherMethod())) {
+	if (!constheu.empty() && (worker->method == nullptr || constheu.hasFurtherMethod())) {
 		worker->method = constheu.select();
-		if(worker->method != NULL)
+		if(worker->method != nullptr)
 			return;
 	}
 	if (!locimpnh[0]->empty()) {
 		// choose next local improvement method
 		worker->method = locimpnh[worker->id]->select();
-		if (worker->method != NULL)
+		if (worker->method != nullptr)
 			return;
 		else
 			// all local improvement methods applied to this solution, VND done
@@ -464,10 +464,10 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	}
 	// perform next shaking method
 	if (!shakingnh[0]->empty()) {
-		// if the worker's method is NULL and no local improvement methods are available,
+		// if the worker's method is nullptr and no local improvement methods are available,
 		// this means that no construction method has been scheduled before for this worker,
 		// then check if globally a solution has already been constructed by some worker.
-		if(worker->method == NULL && locimpnh[0]->empty()) {
+		if(worker->method == nullptr && locimpnh[0]->empty()) {
 			if(!initialSolutionExists)
 				return;	// no, then there is no need to schedule an improvement method, yet.
 			else {
@@ -477,7 +477,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 			}
 		}
 		worker->method = shakingnh[worker->id]->select();
-		if (worker->method != NULL) {
+		if (worker->method != nullptr) {
 			worker->shakingStartTime = (_wctime ? (mhwctime() - timStart) : mhcputime());
 			return;
 		}
@@ -486,7 +486,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 	// there exists no more method whose scheduling would be meaningful.
 	// -> initiate termination
 	finish = true;
-	worker->method = NULL;
+	worker->method = nullptr;
 	return;
 }
 
@@ -604,7 +604,7 @@ void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double metho
 
 void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
-	if (sm != NULL) {
+	if (sm != nullptr) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
 		totTime[idx] += ((_wctime ? (mhwctime() - timStart) : mhcputime()) - worker->shakingStartTime);
 		nIter[idx]++;

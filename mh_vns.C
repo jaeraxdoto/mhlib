@@ -11,7 +11,7 @@ namespace mh {
 
 using namespace std;
 
-int_param vnsnum("vnsnum", "Maximum number of VNS neighborhood used",10000,0,10000);
+int_param vnsnum("vnsnum", "maximum number of VNS neighborhood used",10000,0,10000);
 
 int_param vnsorder("vnsorder","VNS nb-order 0:static, 1:random, 2:adaptive",0,0,2);
 

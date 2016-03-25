@@ -205,7 +205,7 @@ public:
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
-		method = NULL;
+		method = nullptr;
 		startTime = 0;
 		tmpSol = sol->clone();
 		tmpSolObjChange = OBJ_NONE;
@@ -254,9 +254,9 @@ class SchedulerMethodSelector {
 public:
 	/** Different strategies for selecting a method from a method pool:
 	 * - MSSequential: choose one after the other in the given order, then restarting again with first
-	 * - MSSequentialOnce: choose one after the other, each just once, and then return NULL
+	 * - MSSequentialOnce: choose one after the other, each just once, and then return nullptr
 	 * - MSRandom: uniform random selection
-	 * - MSRandomOnce: uniform random selection, but each just once; finally return NULL
+	 * - MSRandomOnce: uniform random selection, but each just once; finally return nullptr
 	 * - MSSelfadaptive: random selection with self-adaptive probabilities */
 	enum MethodSelStrat { MSSequential, MSSequentialOnce, MSRandom, MSRandomOnce, MSSelfadaptive };
 
@@ -313,7 +313,7 @@ public:
 		return lastMethod < int(methodList.size())-1;
 	}
 
-	/** Returns the last selected method or NULL if none has been selected yet. */
+	/** Returns the last selected method or nullptr if none has been selected yet. */
 	SchedulerMethod *getLastMethod();
 };
 
@@ -341,7 +341,7 @@ protected:
 
 	/**
 	 * Optional function pointer to a callback function passed by the interface.
-	 * This function (if != NULL)  is called periodically during the optimization, in particular each time
+	 * This function (if != nullptr)  is called periodically during the optimization, in particular each time
 	 * a method returns.
 	 * The objective value of the currently best known solution is passed as an argument and
 	 * it returns an integer value that should indicate, if the optimization shall be stopped (1)
@@ -449,13 +449,13 @@ public:
 	/** Cloning is prohibited for the scheduler. */
 	virtual Scheduler* clone() const {
 		mherror("Scheduler cannot be cloned");
-		return NULL;
+		return nullptr;
 	}
 
 	/* Set a callback method, which is then periodically called with the currently best objective value
 	 * during the optimization, whenever a method returs.  If it returns 1 the optimization will stop.
-	 * Initially, no callback method is set, i.e., callback=NULL. */
-	void setCallback(bool (*_callback)(double) = NULL) {
+	 * Initially, no callback method is set, i.e., callback=nullptr. */
+	void setCallback(bool (*_callback)(double) = nullptr) {
 		callback = _callback;
 	}
 
@@ -507,7 +507,7 @@ public:
 	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
 	 * If currently nothing further can be done, possibly because other threads have to
-	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
+	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
 	 */
@@ -613,7 +613,7 @@ public:
 	/** Cloning is not implemented for this class. */
 	virtual GVNSScheduler* clone() const {
 		mherror("Cloning not implemented in VNSScheduler");
-		return NULL;
+		return nullptr;
 	}
 
 	/** Cleanup: delete SchedulerMethodSelectors. */
@@ -631,7 +631,7 @@ public:
 	 * the selection follows the order of the shaking and local improvement methods defined in the VNS
 	 * and the embedded VND.
 	 * If currently nothing further can be done, possibly because other threads have to
-	 * finish first, the method pointer in worker is set to NULL and nothing further is changed.
+	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
      */

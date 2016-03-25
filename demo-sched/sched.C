@@ -38,7 +38,7 @@ namespace sched {
 /** \ingroup param
 	The problem to be solved, which is either the ONEMAX problem or
 	the ONEPERM problem. */
-int_param prob("prob","problem to be solved (0:ONEMAX,1:ONEPERM)",0,0,1);
+int_param prob("prob","problem to be solved 0:ONEMAX,1:ONEPERM",0,0,1);
 
 /** \ingroup param
 	Number of variables in the ONEMAX/ONEPERM problem, i.e., the length of the
@@ -232,7 +232,7 @@ double onePermSol::objective()
 //--------- Test for multithreading ---------------------------------
 
 /** Problem specific parameters (the number of variables). */
-int_param threadstest("threadstest","Test mutlithreading before starting actual application",false);
+int_param threadstest("threadstest","test mutlithreading before starting actual application",false);
 
 std::mutex mymutex;
 
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
 		}
 
 		// generate a template solution of the problem specific class
-		mh_solution *tsol = NULL;
+		mh_solution *tsol = nullptr;
 		switch (prob()) {
 		case 0: tsol = new oneMaxSol; break;
 		case 1: tsol = new onePermSol; break;

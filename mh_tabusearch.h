@@ -22,11 +22,11 @@ protected:
 	/** The current active chromosome.
 	        This must not necessarily be the best known chromosome so
 		far, therefore it is not in the population. */
-	mh_solution *curChrom = NULL;
+	mh_solution *curChrom = nullptr;
 	
 public:
 	/** A tabulist containing tabuattributes which are tabu. */
-	tabulist *tl_ne = NULL;
+	tabulist *tl_ne = nullptr;
 
 	/** The constructor.
 	        An initialized population already containing chromosomes 

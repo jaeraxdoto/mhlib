@@ -65,7 +65,7 @@ private:
 	
 public:
 	/// The constructor.
-	glsSubAlgorithm() : gls(NULL) {}
+	glsSubAlgorithm() : gls(nullptr) {}
 	/** Augmented objective function.
 	        This function returns the additional part of the augmented
 		objective function depending on the passed chromosome. */

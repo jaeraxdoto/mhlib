@@ -10,7 +10,7 @@ namespace mh {
 
 int_param islk("islk","island count",4,2,100);
 
-int_param migr("migr","migration strategy: 0:best, 1:none",0,0,1);
+int_param migr("migr","migration strategy 0:best, 1:none",0,0,1);
 
 double_param pmig("pmig","migration probability",0.001,0.0,1.0);
 

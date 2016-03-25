@@ -46,10 +46,10 @@ public:
 	std::vector<FitDist> vals;
 
 	// values determined by perform():
-	double favg;	///< average value of fitness values
-	double davg;	///< average value of distances to optimum
-	double corr;	///< correlation coefficient	
-	double distbetween;	///< average distance between samples
+	double favg=0;	///< average value of fitness values
+	double davg=0;	///< average value of distances to optimum
+	double corr=0;	///< correlation coefficient
+	double distbetween=0;	///< average distance between samples
 
 	/// The constructor
 	FitnessDistanceCorrelation( const std::string &pg="") : pgroup(pg) {};
@@ -57,14 +57,14 @@ public:
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
 		 values and distances to the given optimum solution in
-		 vals. If optfile is not NULL, the optimum solution is read
+		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
 	double perform(mh_solution *opt, const std::string &optfile, int n);
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
 		 values and distances to the given optimum solution in
-		 vals. If optfile is not NULL, the optimum solution is read
+		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
 	double perform(mh_solution *opt, const std::string &optfile)
@@ -72,7 +72,7 @@ public:
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
 		 values and distances to the given optimum solution in
-		 vals. If optfile is not NULL, the optimum solution is read
+		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
 	double perform(mh_solution *opt)
@@ -80,12 +80,12 @@ public:
 	
 	/** Writes out a message with the correlation coefficient of the
 		last performed FDC and the fitness/distance-pairs to a file
-		with the given name (if not NULL). */
+		with the given name (if not nullptr). */
 	void write(outStream &out, const std::string &fname);
 	
 	/** Writes out a message with the correlation coefficient of the
 		last performed FDC and the fitness/distance-pairs to a file
-		with the given name (if not NULL). */
+		with the given name (if not nullptr). */
 	void write(outStream &out)
 		{ write( out, fdcfile(pgroup) ); }
 	

@@ -26,11 +26,11 @@ class guidedLS : public lsbase
 {
 protected:
 	/** The actual feature object. */
-	feature *f;
+	feature *f=NULL;
 	/** The subpopulation for the inner algorithm. */
-	pop_base *spop;
+	pop_base *spop=NULL;
 	/** The actual tuned penalty influence. */
-	double lambda;
+	double lambda=0;
 
 public:
 	/** The constructor.

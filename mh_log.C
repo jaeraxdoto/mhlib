@@ -21,7 +21,7 @@ string_param logext("logext","extension for log file",".log");
 
 int_param lfreq("lfreq","frequency for writing log entries",1);
 
-int_param lchonly("lchonly","log only(1)/always(2), when best obj.val. changes",
+int_param lchonly("lchonly","log in dependence of obj. val.: 0:always, 1:only if new best, 2: any change",
 		  1,0,2);
 
 int_param lbuffer("lbuffer","number of log entries that are buffered",10,1,
@@ -94,7 +94,7 @@ outStream::~outStream()
 void logging::init()
 {
 	curIter = 0;
-	buffer_first=buffer_last=NULL;
+	buffer_first=buffer_last=nullptr;
 }
 
 logging::~logging()
@@ -142,8 +142,6 @@ void logging::emptyEntry()
 
 bool logging::shouldWrite(int gen,double bestobj,bool inAnyCase)
 {
-	static bool previous=false;
-	static double prevobj;
 	if (lfreq()==0)
 		return false;
 	if (inAnyCase)
@@ -215,10 +213,9 @@ void logging::write(const char *val)
 
 void logging::finishEntry()
 {
-	static int lastflush=0;
 	// append curStream to buffer
 	log_entry *p=new log_entry;
-	p->next=NULL;
+	p->next=nullptr;
 	p->s=curStream.str();
 	if (buffer_last)
 	{
@@ -244,7 +241,7 @@ void logging::flush()
 		p=p->next;
 		delete q;
 	}
-	buffer_first=buffer_last=NULL;
+	buffer_first=buffer_last=nullptr;
 	st().flush();
 }
 

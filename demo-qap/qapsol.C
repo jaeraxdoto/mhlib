@@ -86,7 +86,7 @@ double qapSol::objective()
 	}
 
 	aObjProvider *ap = dynamic_cast<aObjProvider*>(alg);
-	if (ap!=NULL)
+	if (ap!=nullptr)
 		o += ap->aobj(this);
 	
 	return o;
@@ -112,7 +112,7 @@ void qapSol::mutate(int count)
 		objval += delta_obj(qm);
 		applyMove(qm);
 
-		if (ts!=NULL && ( ts->isTabu(&qta) && !ts->aspiration( this ) ) )
+		if (ts!=nullptr && ( ts->isTabu(&qta) && !ts->aspiration( this ) ) )
 		{
 			objval += delta_obj(qm);
 			applyMove(qm);
@@ -225,7 +225,7 @@ double qapSol::delta_obj(const nhmove &m)
 			(qi->B(data[qm.s],data[qm.r]) - qi->B(data[qm.r],data[qm.s]));
 
 	aObjProvider *ap = dynamic_cast<aObjProvider*>(alg);
-	if (ap!=NULL)
+	if (ap!=nullptr)
 		delta += ap->delta_aobj(this,&m);
 
 	return delta;
@@ -269,7 +269,7 @@ void qapSol::selectImprovement(bool find_best)
 			{
 				qta = qm;
 
-				if ( ts==NULL || (ts!=NULL && ( !ts->isTabu(&qta) || ts->aspiration( this ) ) ) )
+				if ( ts==nullptr || (ts!=nullptr && ( !ts->isTabu(&qta) || ts->aspiration( this ) ) ) )
 				{
 					bqm = qm;
 					bestobj = objval;
@@ -287,7 +287,7 @@ void qapSol::selectImprovement(bool find_best)
 	objval += delta_obj(bqm);
 	applyMove(bqm);
 
-	if ( ts!=NULL )
+	if ( ts!=nullptr )
 	{
 		qta = bqm;
 		ts->tl_ne->add( new qapTabuAttribute( qta ) );

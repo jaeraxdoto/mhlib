@@ -8,10 +8,10 @@ namespace mh {
 
 using namespace std;
 
-int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,50);
+int_param permxop("permxop","permutation crossover operator 0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1",1,0,50);
 // 6:erx 7:eerx 8:mpx not yet implemented
 
-int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,50);
+int_param permmop("permmop","permutation mutation operator 0:random 1:inversion 2:exchange 3:insertion",1,0,50);
 // 4:displacement not yet implemented
 
 void permSol::initialize(int count)

@@ -6,9 +6,9 @@
 
 namespace mh {
 
-bool_param dcdag("dcdag","don't count duplicate as generation",false);
+bool_param dcdag("dcdag","do not count duplicate as generation",false);
 
-double_param pmutnc("pmutnc","mutation prob. for chroms created via crossover",
+double_param pmutnc("pmutnc","mutation prob. for sols created via recombination",
 	0.0,-2000.0,1000.0);
 
 bool_param cntopd("cntopd","count operator duplicates",false);

@@ -9,13 +9,13 @@
 namespace mh {
 
 /// Interval for penalty resets.
-int_param glsri("glsri","Interval for penalty resets.", 0, 0, LOWER_EQUAL );
+int_param glsri("glsri","GLS interval for penalty resets", 0, 0, LOWER_EQUAL );
 
 guidedLS::guidedLS(pop_base &p, const std::string &pg) : lsbase(p,pg), lambda(0)
 {
 	featureProvider *fp = dynamic_cast<featureProvider*>(tmpSol);
-	if ( fp==NULL )
-		mherror("Chromosome is not a featureProvider");
+	if ( fp==nullptr )
+		mherror("Solution is not a featureProvider");
 	else
 		f = fp->getFeature();
 	if ( pop->size() < 2 )
@@ -42,8 +42,8 @@ void guidedLS::performIteration()
 
 	glsSubAlgorithm *sa = dynamic_cast<glsSubAlgorithm*>(alg);
 
-	if ( sa==NULL )
-		mherror("Sub-Algorithm is not a glsSubAlgorithm");
+	if ( sa==nullptr )
+		mherror("Subalgorithm is not a glsSubAlgorithm");
 	
 	sa->gls=this;
 

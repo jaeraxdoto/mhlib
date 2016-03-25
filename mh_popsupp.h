@@ -39,8 +39,8 @@ typedef std::multimap<double,int,worstcompare>::iterator worstheap_item;
 /** An element of pophashtable. */
 struct pophashtable_elem
 {
-	mh_solution *p;	// pointer to solution
-	int idx;	// index in population
+	mh_solution *p=nullptr;	// pointer to solution
+	int idx=0;	// index in population
 	worstheap_item pqi;	// reference into worstheap
 	pophashtable_elem() {}
 	pophashtable_elem(mh_solution *p1,int idx1, worstheap_item pqi1)

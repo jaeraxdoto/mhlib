@@ -49,11 +49,11 @@ extern string_param logext;
 extern int_param lfreq;
 
 /** \ingroup param
-	Write log entries only/always when best objective value changes.
-	- 1: Log-entries are only written if the objective value
-	has changed since the last iteration.
-	- 2: Log entries are always written (regardless of lfreq) when the
-	  objective value changes. */
+	Write log entries in dependence of best solution's objective value.
+	- 0: Log entries are written at all iterations.
+	- 1: Log entries are only written when a new best solution is obtained.
+	- 2: Log entries are always written when the objective value changes.
+	 */
 extern int_param lchonly;
 
 /** \ingroup param
@@ -121,6 +121,8 @@ private:
 	    Does the actual initialization work. Is called by constructor. */
 	void init();
 	friend void initOutAndLogstr();
+	bool previous=false; double prevobj; // for shouldWrite()
+	int lastflush=0; // for finishEntry()
 	
 public:
 	/** Constructor.

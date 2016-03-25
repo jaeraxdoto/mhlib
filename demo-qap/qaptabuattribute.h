@@ -21,7 +21,6 @@ protected:
 
 public:
 	/** Normal constructor.
-	
 		\param pg Parametergroup
 	*/
 	qapTabuAttribute(const std::string &pg="") : mh::swapMove(), mh::tabuAttribute(pg)  {};

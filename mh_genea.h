@@ -21,7 +21,7 @@ class generationalEA : public mh_advbase
 {
 public:
 	/** The constructor.
-		An initialized population already containing chromosomes 
+		An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
 	generationalEA(pop_base &p, const std::string &pg="");
@@ -44,12 +44,12 @@ public:
 
 protected:
 	/** The crossover and mutation function.
-		Creates a new generation from the selected chromosomes by using
+		Creates a new generation from the selected solutions by using
 		crossover and mutation. */
 	virtual void createNextGeneration();
 	
-	int *selectedChroms;          // indizes of selected chromosomes
-	mh_solution **nextGeneration;  // used to build the next generation
+	int *selectedChroms=nullptr;          // indices of selected solutions
+	mh_solution **nextGeneration=nullptr;  // used to build the next generation
 };
 
 } // end of namespace mh
