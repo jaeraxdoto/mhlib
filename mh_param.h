@@ -35,7 +35,7 @@
 #include <string>
 #include "mh_util.h"
 
-/*! mh's namespace. */ 
+/*! mhlib's namespace. */
 namespace mh {
 
 class param;

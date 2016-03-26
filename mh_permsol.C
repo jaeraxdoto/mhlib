@@ -18,13 +18,7 @@ void permSol::initialize(int count)
 {
 	for (int i=0;i<length;i++)
 		data[i] = permSolVarType(i);
-	for (int i=0;i<length-1;i++)
-	{
-		permSolVarType t=data[i];
-		int x=random_int(i,length-1);
-		data[i]=data[x];
-		data[x]=t;
-	}
+	random_shuffle(data);
 	invalidate();
 }
 

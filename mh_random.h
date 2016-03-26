@@ -9,6 +9,7 @@
 #ifndef MH_RANDOM_H
 #define MH_RANDOM_H
 
+#include <vector>
 #include "mh_c11threads.h"
 #include "mh_param.h"
 
@@ -184,6 +185,18 @@ unsigned random_intfunc(unsigned seed, unsigned x);
   Implemented via the pseudo-DES function as described in the book "Numerical Recipes", 
   section 7.5. */
 double random_doublefunc(unsigned seed, unsigned x);
+
+/** The elements of a given vector are randomly shuffled.
+ * With the parameters, the a subrange can be selected. A negative value
+ * for parameter end refers to the last element of the vector. */
+template<typename T> void random_shuffle(std::vector<T> &v, int start=0, int end=-1) {
+	if (end < 0) end = v.size()-1;
+	for (int i=start; i<end; i++) {
+		int x=random_int(i,end);
+		if (x != i)
+			std::swap(v[i],v[x]);
+	}
+}
 
 } // end of namespace mh
 
