@@ -13,8 +13,6 @@
 #include "qapinstance.h"
 #include "qaptabuattribute.h"
 
-using namespace mh;
-
 namespace qap {
 
 /** \ingroup param
@@ -52,9 +50,9 @@ protected:
 	static const qapSol &toQAPSol(const mh::mh_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
-	mh_solution *createUninitialized() const
+	mh::mh_solution *createUninitialized() const
 		{ return new qapSol(alg, pgroup); }
-	mh_solution *clone() const
+	mh::mh_solution *clone() const
 		{ return new qapSol((mh::mh_solution&)*this); }
 	double objective();
 
@@ -140,23 +138,23 @@ public:
 	
 		\param m The move to be evaluated.
 	*/
-	double delta_obj(const nhmove &m);
+	double delta_obj(const mh::nhmove &m);
 	
 	/** Function to apply a certain move.
 	    Note: This version only works if a swapMove is passed.
 	
 		\param m The move to be applied.
 	*/
-	void applyMove(const nhmove &m);
+	void applyMove(const mh::nhmove &m);
 	
 	/** Replace current solution with a better or even the best neighbour.
 		\param find_best If true, the best solution in the neighbourhood is searched,
-			if it is false the next improvment is selected (if one exists).
+			if it is false the next improvement is selected (if one exists).
 	*/
 	void selectImprovement(bool find_best);
 	
 	/** Getter method for the associated feature object. */
-	feature* getFeature();
+	mh::feature* getFeature();
 
 	/** Greedy construction heuristic. */
 	void greedyConstruct();

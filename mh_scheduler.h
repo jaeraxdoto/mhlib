@@ -51,7 +51,7 @@ extern double_param schpmig;
  */
 class SchedulerMethod {
 public:
-	const std::string name;			///< The method's (unique) name (possibly including method_par).
+	const std::string name;		///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method.
 
 	unsigned int idx;			///< Index in methodPool of Scheduler.
@@ -108,7 +108,8 @@ public:
 		SchedulerMethod(_name,_par,_arity), pmeth(_pmeth), par(_par) {
 	}
 
-	/** Apply the method for the given solution, passing par. */
+	/** Apply the method for the given solution, passing par. The method returns true if the solution
+	 * has been changed and false otherwise.*/
 	bool run(mh_solution *sol) const {
 		return ((static_cast<SpecSol *>(sol))->*pmeth)(par);
 	}
@@ -321,7 +322,7 @@ public:
 
 /**
  * The scheduler base class for flexibly realizing GRASP, VNS, VLNS etc. approaches in sequential as well as
- * multithreaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
+ * multi-threaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
  * called. The scheduler is in particular responsible for deciding at which point in the optimization which
  * specific method is applied.
  */
