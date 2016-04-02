@@ -16,7 +16,7 @@ string_param fdcfile("fdcfile","name of FDC output file","fdc.tsv");
 string_param fdcoptf("fdcoptf","name of file for opt. solution for FDC",
 	"opt.sol");
 
-double FitnessDistanceCorrelation::perform(mh_solution *opt,
+double FitnessDistanceCorrelation::perform(mh_bare_solution *opt,
 	const string &optfile, int n)
 {
 	if (n<=0)
@@ -31,7 +31,7 @@ double FitnessDistanceCorrelation::perform(mh_solution *opt,
 	vals[0].f=opt->obj();
 	vals[0].d=opt->dist(*opt);
 
-	mh_solution *c,*cl;
+	mh_bare_solution *c,*cl;
 	c=opt->createUninitialized();
 	cl=opt->createUninitialized();
 	initialize(cl);

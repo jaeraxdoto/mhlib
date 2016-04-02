@@ -51,8 +51,6 @@ public:
 		{}
 	virtual mh_solution *createUninitialized() const
 		{ return new oneMaxSol; }
-	virtual mh_solution *clone() const
-		{ return new oneMaxSol(*this); }
 	double objective();
 	void greedyConstruct();
 	double delta_obj(const nhmove &m);
@@ -94,8 +92,6 @@ public:
 		{}
 	virtual mh_solution *createUninitialized() const
 		{ return new onePermSol; }
-	virtual mh_solution *clone() const
-		{ return new onePermSol(*this); }
 	double objective();
 	void greedyConstruct();
 };

@@ -4,6 +4,7 @@
 #include <iomanip>
 #include "mh_subpop.h"
 #include "mh_util.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -49,9 +50,9 @@ subPopulation::subPopulation(pop_base *super,int from,int to, const string &pg)
 	determineBest();
 }
 
-mh_solution *subPopulation::replace(int index,mh_solution *newchrom)
+mh_bare_solution *subPopulation::replace(int index, mh_bare_solution *newchrom)
 {
-	mh_solution *old=superPopulation->replace(indexFrom+index,newchrom);
+	mh_bare_solution *old=superPopulation->replace(indexFrom+index,newchrom);
 	statValid=false;
 	if (phash)
 	{
@@ -65,7 +66,7 @@ mh_solution *subPopulation::replace(int index,mh_solution *newchrom)
 	return old; 
 }
 
-int subPopulation::findDuplicate(mh_solution *p)
+int subPopulation::findDuplicate(mh_bare_solution *p)
 {
 	if (phash)
 		return phash->findDuplicate(p);
@@ -113,7 +114,7 @@ void subPopulation::validateStat()
 void subPopulation::setAlgorithm(mh_base *alg)
 {
 	for (int i=0;i<nSolutions;i++)
-		at(i)->setAlgorithm(alg);
+		mh_solution::to_mh_solution(at(i))->setAlgorithm(alg);
 }
 
 } // end of namespace mh

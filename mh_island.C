@@ -5,6 +5,7 @@
 #include "mh_ssea.h"
 #include "mh_subpop.h"
 #include "mh_util.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -105,11 +106,11 @@ void islandModelEA::performMigration()
 	{
 		if (random_prob(pmig(pgroup)))
 		{
-			mh_solution *t=subEAs[i]->pop->bestSol();
+			mh_solution *t=mh_solution::to_mh_solution(subEAs[i]->pop->bestSol());
 			for (int iii=0;iii<islk(pgroup);iii++)
 				if (i!=iii)
 				{
-					tmpSol->copy(*t);
+					*tmpSol = *t;
 					tmpSol=subEAs[iii]->replace(tmpSol);
 				}
 		}

@@ -1,5 +1,5 @@
 /*! \file mh_solution.h
-	\brief Abstract class for solution candidates inmetaheuristics.
+	\brief Abstract class for solution candidates in metaheuristics, including basic operator declarations.
 
 	A problem specific solution class must be derived from this
 	base class for a concrete problem. */
@@ -7,17 +7,12 @@
 #ifndef MH_SOLUTION_H
 #define MH_SOLUTION_H
 
-#include <iostream>
+#include <cassert>
+#include "mh_baresol.h"
 #include "mh_base.h"
 #include "mh_nhmove.h"
-#include "mh_param.h"
 
 namespace mh {
-
-/** \ingroup param
-	Should be maximized?
-	True if maximization, false for minimization. */
-extern bool_param maxi;
 
 /** \ingroup param
     Neighbour selection function to use
@@ -29,54 +24,47 @@ extern int_param mvnbop;
 
 /** Abstract solution class for the metaheuristics.
 	A concrete class must be derived for a specific problem.
-	This class should be mostly, but not completely
-	independent of the used algorithm. */
-class mh_solution
+	In contrast to class mh_bare_solution, this class containts
+	basic operator declarations for metaheuristics. */
+class mh_solution : public mh_bare_solution
 {
 protected:
-	/** Objective value of solution.
-		Implicitly set and read by obj(). */
-	double objval;
-	/// Set if the objective value is valid.
-	bool objval_valid;
-	/** Objective function.
-		Must be overloaded and defined for a concrete problem. 
-		If the objective value for a given solution should be
-		determined, obj() must be used instead of a direct call
-		to objective(). */
 	virtual double objective()=0;
-	/** Number of elements.
-		Set via the constructor. In case a concrete class
-		represents a solution of varying number of elements, set the
-		value to 1. */
-	const int length;
+	/** Returns the number of elements.
+		In case a concrete class represents a solution of varying or undefined number of elements,
+		use the default implementation returning 1. */
+	const int length = 1;
 
 	/** Algorithm for this solution. */
-	mh_base *alg;
+	mh_base *alg = nullptr;
 
-	/// Parametergroup
-	std::string pgroup;
 
 public:
-	/** Copy constructor.
-		Needed for clone().
-		Must also be defined in derived classes accordignly. */
-	mh_solution(const mh_solution &c) : length(c.length)
-		{ objval=c.objval; objval_valid=c.objval_valid; alg=c.alg; pgroup=c.pgroup; }
-	/** Constructor for unitinialized solution.
+	/** Constructor for uninitialized solution with given point to algorithm.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, mh_base *t, const std::string &pg="") : length(l), alg(t), pgroup(pg)
-		{ objval_valid=false; objval=0; }
-	/** Constructor for unitinialized solution.
+	mh_solution(int l, mh_base *t, const std::string &pg="") : mh_bare_solution(pg), length(l), alg(t)
+		{ }
+	/** Constructor for uninitialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, const std::string &pg="") : length(l), alg(0), pgroup(pg)
-		{ objval_valid=false; objval=0; }
+	mh_solution(int l, const std::string &pg="") : mh_bare_solution(pg), length(l)
+		{ }
+	/** The assignment operator "=" is declared virtual.
+	 * It must be specifically defined in a concrete derived class. */
+    virtual mh_solution & operator = (const mh_solution &orig) {
+    	assert(length==orig.length);
+    	mh_bare_solution::operator=(orig);
+    	return *this;
+    }	/** The assignment operator "=" is declared virtual.
+	 * It must be specifically defined in a concrete derived class. */
+    mh_bare_solution & operator = (const mh_bare_solution &orig) {
+    	return mh_solution::operator=(to_mh_solution(orig));
+    }
 	/** Creates an uninitialized object of the same class as the
 		current object.
 		Must be overloaded for a concrete solution class.
@@ -86,61 +74,31 @@ public:
 		creating a population of individuals out of one given
 		template object. */
 	virtual mh_solution *createUninitialized() const=0;
-	/** Generates a duplicate.
-		Generates an identical copy of a solution.
-		Need not to be overloaded for a concrete solution class,
-		since it uses createUninitialized and copy.
-		But for better performance, it may be overloaded by a 
-		concrete function which does not use the copy constructor. */
-	virtual mh_solution *clone() const
-		{ mh_solution *p=createUninitialized(); 
-			p->copy(*this); return p; }
-	/** Copy a solution.
+	/** DEPRECATED: Copy a solution; better use assignment operator.
 		Must be overloaded for a concrete solution class.
 		Only two solutions of identical classes may be copied. */
-	virtual void copy(const mh_solution &orig)
-		{ objval=orig.objval; objval_valid=orig.objval_valid; alg=orig.alg; pgroup=orig.pgroup; }
-	/** The operator "=" simply calls the copy method. */
-        const mh_solution & operator = (const mh_solution &orig)
-                { copy(orig); return *this; }
-	/** Comparison of two solutions of identical classes.
-		Needed e.g. for duplicate elimination. 
-		Should be implemented in an efficient way, e.g. by first
-		looking at the objective values, and only if they are
-		equal then on all the genes or phenotypic properties. */
-	virtual bool equals(mh_solution &orig)
-		{ return false; }
-	/** Returns the (phenotypic) distance between the current solution
-		and solution c. The distance should be a metric.
-		Used e.g. for a fitness-distance correlation analysis. */
-	virtual double dist(mh_solution &c)
-		{ return equals(c) ? 0 : 1; }
-	/** Virtual descructor.
-		Needed if dynamic data structures are involved. */
-	virtual ~mh_solution() {}
-	/** Function for getting the objective value.
-		The actual objective function is only called on demand, 
-		if the value is not yet known. The result must be 
-		written into objval. Need usually not to be overloaded. */
-	virtual double obj();
+	void copy(const mh_solution &orig) { *this = orig; }
+	/** Convenience function for dynamically casting a mh_bare_solution to a mh_solution. */
+	static mh_solution &to_mh_solution(mh_bare_solution &ref)
+	{ return (dynamic_cast<mh_solution &>(ref)); }
+	/** Convenience function for dynamically casting a const mh_bare_solution to a const mh_solution. */
+	static const mh_solution &to_mh_solution(const mh_bare_solution &ref)
+	{ return (dynamic_cast<const mh_solution &>(ref)); }
+	/** Convenience function for dynamically casting a mh_bare_solution ptr to a mh_solution ptr. */
+	static mh_solution *to_mh_solution(mh_bare_solution *ref)
+	{ return (dynamic_cast<mh_solution *>(ref)); }
+	/** Convenience function for dynamically casting a const mh_bare_solution ptr to a const mh_solution ptr. */
+	static const mh_solution *to_mh_solution(const mh_bare_solution *ref)
+	{ return (dynamic_cast<const mh_solution *>(ref)); }
 	/** Function for getting the change in the objective function.
 	        The change in the objective function if a certain move
 		is applied is computed.
-
 		Note: The default implementation does return 0.0 */
 	virtual double delta_obj(const nhmove &m) { return 0.0; }
 	/** Function to apply a certain move.
 	        The solution is changed according to the move, but
 		the objective value is not invalidated. */
-	virtual void applyMove(const nhmove &m){ std::cerr << "BUG: applyMove() not implemented !" << std::endl;};
-	/** Initialization function.
-		The solution is initialized (usually randomly).
-		Must be overloaded accordingly.
-		The parameter count is the number of the individual within
-		the population (starting with 0) and need only to be
-		considered in the case when not all individuals of a
-		population should be initialized in the same way. */
-	virtual void initialize(int count)=0;
+	virtual void applyMove(const nhmove &m) { mherror("mh_solution::applyMove() not implemented"); };
 	/** Mutate solution with given probability/rate (per solution).
 		If prob is negative, the absolute value is interpreted in
 		such a way that each element is mutated with probability
@@ -180,47 +138,7 @@ public:
 		parent is made. */
 	virtual void reproduce(const mh_solution &par)
 		{ copy(par); }
-	/** Writes the solution to an ostream.
-		The solution is written to the given ostream in in
-		text format.
-		@param ostr the output stream
-		@param detailed tells how detailed the description
-		should be (0...least detailed). */
-	virtual void write(std::ostream &ostr,int detailed=0) const=0;
-	/** Saves a solution to a file. (Not necessarily needed.) */
-	virtual void save(const std::string &fname) { 
-		mherror("mh_solution::save: not implemented"); }
-	/** Loads a solution from a file. (Not necessarily needed.) */
-	virtual void load(const std::string &fname) { 
-		mherror("mh_solution::load: not implemented"); }
-	/** Returns true if the current solution is better in terms
-		of the objective function than the one
-		given as parameter. Takes care on parameter mh::maxi. */
-	bool isBetter(mh_solution &p)
-		{ return maxi(pgroup)?obj()>p.obj():
-			obj()<p.obj(); }
-	/** Returns true if the current solution is worse in terms
-		of the objective function than the one
-		given as parameter. Takes care on parameter mh::maxi. */
-	bool isWorse(mh_solution &p)
-		{ return maxi(pgroup)?obj()<p.obj():
-			obj()>p.obj(); }
-	/** Invalidates the solution.
-		Sets objval to be invalid. During the next call to obj(), the
-		solution is evaluated anew. Must be called when the
-		solution changes. */
-	void invalidate()
-		{ objval_valid=false; }
-	/** Hashing function.
-		This function returns a hash-value for the solution.
-		Two solutions that are considered as equal must return the
-		same value; however, identical hash-values for two
-		solutions do not imply that the solution are equal.
-		This is needed for the hash-table of the population. 
-		The default implementation derives a value from obj(). */
-	virtual unsigned long int hashvalue()
-		{ return (unsigned long int)obj(); }
-	/** Neighbour selection function.
+	/** Neighbor selection function.
 	        Replaces the current solution with one of its neighbourhood.
 		The actual neighbour selection method can be chosen with
 		parameter mvnbop. */
@@ -242,23 +160,6 @@ public:
 	void setAlgorithm(mh_base *alg)
 		{ this->alg=alg; if (alg!=0) this->pgroup=alg->pgroup; }
 };
-
-inline double mh_solution::obj()
-{
-	if (objval_valid) 
-		return objval; 
-	else 
-	{ 
-	  	objval=objective(); 
-		objval_valid=true; 
-	  	return objval; 
-	} 
-}
-
-/** Operator << overloaded for writing solutions to an osteram. */
-inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
-	sol.write(ostr); return ostr;
-}
 
 } // end of namespace mh
 

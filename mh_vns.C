@@ -99,7 +99,7 @@ void VNS::performIteration()
 	}
 
 	/* Move or not */
-	tmpSol->reproduce(*spop->at(0));
+	mh_solution::to_mh_solution(*tmpSol).reproduce(mh_solution::to_mh_solution(*spop->at(0)));
 	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
@@ -109,13 +109,13 @@ void VNS::performIteration()
 			nShakeSuccess[kidx]++;
 			sumShakeGain[kidx]+=abs(pop->at(0)->obj()-spop->at(0)->obj());
 		}
-		tmpSol = replace(tmpSol);
+		tmpSol = replace(mh_solution::to_mh_solution(tmpSol));
 		k = 1;
 	}
 	else
 	{
 		// copy best solution into subpopulation
-		spop->at(0)->reproduce(* pop->bestSol());
+		mh_solution::to_mh_solution(spop->at(0))->reproduce(mh_solution::to_mh_solution(* pop->bestSol()));
 		k++;
 	}
 
@@ -184,7 +184,7 @@ void VNS::printStatistics(ostream &ostr)
 	char s[60];
 	
 	double tim=mhcputime();
-	const mh_solution *best=pop->bestSol();
+	const mh_bare_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

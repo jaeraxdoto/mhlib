@@ -49,7 +49,7 @@ protected:
 	std::vector<T> data;	/** Actual gene vector. */
 	T vmax; 	/** Maximum value. */
 
-	static const stringSol &toSSol(const mh_solution &ref)
+	static const stringSol &toSSol(const mh_bare_solution &ref)
 		{ return (dynamic_cast<const stringSol &>(ref)); }
 
 	/** Performs uniform crossover. */
@@ -84,14 +84,16 @@ public:
 		{ vmax=v; }
 	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,nullptr,pg), data(l)
 		{ vmax=v; }
-	/** copy all data from a given solution into the current one. */
-	virtual void copy(const mh_solution &orig);
-	/** return true if the current solution is equal to *orig. */
+	/** Copy all data from a given solution into the current one. */
+	virtual stringSol &operator=(const stringSol &orig);
+	/** Copy all data from a given solution into the current one. */
+	virtual mh_bare_solution &operator=(const mh_bare_solution &orig);
+	/** Return true if the current solution is equal to *orig. */
 	virtual bool equals(mh_solution &orig);
-	/** Returns the hamming distance. */
+	/** Returns the Hamming distance. */
 	virtual double dist(mh_solution &c);
 	virtual ~stringSol() { }
-	/** randomly initialize all genes. */
+	/** Randomly initialize all genes. */
 	void initialize(int count);
 	/** Calls a mutation method, controlled by the parameter strmop(). */
 	void mutate(int count);
@@ -121,23 +123,26 @@ typedef stringSol<unsigned int> intStringSol;
 
 //---------------------- Implementation of stringSol -------------------------
 
-template <class T> stringSol<T>::stringSol(const mh_solution &c) :
-	mh_solution(c),data(length)
+template <class T> stringSol<T>::stringSol(const mh_solution &c) :	mh_solution(c)
 {
 	const stringSol<T> &sc=toSSol(c);
-	for (int i=0;i<length;i++)
-		data[i]=sc.data[i];
+	data=sc.data;
 	vmax = sc.vmax;
 }
 
-template <class T> void stringSol<T>::copy(const mh_solution &orig)
-{
-	mh_solution::copy(orig);
-	const stringSol<T> &sc=toSSol(orig);
-	for (int i=0;i<length;i++)
-		data[i]=sc.data[i];
-	vmax = sc.vmax;
+template <class T> mh_bare_solution &stringSol<T>::operator=(const mh_bare_solution &orig) {
+	return stringSol<T>::operator=(toSSol(orig));
 }
+
+template <class T> stringSol<T> &stringSol<T>::operator=(const stringSol<T> &orig)
+{
+	mh_solution::operator=(orig);
+	const stringSol<T> &sc=toSSol(orig);
+	data = sc.data;
+	vmax = sc.vmax;
+	return *this;
+}
+
 
 template <class T> bool stringSol<T>::equals(mh_solution &orig)
 {

@@ -345,7 +345,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	double wctime = mhwctime();
 	double cputime = mhcputime();
 
-	const mh_solution *best=pop->bestSol();
+	const mh_bare_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
@@ -473,7 +473,7 @@ void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
 			else {
 				// yes, then we assign the best known solution and schedule a method to be applied to it.
 				worker->pop.update(0, pop->at(0));
-				worker->tmpSol->copy(*worker->pop[0]);
+				*worker->tmpSol = *worker->pop[0];
 			}
 		}
 		worker->method = shakingnh[worker->id]->select();
@@ -518,7 +518,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			// unsuccessful local improvement method call
 			if (locimpnh[worker->id]->hasFurtherMethod()) {
 				// continue VND with next neighborhood and incumbent VND solution
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				*worker->tmpSol = *worker->pop[0]; // restore worker's incumbent
 				return;
 			}
 			else {
@@ -530,12 +530,12 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 					shakingnh[worker->id]->resetLastMethod();
 					if(updateSchedulerData)
 						worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
-					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+					*worker->tmpSol = *worker->pop[0]; // restore worker's incumbent
 				}
 				else {
 					// Go back to best solution before last shaking
 					updateShakingMethodStatistics(worker,false);
-					worker->tmpSol->copy(*worker->pop[1]);
+					*worker->tmpSol = *worker->pop[1];
 					worker->pop.update(0,worker->tmpSol);
 				}
 			}
@@ -558,7 +558,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 				updateShakingMethodStatistics(worker,false);
 				if(updateSchedulerData)
 					worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				*worker->tmpSol = *worker->pop[0]; // restore worker's incumbent
 			}
 		}
 		else {
@@ -575,7 +575,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 
 void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 	// update best solution in scheduler's population
-	mh_solution* best = workers[0]->pop[0];
+	mh_bare_solution* best = workers[0]->pop[0];
 	for(unsigned int i=1; i < workers.size(); i++) {
 		if (workers[i]->pop[0]->isBetter(*best))
 			best = workers[i]->pop[0];

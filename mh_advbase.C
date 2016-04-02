@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include "mh_advbase.h"
+#include "mh_solution.h"
 #include "mh_island.h"
 #include "mh_genea.h"
 #include "mh_grasp.h"
@@ -164,10 +165,9 @@ int mh_advbase::tournamentSelection()
 	return besti;
 }
 
-void mh_advbase::performCrossover(mh_solution *p1,mh_solution *p2,
-	mh_solution *c)
+void mh_advbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, mh_bare_solution *c)
 {
-	c->crossover(*p1,*p2);
+	mh_solution::to_mh_solution(c)->crossover(mh_solution::to_mh_solution(*p1), mh_solution::to_mh_solution(*p2));
 	nCrossovers++;
 	if (cntopd(pgroup))
 	{
@@ -176,17 +176,17 @@ void mh_advbase::performCrossover(mh_solution *p1,mh_solution *p2,
 	}
 }
 
-void mh_advbase::performMutation(mh_solution *c,double prob)
+void mh_advbase::performMutation(mh_bare_solution *c,double prob)
 {
 	if (prob==0)
 		return;
 	if (!cntopd(pgroup))
-		nMutations+=c->mutation(prob);
+		nMutations+=mh_solution::to_mh_solution(c)->mutation(prob);
 	else
 	{
-		static mh_solution *tmp2Sol=c->createUninitialized();
-		tmp2Sol->copy(*c);
-		int muts=tmpSol->mutation(prob);
+		static mh_solution *tmp2Sol=mh_solution::to_mh_solution(c->createUninitialized());
+		*tmp2Sol = mh_solution::to_mh_solution(*c);
+		int muts=mh_solution::to_mh_solution(tmpSol)->mutation(prob);
 		nMutations+=muts;
 		if (muts>0 && tmp2Sol->equals(*c))
 			nMutationDups+=muts;
@@ -260,7 +260,7 @@ int mh_advbase::replaceIndex()
 	return r;
 }
 
-mh_solution *mh_advbase::replace(mh_solution *p)
+mh_bare_solution *mh_advbase::replace(mh_bare_solution *p)
 {
 	checkPopulation();
 	
@@ -272,19 +272,19 @@ mh_solution *mh_advbase::replace(mh_solution *p)
 		{
 			// replace the duplicate in the population
 			nDupEliminations++;
-			mh_solution *replaced=pop->replace(r,p);
+			mh_bare_solution *replaced=pop->replace(r,p);
 			return replaced;
 		}
 	}
 
 	int r=replaceIndex();
 	saveBest();
-	mh_solution *replaced=pop->replace(r,p);
+	mh_bare_solution *replaced=pop->replace(r,p);
 	checkBest();
 	return replaced;
 }
 
-void mh_advbase::update(int index, mh_solution *sol) {
+void mh_advbase::update(int index, mh_bare_solution *sol) {
 	checkPopulation();
 	saveBest();
 	pop->update(index,sol);
@@ -299,7 +299,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	char s[40];
 	
 	double tim = (_wctime ? (mhwctime() - timStart) : mhcputime());
-	const mh_solution *best=pop->bestSol();
+	const mh_bare_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

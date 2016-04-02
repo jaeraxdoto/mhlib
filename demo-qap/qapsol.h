@@ -53,7 +53,7 @@ public:
 	mh::mh_solution *createUninitialized() const
 		{ return new qapSol(alg, pgroup); }
 	mh::mh_solution *clone() const
-		{ return new qapSol((mh::mh_solution&)*this); }
+		{ return new qapSol(*this); }
 	double objective();
 
 	/** Copy constructor.

@@ -76,7 +76,7 @@ public:
 
 	/** Applies the method to the given solution. The method returns true if the solution
 	 * has been changed and false otherwise. */
-	virtual bool run(mh_solution *sol) const = 0;
+	virtual bool run(mh_bare_solution *sol) const = 0;
 
 	/**
 	 * Virtual destructor.
@@ -86,7 +86,7 @@ public:
 };
 
 /** Template class for realizing concrete SchedulerMethods for bool(int) member functions
- *  of specific solution classes, i.e., classes derived from mh_solution.
+ *  of specific solution classes, i.e., classes derived from mh_bare_solution.
  *  An integer parameter is maintained that is passed when calling the method by run for
  *  a specific solution. This integer can be used to control the methods functionality, e.g.
  *  for the neighborhood size, randomization factor etc. The return value must indicate
@@ -98,7 +98,7 @@ public:
 
 	/** Constructor initializing data.
 	 * \param _name a string representing the method in an abbreviated form.
-	 * \param _pmeth a pointer to a bool(int) member function of the class derived from mh_solution.
+	 * \param _pmeth a pointer to a bool(int) member function of the class derived from mh_bare_solution.
 	 * \param _par an int user parameter that is stored and passed when calling the method.
 	 * \param _arity the arity of the function, i.e., 0 if a solution is created from scratch and 1 if
 	 * the operator acts on a current solution.
@@ -110,7 +110,7 @@ public:
 
 	/** Apply the method for the given solution, passing par. The method returns true if the solution
 	 * has been changed and false otherwise.*/
-	bool run(mh_solution *sol) const {
+	bool run(mh_bare_solution *sol) const {
 		return ((static_cast<SpecSol *>(sol))->*pmeth)(par);
 	}
 };
@@ -191,7 +191,7 @@ public:
 	/**
 	 * The solution which is actually created/modified by a called method.
 	 */
-	mh_solution *tmpSol;
+	mh_bare_solution *tmpSol;
 
 	/** Indicates the result of the last method call w.r.t. tmpSol */
 	SolutionObjectiveChange tmpSolObjChange;
@@ -202,7 +202,7 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_bare_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,

@@ -27,16 +27,16 @@ void simulatedAnnealing::performIteration()
 
 	perfIterBeginCallback();
 
-	mh_solution *pold=pop->at(0);
-	tmpSol->reproduce(*pold);
-	tmpSol->selectNeighbour();
+	mh_solution *pold=mh_solution::to_mh_solution(pop->at(0));
+	mh_solution::to_mh_solution(tmpSol)->reproduce(mh_solution::to_mh_solution(*pold));
+	mh_solution::to_mh_solution(tmpSol)->selectNeighbour();
 
 	if (tmpSol->isBetter(*pold))
-		tmpSol=replace(tmpSol);
+		tmpSol=replace(mh_solution::to_mh_solution(tmpSol));
 	else
-		if ( accept( pold, tmpSol ) )
+		if ( accept( pold, mh_solution::to_mh_solution(tmpSol) ) )
 		{
-			tmpSol=replace(tmpSol);
+			tmpSol=replace(mh_solution::to_mh_solution(tmpSol));
 			nDeteriorations++;
 		}
 

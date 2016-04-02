@@ -104,9 +104,6 @@ public:
 	/** Create a new uninitialized instance of this class. */
 	virtual mh_solution *createUninitialized() const
 		{ return new oneMaxSol; }
-	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_solution *clone() const
-		{ return new oneMaxSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the 1s in the solution string.
 	 */
@@ -178,9 +175,6 @@ public:
 	/** Create a new uninitialized instance of this class. */
 	virtual mh_solution *createUninitialized() const
 		{ return new onePermSol; }
-	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_solution *clone() const
-		{ return new onePermSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the the number of values that are on the same place as in the
 	 * target permutation (0,1,2,...,vars()-1). Should the solution be uninitialized,
@@ -384,7 +378,7 @@ int main(int argc, char *argv[])
 
 		alg->run();		// run Scheduler until a termination condition is fulfilled
 		
-		mh_solution *bestSol = p.bestSol();	// final solution
+		mh_bare_solution *bestSol = p.bestSol();	// final solution
 
 	    // p.write(out(),1);	// write out final population in detailed form
 		if (sfile()!="")	// save best solution in file if sfile() given

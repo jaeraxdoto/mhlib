@@ -9,6 +9,7 @@
 #include "mh_base.h"
 #include "mh_param.h"
 #include "mh_popbase.h"
+#include "mh_baresol.h"
 
 namespace mh {
 
@@ -22,7 +23,7 @@ namespace mh {
 	  improvement or when #tobj>0 && best solution reaches #tobj
 	  or when #ttime>0 && effective runtime reaches #ttime.
 
-	Depracated values:
+	Deprecated values:
 	- 0: terminate after #titer iterations.
 	- 1: terminate after convergence, which is defined as:
 		the objective value of the best solution in the population
@@ -54,7 +55,7 @@ extern int_param tselk;
 
 /** \ingroup param
 	Replacement scheme:
-	- 0: A new solutionosome replaces a randomly chosen existing solution
+	- 0: A new solution replaces a randomly chosen existing solution
 		with the exception of the best solution.
 	- 1: A new solution replaces the worst existing solution.
 	- -k: The solution to be replaced is selected via a tournament
@@ -156,11 +157,11 @@ public:
 	virtual void performIteration() = 0;
 	/** Performs crossover on the given solutions and updates
 		statistics. */
-	void performCrossover(mh_solution *p1,mh_solution *p2,
-		mh_solution *c);
+	void performCrossover(mh_bare_solution *p1, mh_bare_solution *p2,
+		mh_bare_solution *c);
 	/** Performs mutation on the given solution with the given
 		probability and updates statistics. */
-	void performMutation(mh_solution *c,double prob);
+	void performMutation(mh_bare_solution *c,double prob);
 	/** The termination criterion.
 		Calls a concrete termination functions and returns true
 		if the algorithm should terminate. */
@@ -175,9 +176,9 @@ public:
 		determined by the replaceIndex method.
 		The replaced solution is returned.
 		Duplicate elimination is performed if #dupelim is set. */
-	virtual mh_solution *replace(mh_solution *);
+	virtual mh_bare_solution *replace(mh_bare_solution *);
 	/** Updates the solution with the given index by copying it from *sol. */
-	virtual void update(int index, mh_solution *sol);
+	virtual void update(int index, mh_bare_solution *sol);
 	/** Print statistic informations.
 		Prints out various statistic informations including
 		the best solution of the population.. */
@@ -188,7 +189,7 @@ public:
 	/** Writes the log header */
 	virtual void writeLogHeader();
 	/** Returns pointer to best solution obtained so far. */
-	mh_solution *getBestSol() const
+	mh_bare_solution *getBestSol() const
 		{ return pop->bestSol(); }
 	/** Returns number of the current iteration. */
 	virtual int getIter(void)
@@ -249,7 +250,7 @@ protected:
 	double timIterBest;  ///< Time at which best solution was generated.
 	
 	// other class variables
-	mh_solution *tmpSol;	///< a temporary solution in which the result of operations is stored
+	mh_bare_solution *tmpSol;	///< a temporary solution in which the result of operations is stored
 	
 	double bestObj;		///< temporary best objective value
 	double timStart;        ///< CPUtime when run() was called

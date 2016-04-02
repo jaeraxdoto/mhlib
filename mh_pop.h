@@ -4,7 +4,7 @@
 #ifndef MH_POP_H
 #define MH_POP_H
 
-#include "mh_solution.h"
+#include "mh_baresol.h"
 #include "mh_param.h"
 #include "mh_popbase.h"
 
@@ -39,7 +39,7 @@ class population : public pop_base
 {
 protected:
 	/// the solution array
-	mh_solution **chroms;
+	mh_bare_solution **chroms;
 	/** determines indexBest for the whole population.
 		Called when best gets lost or after initialization. (O(n)). */
 	void determineBest();
@@ -53,12 +53,12 @@ public:
 		If binit is set, the new solutions are all initialized, otherwise they
 		are a copy of the template solution.
 		If nohashing is set, hashing is avoided in the population; otherwise it depends on dupelim(). */
-	population(const mh_solution &c_template, int psize, bool binit, bool nohashing=false, const std::string &pg="");
+	population(const mh_bare_solution &c_template, int psize, bool binit, bool nohashing=false, const std::string &pg="");
 	/** A population of solutions is created.
 		The size is taken from popsize().
 		The template solution is used to create solutions of the same type,
 		which are finally all initialized by calling initialize(). */
-	population(const mh_solution &c_template, const std::string &pg="");
+	population(const mh_bare_solution &c_template, const std::string &pg="");
 	
 	/** Destructor.
 		The population and all its contained solutions are deleted. */
@@ -72,23 +72,23 @@ public:
 	virtual void initialize();
 	/** Get solution via given index.
 		The solution must not be modified or deleted! */
-	mh_solution *at(int index)
+	mh_bare_solution *at(int index)
 		{ return chroms[index]; }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. Population data is updated. */
-	mh_solution *replace(int index,mh_solution *newchrom);
+	mh_bare_solution *replace(int index, mh_bare_solution *newchrom);
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */
-	void update(int index, mh_solution *newchrom);
+	void update(int index, mh_bare_solution *newchrom);
 	/** Returns pointer to best solution of population. */
-	mh_solution *bestSol() const
+	mh_bare_solution *bestSol() const
 		{ return chroms[indexBest]; }
 	/** Checks wheter the given solution has a duplicate in
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
-	int findDuplicate(mh_solution *p);
+	int findDuplicate(mh_bare_solution *p);
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
 	void write(std::ostream &ostr);

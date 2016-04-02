@@ -12,15 +12,15 @@ void localSearch::performIteration()
 
 	perfIterBeginCallback();
 
-	mh_solution *pold=pop->at(0);
+	mh_solution *pold=mh_solution::to_mh_solution(pop->at(0));
 
-	tmpSol->reproduce(*pold);
-	tmpSol->selectNeighbour();
+	mh_solution::to_mh_solution(tmpSol)->reproduce(mh_solution::to_mh_solution(*pold));
+	mh_solution::to_mh_solution(tmpSol)->selectNeighbour();
 
 	if (pold->isWorse(*tmpSol))
 	{
-		mh_solution *r=tmpSol;
-		tmpSol=replace(tmpSol);
+		mh_solution *r=mh_solution::to_mh_solution(tmpSol);
+		tmpSol=replace(mh_solution::to_mh_solution(tmpSol));
 		if (!dcdag(pgroup) || r!=tmpSol)
 			nIteration++;
 		return;

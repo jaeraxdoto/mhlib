@@ -4,7 +4,7 @@
 #ifndef MH_POPBASE_H
 #define MH_POPBASE_H
 
-#include "mh_solution.h"
+#include "mh_baresol.h"
 #include "mh_param.h"
 #include "mh_popsupp.h"
 #include "mh_random.h"
@@ -89,24 +89,24 @@ public:
 		{ return nSolutions; }
 	/** Get solution via given index.
 		The solution must not be modified or deleted! */
-	virtual mh_solution *at(int index) = 0;
-	mh_solution *operator[](int index)
+	virtual mh_bare_solution *at(int index) = 0;
+	mh_bare_solution *operator[](int index)
 		{ return at(index); }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. */
-	virtual mh_solution *replace(int index,mh_solution *newchrom) = 0;
+	virtual mh_bare_solution *replace(int index, mh_bare_solution *newchrom) = 0;
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */
-	virtual void update(int index, mh_solution *newchrom) {
+	virtual void update(int index ,mh_bare_solution *newchrom) {
 		mherror("Update not supported in popbase");
 	}
 	/** Index of best solution in population. */
 	int bestIndex() const
 		{ return indexBest; }
 	/** Returns pointer to best solution of population. */
-	virtual mh_solution *bestSol() const = 0;
+	virtual mh_bare_solution *bestSol() const = 0;
 	/** Returns objective value of best solution. */
 	double bestObj()
 		{ return bestSol()->obj(); }
@@ -119,7 +119,7 @@ public:
 	/** Checks wheter the given solution has a duplicate in
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
-	virtual int findDuplicate(mh_solution *p) = 0;
+	virtual int findDuplicate(mh_bare_solution *p) = 0;
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
 	virtual void write(std::ostream &ostr) = 0;

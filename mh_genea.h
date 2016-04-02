@@ -6,6 +6,7 @@
 
 #include "mh_advbase.h"
 #include "mh_param.h"
+#include "mh_solution.h"
 
 namespace mh {
 
