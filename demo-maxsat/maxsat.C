@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 		// Probably set some parameters to new default values
 		maxi.setDefault(1);			// we maximize here
 		popsize.setDefault(1);		// other values make no sense with the Scheduler
+		titer.setDefault(1000);	// the maximum number of performed iterations
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);

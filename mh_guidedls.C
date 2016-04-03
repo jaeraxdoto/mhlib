@@ -56,17 +56,17 @@ void guidedLS::performIteration()
 	delete alg;
 
 	if ( lambda==0 )
-		lambda = f->tuneLambda(mh_solution::to_mh_solution(pop->at(1)));
+		lambda = f->tuneLambda(mh_solution::cast(pop->at(1)));
 
-	mh_solution::to_mh_solution(tmpSol)->reproduce(mh_solution::to_mh_solution(*spop->at(0)));
+	mh_solution::cast(tmpSol)->reproduce(mh_solution::cast(*spop->at(0)));
 	if (pop->at(0)->isWorse(*tmpSol))
-		tmpSol=replace(mh_solution::to_mh_solution(tmpSol));
+		tmpSol=replace(mh_solution::cast(tmpSol));
 
 	// Phase 2: update penalties
 	if ( glsri(pgroup) > 0 && nIteration % glsri(pgroup) == 0 )
 		f->resetPenalties();
 	else
-		f->updatePenalties(mh_solution::to_mh_solution(tmpSol));
+		f->updatePenalties(mh_solution::cast(tmpSol));
 	
 	nIteration++;
 

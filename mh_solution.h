@@ -54,17 +54,11 @@ public:
 		length. */
 	mh_solution(int l, const std::string &pg="") : mh_bare_solution(pg), length(l)
 		{ }
-	/** The assignment operator "=" is declared virtual.
-	 * It must be specifically defined in a concrete derived class. */
-    virtual mh_solution & operator = (const mh_solution &orig) {
-    	assert(length==orig.length);
-    	mh_bare_solution::operator=(orig);
-    	return *this;
-    }	/** The assignment operator "=" is declared virtual.
-	 * It must be specifically defined in a concrete derived class. */
-    mh_bare_solution & operator = (const mh_bare_solution &orig) {
-    	return mh_solution::operator=(to_mh_solution(orig));
-    }
+	mh_solution(const mh_bare_solution &s) : mh_bare_solution(s) {
+		const mh_solution &r = cast(s);
+		assert(r.length == length);
+		alg = r.alg;
+	}
 	/** Creates an uninitialized object of the same class as the
 		current object.
 		Must be overloaded for a concrete solution class.
@@ -73,22 +67,27 @@ public:
 		The new solution is not initialized. Needed e.g. for
 		creating a population of individuals out of one given
 		template object. */
-	virtual mh_solution *createUninitialized() const=0;
-	/** DEPRECATED: Copy a solution; better use assignment operator.
+	mh_bare_solution *createUninitialized() const=0;
+	/** Copy a solution.
 		Must be overloaded for a concrete solution class.
 		Only two solutions of identical classes may be copied. */
-	void copy(const mh_solution &orig) { *this = orig; }
+	void copy(const mh_bare_solution &orig) {
+		const mh_solution &o = cast(orig);
+		assert(o.length == length);
+		mh_bare_solution::copy(orig);
+		alg = o.alg;
+	}
 	/** Convenience function for dynamically casting a mh_bare_solution to a mh_solution. */
-	static mh_solution &to_mh_solution(mh_bare_solution &ref)
+	static mh_solution &cast(mh_bare_solution &ref)
 	{ return (dynamic_cast<mh_solution &>(ref)); }
 	/** Convenience function for dynamically casting a const mh_bare_solution to a const mh_solution. */
-	static const mh_solution &to_mh_solution(const mh_bare_solution &ref)
+	static const mh_solution &cast(const mh_bare_solution &ref)
 	{ return (dynamic_cast<const mh_solution &>(ref)); }
 	/** Convenience function for dynamically casting a mh_bare_solution ptr to a mh_solution ptr. */
-	static mh_solution *to_mh_solution(mh_bare_solution *ref)
+	static mh_solution *cast(mh_bare_solution *ref)
 	{ return (dynamic_cast<mh_solution *>(ref)); }
 	/** Convenience function for dynamically casting a const mh_bare_solution ptr to a const mh_solution ptr. */
-	static const mh_solution *to_mh_solution(const mh_bare_solution *ref)
+	static const mh_solution *cast(const mh_bare_solution *ref)
 	{ return (dynamic_cast<const mh_solution *>(ref)); }
 	/** Function for getting the change in the objective function.
 	        The change in the objective function if a certain move

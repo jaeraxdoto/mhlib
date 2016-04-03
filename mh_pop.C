@@ -106,7 +106,7 @@ void population::update(int index, mh_bare_solution *newchrom)
 	statValid=false;
 	if (phash)
 		phash->remove(chroms[index]);
-	*(chroms[index]) = *newchrom;
+	chroms[index]->copy(*newchrom);
 	if (phash)
 		phash->add(newchrom,index);
 	if (newchrom->isBetter(*chroms[indexBest]))
@@ -164,7 +164,7 @@ void population::validateStat()
 void population::setAlgorithm(mh_base *alg)
 {
 	for (int i=0;i<nSolutions;i++)
-		mh_solution::to_mh_solution(chroms[i])->setAlgorithm(alg);
+		mh_solution::cast(chroms[i])->setAlgorithm(alg);
 }
 
 } // end of namespace mh

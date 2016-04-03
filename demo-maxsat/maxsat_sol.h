@@ -18,7 +18,7 @@ namespace maxsat {
 /**
   This class represents a solution to the MAXSAT problem, i.e.,
   assignments of values to the Boolean variables.
-  It is derived from mh_solution so that the algorithms
+  It is derived from mh_bare_solution so that the algorithms
   within mhlib can deal with it. Here, we derive it more specifically from
   binStringSol, which implements methods for dealing with binary strings.
   Note that while in binStringSol the variables are indexed from 0 on,
@@ -39,10 +39,13 @@ public:
 		binStringSol(sol), probinst(sol.probinst)
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_solution *createUninitialized() const
+	mh_bare_solution *createUninitialized() const
 		{ return new MAXSATSol(probinst); }
+	/** Clone this solution, i.e., return a new copy. */
+	mh_bare_solution *clone() const
+		{ return new MAXSATSol(*this); }
 	/** Dynamically cast an mh::mh_solution reference to a reference of this class. */
-	static const MAXSATSol &toMAXSATSol(const mh::mh_solution &ref) {
+	static const MAXSATSol &cast(const mh::mh_solution &ref) {
 		return (dynamic_cast<const MAXSATSol &>(ref));
 	}
 	/** Determine the objective value of the solution. Here we count the number

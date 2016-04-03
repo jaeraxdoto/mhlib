@@ -13,10 +13,10 @@ namespace mh {
 class binStringSol : public stringSol<bool>
 {
 protected:
-	static const binStringSol &toBSSol(const mh_solution &ref)
+	static const binStringSol &cast(const mh_solution &ref)
 		{ return (dynamic_cast<const binStringSol &>(ref)); }
 public:
-	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }
+	binStringSol(const mh_bare_solution &c) : stringSol<bool>(c) { }
 	/** Normal constructor, number of genes must be passed to base class. */
 	binStringSol(int l, mh_base *t, const std::string &pg="") : stringSol<bool>(l,1,t,pg) { }
 	binStringSol(int l, const std::string &pg="") : stringSol<bool>(l,1,pg) { }

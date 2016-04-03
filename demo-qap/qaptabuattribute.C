@@ -14,7 +14,7 @@ qapTabuAttribute::qapTabuAttribute(const qapTabuAttribute &t) : swapMove(t.r,t.s
 
 bool qapTabuAttribute::equals( const tabuAttribute &o ) const
 {
-	const qapTabuAttribute &qapt=toQAPTabuAttribute(o);
+	const qapTabuAttribute &qapt=cast(o);
 	return ( (r==qapt.r && s==qapt.s) ||  (r==qapt.s && s==qapt.r) );
 }
 

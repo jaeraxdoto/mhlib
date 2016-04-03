@@ -1,4 +1,4 @@
-// solution.C
+// mh_solution.C
 
 #include <algorithm>
 #include <cmath>
@@ -10,8 +10,6 @@
 namespace mh {
 
 using namespace std;
-
-bool_param maxi("maxi","optimization goal 1:maximize, 0:minimize",true);
 
 int_param mvnbop( "mvnbop", "step function 0:rand. neigh., 1:first imp. 2:best imp.", 0, 0, 2 );
 

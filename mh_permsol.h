@@ -37,7 +37,7 @@ typedef unsigned int permSolVarType;
 class permSol : public stringSol<permSolVarType>
 {
 protected:
-	static const permSol &toPermSol(const mh_solution &ref)
+	static const permSol &cast(const mh_solution &ref)
 	{ return (dynamic_cast<const permSol &>(ref)); }
 
 	/** Performs inversion. */
@@ -61,7 +61,7 @@ protected:
 	void crossover_c1(const mh_solution &parA,const mh_solution &parB);
 
 public:
-	permSol(const mh_solution &c);
+	permSol(const mh_bare_solution &c);
 	permSol(int l, mh_base *t, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,t,pg) { }
 	permSol(int l, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,pg) { }
 	/** Initialization with random permutation. */

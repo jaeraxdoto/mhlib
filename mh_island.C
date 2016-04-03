@@ -106,11 +106,11 @@ void islandModelEA::performMigration()
 	{
 		if (random_prob(pmig(pgroup)))
 		{
-			mh_solution *t=mh_solution::to_mh_solution(subEAs[i]->pop->bestSol());
+			mh_solution *t=mh_solution::cast(subEAs[i]->pop->bestSol());
 			for (int iii=0;iii<islk(pgroup);iii++)
 				if (i!=iii)
 				{
-					*tmpSol = *t;
+					tmpSol->copy(*t);
 					tmpSol=subEAs[iii]->replace(tmpSol);
 				}
 		}

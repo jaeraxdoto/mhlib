@@ -14,7 +14,7 @@ generationalEA::generationalEA(pop_base &p, const std::string &pg) : mh_advbase(
 	nextGeneration=new mh_solution*[pop->size()];
 	for (int i=0;i<pop->size();i++)
 	{
-		nextGeneration[i]=mh_solution::to_mh_solution(pop->bestSol())->createUninitialized();
+		nextGeneration[i]=mh_solution::cast(mh_solution::cast(pop->bestSol())->createUninitialized());
 	}
 }
 
@@ -41,7 +41,7 @@ void generationalEA::performIteration()
 	saveBest();
 	for (int i=0;i<pop->size();i++)
 	{
-		nextGeneration[i]=mh_solution::to_mh_solution(pop->replace(i,nextGeneration[i]));
+		nextGeneration[i]=mh_solution::cast(pop->replace(i,nextGeneration[i]));
 	}
 	checkBest();
 	nIteration++;
@@ -58,7 +58,7 @@ void generationalEA::createNextGeneration()
 	// perform crossover
 	if (elit(pgroup))
 	{
-		mh_solution *pp1=mh_solution::to_mh_solution(pop->bestSol());
+		mh_solution *pp1=mh_solution::cast(pop->bestSol());
 		nextGeneration[0]->copy(*pp1);
 	}
 	for (int i=start;i<pop->size();i++)
@@ -68,14 +68,14 @@ void generationalEA::createNextGeneration()
 		{
 			// recombination and mutation
 			int p2=select();
-			mh_solution *pp1=mh_solution::to_mh_solution(pop->at(p1));
-			mh_solution *pp2=mh_solution::to_mh_solution(pop->at(p2));
+			mh_solution *pp1=mh_solution::cast(pop->at(p1));
+			mh_solution *pp2=mh_solution::cast(pop->at(p2));
 			performCrossover(pp1,pp2,nextGeneration[i]);
 		}
 		else
 		{
 			// no recombination
-			nextGeneration[i]->reproduce(mh_solution::to_mh_solution(*pop->at(p1)));
+			nextGeneration[i]->reproduce(mh_solution::cast(*pop->at(p1)));
 		}
 	}
 	
@@ -86,7 +86,7 @@ void generationalEA::createNextGeneration()
 			performMutation(nextGeneration[i],pmut(pgroup));
 			if (plocim(pgroup)>0 && random_prob(plocim(pgroup)))
 			{
-				mh_solution::to_mh_solution(tmpSol)->locallyImprove();
+				mh_solution::cast(tmpSol)->locallyImprove();
 				nLocalImprovements++;
 			}
 		}

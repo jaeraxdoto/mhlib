@@ -167,7 +167,7 @@ int mh_advbase::tournamentSelection()
 
 void mh_advbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, mh_bare_solution *c)
 {
-	mh_solution::to_mh_solution(c)->crossover(mh_solution::to_mh_solution(*p1), mh_solution::to_mh_solution(*p2));
+	mh_solution::cast(c)->crossover(mh_solution::cast(*p1), mh_solution::cast(*p2));
 	nCrossovers++;
 	if (cntopd(pgroup))
 	{
@@ -176,17 +176,17 @@ void mh_advbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, mh_
 	}
 }
 
-void mh_advbase::performMutation(mh_bare_solution *c,double prob)
+void mh_advbase::performMutation(mh_bare_solution *c, double prob)
 {
 	if (prob==0)
 		return;
 	if (!cntopd(pgroup))
-		nMutations+=mh_solution::to_mh_solution(c)->mutation(prob);
+		nMutations+=mh_solution::cast(c)->mutation(prob);
 	else
 	{
-		static mh_solution *tmp2Sol=mh_solution::to_mh_solution(c->createUninitialized());
-		*tmp2Sol = mh_solution::to_mh_solution(*c);
-		int muts=mh_solution::to_mh_solution(tmpSol)->mutation(prob);
+		static mh_solution *tmp2Sol=mh_solution::cast(mh_solution::cast(c)->createUninitialized());
+		tmp2Sol->copy(*c);
+		int muts=mh_solution::cast(tmpSol)->mutation(prob);
 		nMutations+=muts;
 		if (muts>0 && tmp2Sol->equals(*c))
 			nMutationDups+=muts;

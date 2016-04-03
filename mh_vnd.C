@@ -106,7 +106,7 @@ void VND::performIteration(){
 	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
 	double starttime=mhcputime();
-	mh_solution::to_mh_solution(tmpSol)->reproduce(mh_solution::to_mh_solution(*pop->at(0)));
+	mh_solution::cast(tmpSol)->reproduce(mh_solution::cast(*pop->at(0)));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);
@@ -121,7 +121,7 @@ void VND::performIteration(){
 		nSearchSuccess[lidx]++;
 		sumSearchGain[lidx]+=pop->at(0)->obj()-
 			tmpSol->obj();
-		tmpSol = replace(mh_solution::to_mh_solution(tmpSol));
+		tmpSol = replace(mh_solution::cast(tmpSol));
 		l = 1;
 	}
 	else 
@@ -194,7 +194,7 @@ void VND::printStatistics(ostream &ostr)
 	char s[60];
 	
 	double tim=mhcputime();
-	const mh_solution *best=mh_solution::to_mh_solution(pop->bestSol());
+	const mh_solution *best=mh_solution::cast(pop->bestSol());
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

@@ -24,7 +24,7 @@ double_param graspb( "graspb", "beta for grasp", 0.5, 0.0, 1.0, UPPER_INCLUSIVE 
 
 qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 {
-	const qapSol &qapc=toQAPSol(c);
+	const qapSol &qapc=cast(c);
 	qi=qapc.qi;
 	for (int i=0;i<length;i++)
 		data[i]=qapc.data[i];
@@ -33,7 +33,7 @@ qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 void qapSol::copy(const mh_solution &orig)
 { 
 	mh_solution::copy(orig);
-	const qapSol &qapc=toQAPSol(orig);
+	const qapSol &qapc=cast(orig);
 	for (int i=0;i<length;i++) 
 		data[i]=qapc.data[i]; 
 }
@@ -44,7 +44,7 @@ bool qapSol::equals(mh_solution &o)
 	if (o.obj()!=obj())
 		return false;
 
-	const qapSol &qapc=toQAPSol(o);
+	const qapSol &qapc=cast(o);
 	// and now all the genes
 	for (int i=0;i<length;i++) 
 		if (data[i]!=qapc.data[i])
@@ -54,7 +54,7 @@ bool qapSol::equals(mh_solution &o)
 
 double qapSol::dist(mh_solution &c)
 {
-	const qapSol &qapc=toQAPSol(c);
+	const qapSol &qapc=cast(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=qapc.data[i])
@@ -123,8 +123,8 @@ void qapSol::mutate(int count)
 
 void qapSol::crossover(const mh_solution &parA,const mh_solution &parB) 
 {
-	const qapSol &a = toQAPSol(parA);
-	const qapSol &b = toQAPSol(parB);
+	const qapSol &a = cast(parA);
+	const qapSol &b = cast(parB);
 
 	// fill all genes from one parent
 	for (int i=0;i<length;i++)

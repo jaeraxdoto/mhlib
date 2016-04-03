@@ -18,7 +18,7 @@
 namespace mh {
 
 /** \ingroup param
-	Used crossover operator for string solutionosomes:
+	Used crossover operator for string solutions:
 	- 0: random choice (uniform, and multipoint with k=1...strxpts() equally
 		likely)
 	- 1: uniform crossover
@@ -49,7 +49,7 @@ protected:
 	std::vector<T> data;	/** Actual gene vector. */
 	T vmax; 	/** Maximum value. */
 
-	static const stringSol &toSSol(const mh_bare_solution &ref)
+	static const stringSol &cast(const mh_bare_solution &ref)
 		{ return (dynamic_cast<const stringSol &>(ref)); }
 
 	/** Performs uniform crossover. */
@@ -77,18 +77,16 @@ protected:
 	void get_cutpoints(int &a, int &b);
 
 public:
-	stringSol(const mh_solution &c);
+	stringSol(const mh_bare_solution &c);
 	/** normal constructor, number of genes must be passed to base
 		class, as well as maximum value for each gene. */
 	stringSol(int l, int v, mh_base *t, const std::string &pg="") : mh_solution(l,t,pg), data(l)
 		{ vmax=v; }
 	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,nullptr,pg), data(l)
 		{ vmax=v; }
-	/** Copy all data from a given solution into the current one. */
-	virtual stringSol &operator=(const stringSol &orig);
-	/** Copy all data from a given solution into the current one. */
-	virtual mh_bare_solution &operator=(const mh_bare_solution &orig);
-	/** Return true if the current solution is equal to *orig. */
+	/** copy all data from a given solution into the current one. */
+	void copy(const mh_bare_solution &orig);
+	/** return true if the current solution is equal to *orig. */
 	virtual bool equals(mh_solution &orig);
 	/** Returns the Hamming distance. */
 	virtual double dist(mh_solution &c);
@@ -123,26 +121,21 @@ typedef stringSol<unsigned int> intStringSol;
 
 //---------------------- Implementation of stringSol -------------------------
 
-template <class T> stringSol<T>::stringSol(const mh_solution &c) :	mh_solution(c)
+template <class T> stringSol<T>::stringSol(const mh_bare_solution &c) : mh_solution(c)
 {
-	const stringSol<T> &sc=toSSol(c);
+	const stringSol<T> &sc=cast(c);
 	data=sc.data;
 	vmax = sc.vmax;
 }
 
-template <class T> mh_bare_solution &stringSol<T>::operator=(const mh_bare_solution &orig) {
-	return stringSol<T>::operator=(toSSol(orig));
-}
-
-template <class T> stringSol<T> &stringSol<T>::operator=(const stringSol<T> &orig)
+template <class T> void stringSol<T>::copy(const mh_bare_solution &orig)
 {
-	mh_solution::operator=(orig);
-	const stringSol<T> &sc=toSSol(orig);
+	const stringSol<T> &sc=cast(orig);
+
+	mh_solution::copy(sc);
 	data = sc.data;
 	vmax = sc.vmax;
-	return *this;
 }
-
 
 template <class T> bool stringSol<T>::equals(mh_solution &orig)
 {
@@ -150,7 +143,7 @@ template <class T> bool stringSol<T>::equals(mh_solution &orig)
 	if (orig.obj()!=obj())
 		return false;
 	// and now all the genes
-	const stringSol<T> &sc=toSSol(orig);
+	const stringSol<T> &sc=cast(orig);
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
 			return false;
@@ -159,7 +152,7 @@ template <class T> bool stringSol<T>::equals(mh_solution &orig)
 
 template <class T> double stringSol<T>::dist(mh_solution &c)
 {
-	const stringSol<T> &sc=toSSol(c);
+	const stringSol<T> &sc=cast(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
@@ -294,8 +287,8 @@ template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh
 template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,const mh_solution &parB)
 {
 	// uniform crossover
-	const stringSol<T> &a=toSSol(parA);
-	const stringSol<T> &b=toSSol(parB);
+	const stringSol<T> &a=cast(parA);
+	const stringSol<T> &b=cast(parB);
 	for (int i=0;i<length;i++)
 		data[i]=random_bool()?a.data[i]:b.data[i];
 	invalidate();
@@ -305,8 +298,8 @@ template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,
 template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &parA,const mh_solution &parB,int xp)
 {
 	// k point crossover
-	const stringSol<T> &a=toSSol(parA);
-	const stringSol<T> &b=toSSol(parB);
+	const stringSol<T> &a=cast(parA);
+	const stringSol<T> &b=cast(parB);
 
 	int clength = 0;        // length between 2 crossover points (changes each turn)
 	int current = 0;        // current gen to move

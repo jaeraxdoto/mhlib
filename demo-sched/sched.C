@@ -104,6 +104,9 @@ public:
 	/** Create a new uninitialized instance of this class. */
 	virtual mh_solution *createUninitialized() const
 		{ return new oneMaxSol; }
+	/** Clone this solution, i.e., return a new copy. */
+	virtual mh_solution *clone() const
+		{ return new oneMaxSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the 1s in the solution string.
 	 */
@@ -173,8 +176,11 @@ public:
 	onePermSol() : permSol(vars())
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_solution *createUninitialized() const
+	virtual mh_bare_solution *createUninitialized() const
 		{ return new onePermSol; }
+	/** Clone this solution, i.e., return a new copy. */
+	virtual mh_bare_solution *clone() const
+		{ return new onePermSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the the number of values that are on the same place as in the
 	 * target permutation (0,1,2,...,vars()-1). Should the solution be uninitialized,
@@ -313,6 +319,7 @@ int main(int argc, char *argv[])
 		// Probably set some parameters to new default values
 		maxi.setDefault(1);
 		popsize.setDefault(1);
+		titer.setDefault(1000);
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);

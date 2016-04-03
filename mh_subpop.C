@@ -114,7 +114,7 @@ void subPopulation::validateStat()
 void subPopulation::setAlgorithm(mh_base *alg)
 {
 	for (int i=0;i<nSolutions;i++)
-		mh_solution::to_mh_solution(at(i))->setAlgorithm(alg);
+		mh_solution::cast(at(i))->setAlgorithm(alg);
 }
 
 } // end of namespace mh

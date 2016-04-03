@@ -47,12 +47,12 @@ protected:
 	
 		\param ref Object to dynamically cast
 	*/
-	static const qapSol &toQAPSol(const mh::mh_solution &ref)
+	static const qapSol &cast(const mh::mh_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
-	mh::mh_solution *createUninitialized() const
+	mh::mh_bare_solution *createUninitialized() const
 		{ return new qapSol(alg, pgroup); }
-	mh::mh_solution *clone() const
+	mh::mh_bare_solution *clone() const
 		{ return new qapSol(*this); }
 	double objective();
 
