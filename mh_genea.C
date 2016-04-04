@@ -75,7 +75,7 @@ void generationalEA::createNextGeneration()
 		else
 		{
 			// no recombination
-			nextGeneration[i]->reproduce(mh_solution::cast(*pop->at(p1)));
+			nextGeneration[i]->copy(mh_solution::cast(*pop->at(p1)));
 		}
 	}
 	

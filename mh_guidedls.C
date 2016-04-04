@@ -58,7 +58,7 @@ void guidedLS::performIteration()
 	if ( lambda==0 )
 		lambda = f->tuneLambda(mh_solution::cast(pop->at(1)));
 
-	mh_solution::cast(tmpSol)->reproduce(mh_solution::cast(*spop->at(0)));
+	mh_solution::cast(tmpSol)->copy(mh_solution::cast(*spop->at(0)));
 	if (pop->at(0)->isWorse(*tmpSol))
 		tmpSol=replace(mh_solution::cast(tmpSol));
 

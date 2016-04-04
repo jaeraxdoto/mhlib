@@ -34,7 +34,7 @@ void steadyStateEA::performIteration()
 	else
 	{
 		// no recombination
-		mh_solution::cast(tmpSol)->reproduce(mh_solution::cast(*pop->at(p1)));
+		mh_solution::cast(tmpSol)->copy(mh_solution::cast(*pop->at(p1)));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);

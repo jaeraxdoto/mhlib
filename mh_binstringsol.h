@@ -13,7 +13,7 @@ namespace mh {
 class binStringSol : public stringSol<bool>
 {
 protected:
-	static const binStringSol &cast(const mh_solution &ref)
+	static const binStringSol &cast(const mh_bare_solution &ref)
 		{ return (dynamic_cast<const binStringSol &>(ref)); }
 public:
 	binStringSol(const mh_bare_solution &c) : stringSol<bool>(c) { }

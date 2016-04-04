@@ -61,8 +61,8 @@ public:
 /// The actual objective function counts the number of variables set to 1.
 double oneMaxSol::objective()
 {
-	int sum=0;
-	for (int i=0;i<length;i++) 
+	int sum=0, l=length();
+	for (int i=0;i<l;i++)
 		if (data[i]) 
 			sum++;
 	return sum;
@@ -72,7 +72,8 @@ double oneMaxSol::objective()
         This simply sets each gene of the solution to 1. */
 void oneMaxSol::greedyConstruct()
 {
-	for (int i=0;i<length;i++) 
+	int l=length();
+	for (int i=0;i<l;i++)
 		data[i] = 1;
 }
 
@@ -104,8 +105,8 @@ public:
  permutation 0,1,...vars()-1. */
 double onePermSol::objective()
 {
-	int sum=0;
-	for (int i=0;i<length;i++) 
+	int sum=0, l=length();
+	for (int i=0;i<l;i++)
 		if (int(data[i])==i) 
 			sum++;
 	return sum;
@@ -115,7 +116,8 @@ double onePermSol::objective()
         This simply sets each gene of the solution to its index. */
 void onePermSol::greedyConstruct()
 {
-	for (int i=0;i<length;i++) 
+	int l=length();
+	for (int i=0;i<l;i++)
 		data[i] = i;
 }
 

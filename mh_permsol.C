@@ -16,7 +16,7 @@ int_param permmop("permmop","permutation mutation operator 0:random 1:inversion 
 
 void permSol::initialize(int count)
 {
-	for (int i=0;i<length;i++)
+	for (int i=0;i<length();i++)
 		data[i] = permSolVarType(i);
 	random_shuffle(data);
 	invalidate();
@@ -90,7 +90,7 @@ void permSol::mutate_insertion(int count)
 	invalidate();
 }
 
-void permSol::crossover(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	int c;
 	if (permxop(pgroup)) 
@@ -128,12 +128,14 @@ void permSol::crossover(const mh_solution &parA,const mh_solution &parB)
 }
 
 // PMX operator
-void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_pmx(const mh_bare_solution &parA, const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
 
 	int c1,c2;      // cutpoints [0,length[
+
+	int length = this->length();
 
 	get_cutpoints(c1,c2);
 
@@ -162,49 +164,50 @@ void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 }
 
 // OX operator
-void permSol::crossover_ox(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_ox(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
-
+	int l=length();
 	int c1,c2;      // cutpoints [0,length[
 
 	get_cutpoints(c1,c2);
 
 	int t = c2;
     
-	vector<bool> s(length,false);
+	vector<bool> s(l,false);
 
 	for (int i=c1;i<c2;i++)
 		s[data[i]=a.data[i]]=true;
 
-	for (int i=c2;i<length;i++)
+	for (int i=c2;i<l;i++)
 		if (!s[b.data[i]])
-			data[t++%length]=b.data[i];
+			data[t++%l]=b.data[i];
 
 	for (int i=0;i<c2;i++)
 		if (!s[b.data[i]])
-			data[t++%length]=b.data[i];
+			data[t++%l]=b.data[i];
 	invalidate();
 }
 
 // CX operator
-void permSol::crossover_cx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_cx(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
+	int l=length();
 
 	// fill all variables from one parent
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 		data[i] = b.data[i];
 
-	vector<int> pos(length);
+	vector<int> pos(l);
 
 	// build a table with all positions in the solution
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 		pos[a.data[i]] = i;
 
-	vector<bool> d(length,true);
+	vector<bool> d(l,true);
 
 	// tc = city to take
 	int tc = a.data[0];
@@ -220,19 +223,20 @@ void permSol::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 }
 
 // UOBX operator
-void permSol::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_uobx(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
+	int l=length();
 
-	vector<bool> s(length,false);
-	for (int i=0;i<length;i++)
+	vector<bool> s(l,false);
+	for (int i=0;i<l;i++)
 		if (random_bool())
 			data[i]=a.data[i];
 		else
 			s[a.data[i]]=true;
 	int pos=0;
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 		if (s[a.data[i]]) // position i needs to be filled
 		{
 			while (!s[b.data[pos]])
@@ -244,21 +248,22 @@ void permSol::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
 
 // C1 operator
 // a variation of the UOBX operator
-void permSol::crossover_c1(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_c1(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
+	int l=length();
 
-	int c=random_int(1,length-1);
+	int c=random_int(1,l-1);
 
-	vector<bool> s(length,false);
+	vector<bool> s(l,false);
 	int i;
 	for (i=0;i<c;i++)
 		data[i]=a.data[i];
-	for (;i<length;i++)
+	for (;i<l;i++)
 		s[a.data[i]]=true;
 	int pos=0;
-	for (i=c;i<length;i++)
+	for (i=c;i<l;i++)
 	{
 		while (!s[b.data[pos]])
 			pos++;
@@ -270,7 +275,7 @@ void permSol::crossover_c1(const mh_solution &parA,const mh_solution &parB)
 #ifdef notused
 
 // ERX operator
-void permSol::crossover_erx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_erx(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
@@ -329,7 +334,7 @@ void permSol::crossover_erx(const mh_solution &parA,const mh_solution &parB)
 
 // EERX operator
 // enhanced ERX operator
-void permSol::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_eerx(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
@@ -419,7 +424,7 @@ void permSol::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
 
 // MPX operator
 // Maximal preservative crossover
-void permSol::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_mpx(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);

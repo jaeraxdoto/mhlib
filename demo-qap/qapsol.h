@@ -47,7 +47,7 @@ protected:
 	
 		\param ref Object to dynamically cast
 	*/
-	static const qapSol &cast(const mh::mh_solution &ref)
+	static const qapSol &cast(const mh::mh_bare_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
 	mh::mh_bare_solution *createUninitialized() const
@@ -59,35 +59,43 @@ public:
 	/** Copy constructor.
 		\param c Object to copy from.
 	*/
-	qapSol(const mh::mh_solution &c);
+	qapSol(const mh::mh_bare_solution &c);
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param t Associated algorithm object
-		\param pg Parametergroup
+		\param pg Parameter group
 	*/
-	qapSol(mh::mh_base* t, const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
+	qapSol(mh::mh_base* t, const std::string &pg="")
+		: mh::mh_solution(qapInstance::getInstance()->n, t, pg),
+		  qi(qapInstance::getInstance()),
+		  data(qapInstance::getInstance()->n)
 		{}
 	
 	/** Normal constructor, number of genes must be passed to base class.
-		\param pg Parametergroup
+		\param pg Parameter group
 	*/
-	qapSol(const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
+	qapSol(const std::string &pg="")
+		: mh::mh_solution(qapInstance::getInstance()->n,pg),
+		  qi(qapInstance::getInstance()),  data(qapInstance::getInstance()->n)
 		{}
 	
+	int length() const
+		{ return data.size(); }
+
 	/** Copy all data from a given solution into the current one.
 		\param orig Object to copy from.
 	*/
-	void copy(const mh::mh_solution &orig);
+	void copy(const mh::mh_bare_solution &orig);
 	
 	/** Return true if the current solution is equal to *orig.
 		\param orig Object to compare to.
 	*/
-	bool equals(mh::mh_solution &orig);
+	bool equals(mh::mh_bare_solution &orig);
 	
 	/** Returns the hamming distance.
 		\param c Solution to compute distance to.
 	*/
-	double dist(mh::mh_solution &c);
+	double dist(mh::mh_bare_solution &c);
 	
 	/** Randomly initializes with an uniformly generated permutation.
 		\param count Does not have any effect.
@@ -103,7 +111,7 @@ public:
 		\param parA Parent A for crossover.
 		\param parB Parent B for crossover.
 	*/
-	void crossover(const mh::mh_solution &parA,const mh::mh_solution &parB);
+	void crossover(const mh::mh_bare_solution &parA,const mh::mh_bare_solution &parB);
 	
 	/** Writes the solution to an ostream.
 		The values of the permutation are incremented by one for better human readability.

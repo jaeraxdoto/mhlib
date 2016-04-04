@@ -130,7 +130,7 @@ public:
 double oneMaxSol::objective()
 {
 	int sum=0;
-	for (int i=0;i<length;i++) 
+	for (int i=0;i<length();i++)
 		if (data[i]) 
 			sum++;
 	return sum;
@@ -152,7 +152,7 @@ bool oneMaxSol::shaking(int k)
 {
 	spendTime();
 	for (int j=0; j<k; j++) {
-		int i=random_int(length);
+		int i=random_int(data.size());
 		data[i]=!data[i];
 	}
 	invalidate();
@@ -223,7 +223,7 @@ double onePermSol::objective()
 		return -1;
 	// count the number of correctly placed values
 	int sum=0;
-	for (int i=0;i<length;i++) 
+	for (int i=0;i<length();i++)
 		if (int(data[i])==i) 
 			sum++;
 	return sum;

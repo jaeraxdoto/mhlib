@@ -106,7 +106,7 @@ void VND::performIteration(){
 	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
 	double starttime=mhcputime();
-	mh_solution::cast(tmpSol)->reproduce(mh_solution::cast(*pop->at(0)));
+	mh_solution::cast(tmpSol)->copy(mh_solution::cast(*pop->at(0)));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);

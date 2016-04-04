@@ -15,7 +15,8 @@ template class stringSol<bool>;
 
 void binStringSol::write(ostream &ostr,int detailed) const
 {
-	for (int i=0;i<length;i++) 
+	int l=length();
+	for (int i=0;i<l;i++)
 		ostr << (data[i]?1:0);
 }
 
@@ -26,7 +27,8 @@ void binStringSol::applyMove(const nhmove &m)
 }
 
 bool binStringSol::k_flip_localsearch(int k) {
-	assert(k>0 && k<=length);
+	int l=length();
+	assert(k>0 && k<=l);
 	bool better_found=false;
 	mh_solution *best_sol=mh_solution::cast(clone());
 	vector<int> p(k,-1);	// flipped positions
@@ -47,7 +49,7 @@ bool binStringSol::k_flip_localsearch(int k) {
 				p[i]=p[i-1]+1;
 				data[p[i]]=!data[p[i]];
 				i++; 	// continue with next position (if any)
-			} else if (p[i]<length-(k-i)) {
+			} else if (p[i]<l-(k-i)) {
 				// further positions to explore with this index
 				data[p[i]]=!data[p[i]];
 				p[i]++;

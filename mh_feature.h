@@ -19,7 +19,7 @@ extern double_param glsa;
 class feature
 {
 protected:
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 	
 public:

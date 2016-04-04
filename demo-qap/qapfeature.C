@@ -62,13 +62,14 @@ void qapFeature::updatePenalties(const mh_solution *c)
 double qapFeature::penalty(const mh_solution *c)
 {
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
+	int l=qapc->length();
 
 	if ( qapc==nullptr )
 		mherror("Solution is not a qapSol");
 
 	double p = 0.0;
 
-	for (int i=0; i<qapc->length; i++)
+	for (int i=0; i<l; i++)
 	{
 		p += pv[i*qi->n+qapc->data[i]];
 	}

@@ -53,15 +53,15 @@ protected:
 		{ return (dynamic_cast<const stringSol &>(ref)); }
 
 	/** Performs uniform crossover. */
-	void crossover_uniform(const mh_solution &parA, const mh_solution &parB);
+	void crossover_uniform(const mh_bare_solution &parA, const mh_bare_solution &parB);
 	/** Performs multi-point crossover with xp crossover points. */
-	void crossover_multipoint(const mh_solution &parA, 
-		const mh_solution &parB, int xp=strxpts());
+	void crossover_multipoint(const mh_bare_solution &parA,
+		const mh_bare_solution &parB, int xp=strxpts());
 	/** Calls multipoint crossover, with crossing number 1. */
-	void crossover_1point(const mh_solution &parA, const mh_solution &parB)
+	void crossover_1point(const mh_bare_solution &parA, const mh_bare_solution &parB)
 		{ crossover_multipoint(parA, parB, 1); }
 	/** Calls multipoint crossover, with crossing number 2. */
-	void crossover_2point(const mh_solution &parA, const mh_solution &parB)
+	void crossover_2point(const mh_bare_solution &parA, const mh_bare_solution &parB)
 		{ crossover_multipoint(parA, parB, 2); }
 
 	/** Changes one gene to a random number. */
@@ -84,19 +84,21 @@ public:
 		{ vmax=v; }
 	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,nullptr,pg), data(l)
 		{ vmax=v; }
+	int length() const
+		{ return data.size(); }
 	/** copy all data from a given solution into the current one. */
 	void copy(const mh_bare_solution &orig);
 	/** return true if the current solution is equal to *orig. */
-	virtual bool equals(mh_solution &orig);
+	virtual bool equals(mh_bare_solution &orig);
 	/** Returns the Hamming distance. */
-	virtual double dist(mh_solution &c);
+	virtual double dist(mh_bare_solution &c);
 	virtual ~stringSol() { }
 	/** Randomly initialize all genes. */
 	void initialize(int count);
 	/** Calls a mutation method, controlled by the parameter strmop(). */
 	void mutate(int count);
 	/** Calls a crossover method, controlled by the parameter strxop(). */
-	void crossover(const mh_solution &parA,const mh_solution &parB);
+	void crossover(const mh_bare_solution &parA,const mh_bare_solution &parB);
 	void write(std::ostream &ostr,int detailed=0) const;
 	void save(const std::string &fname);
 	void load(const std::string &fname);
@@ -137,24 +139,25 @@ template <class T> void stringSol<T>::copy(const mh_bare_solution &orig)
 	vmax = sc.vmax;
 }
 
-template <class T> bool stringSol<T>::equals(mh_solution &orig)
+template <class T> bool stringSol<T>::equals(mh_bare_solution &orig)
 {
 	// to be efficient: check first objective values
 	if (orig.obj()!=obj())
 		return false;
 	// and now all the genes
 	const stringSol<T> &sc=cast(orig);
-	for (int i=0;i<length;i++)
+	int l=length();
+	for (int i=0;i<l;i++)
 		if (data[i]!=sc.data[i])
 			return false;
 	return true;
 }
 
-template <class T> double stringSol<T>::dist(mh_solution &c)
+template <class T> double stringSol<T>::dist(mh_bare_solution &c)
 {
 	const stringSol<T> &sc=cast(c);
-	int diffs=0;
-	for (int i=0;i<length;i++)
+	int diffs=0, l=length();
+	for (int i=0;i<l;i++)
 		if (data[i]!=sc.data[i])
 			diffs++;
 	return diffs;
@@ -162,16 +165,18 @@ template <class T> double stringSol<T>::dist(mh_solution &c)
 
 template <class T> void stringSol<T>::initialize(int count)
 {
-	for (int i=0;i<length;i++)
+	int l=length();
+	for (int i=0;i<l;i++)
 		data[i]=random_int(vmax+1);
 	invalidate();
 }
 
 template <class T> void stringSol<T>::get_cutpoints(int &a, int &b)
 {
-	a = random_int(length);
+	int l=length();
+	a = random_int(l);
 	do
-		b = random_int(length);
+		b = random_int(l);
 	while (a==b);
 	if (a>b)
 		std::swap(a,b);
@@ -201,9 +206,10 @@ template <class T> void stringSol<T>::mutate(int count)
 
 template <class T> void stringSol<T>::mutate_flip(int count)
 {
+	int l=length();
 	for (int i=0;i<count;i++)
 	{
-		int genno=random_int(length);
+		int genno=random_int(l);
 		int r=random_int(0,vmax-1);
 		if (unsigned(r)!=unsigned(data[genno]))
 			data[genno]=r;
@@ -256,7 +262,7 @@ template <class T> void stringSol<T>::mutate_insertion(int count)
 	invalidate();
 }
 
-template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh_solution &parB)
+template <class T> void stringSol<T>::crossover(const mh_bare_solution &parA, const mh_bare_solution &parB)
 {
 	int c=strxop(pgroup),pts=strxpts(pgroup);
 	if (c==0)
@@ -284,22 +290,24 @@ template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh
 }
 
 
-template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,const mh_solution &parB)
+template <class T> void stringSol<T>::crossover_uniform(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
 	// uniform crossover
 	const stringSol<T> &a=cast(parA);
 	const stringSol<T> &b=cast(parB);
-	for (int i=0;i<length;i++)
+	int l=length();
+	for (int i=0;i<l;i++)
 		data[i]=random_bool()?a.data[i]:b.data[i];
 	invalidate();
 }
 
 
-template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &parA,const mh_solution &parB,int xp)
+template <class T> void stringSol<T>::crossover_multipoint(const mh_bare_solution &parA,const mh_bare_solution &parB,int xp)
 {
 	// k point crossover
 	const stringSol<T> &a=cast(parA);
 	const stringSol<T> &b=cast(parB);
+	int l=length();
 
 	int clength = 0;        // length between 2 crossover points (changes each turn)
 	int current = 0;        // current gen to move
@@ -308,9 +316,9 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &pa
 	for (int i=0; i<=xp; i++)
 	{
 		if (i==xp)
-			clength = length-current;
+			clength = l-current;
 		else
-			clength = random_int(length-current-1)-(strxpts(pgroup)-i)+1;
+			clength = random_int(l-current-1)-(strxpts(pgroup)-i)+1;
 
 		for (int t=0; t<clength; t++)
 		{
@@ -324,16 +332,18 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &pa
 
 template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed) const
 {
-	for (int i=0;i<length;i++)
+	int l=length();
+	for (int i=0;i<l;i++)
 		ostr << int(data[i]) << ' ';
 }
 
 template <class T> void stringSol<T>::save(const std::string &fname)
 {
+	int l=length();
 	std::ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 		of << int(data[i]) << ' ';
 	of << std::endl;
 	if (!of)
@@ -342,10 +352,11 @@ template <class T> void stringSol<T>::save(const std::string &fname)
 
 template <class T> void stringSol<T>::load(const std::string &fname)
 {
+	int l=length();
 	std::ifstream inf(fname);
 	if (!inf)
 		mherror("Cannot open file",fname);
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 	{
 		T d;
 		inf >> d;
@@ -358,10 +369,10 @@ template <class T> void stringSol<T>::load(const std::string &fname)
 
 template <class T> unsigned long int stringSol<T>::hashvalue()
 {
-	unsigned h=0;
-	unsigned window=sizeof(h)*8-unsigned(ceil(log(double(vmax+1))/
+	int h=0, l=length();
+	int window=sizeof(h)*8-unsigned(ceil(log(double(vmax+1))/
 		log(2.0)));
-	for (int i=0;i<length;i++)
+	for (int i=0;i<l;i++)
 		if (data[i])
 			h^=data[i]<<(i%window);
 	return h;

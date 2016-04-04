@@ -99,7 +99,7 @@ void VNS::performIteration()
 	}
 
 	/* Move or not */
-	mh_solution::cast(*tmpSol).reproduce(mh_solution::cast(*spop->at(0)));
+	mh_solution::cast(*tmpSol).copy(mh_solution::cast(*spop->at(0)));
 	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
@@ -109,13 +109,13 @@ void VNS::performIteration()
 			nShakeSuccess[kidx]++;
 			sumShakeGain[kidx]+=abs(pop->at(0)->obj()-spop->at(0)->obj());
 		}
-		tmpSol = replace(mh_solution::cast(tmpSol));
+		tmpSol = replace(&mh_solution::cast(*tmpSol));
 		k = 1;
 	}
 	else
 	{
 		// copy best solution into subpopulation
-		mh_solution::cast(spop->at(0))->reproduce(mh_solution::cast(* pop->bestSol()));
+		mh_solution::cast(*spop->at(0)).copy(mh_solution::cast(*pop->bestSol()));
 		k++;
 	}
 
