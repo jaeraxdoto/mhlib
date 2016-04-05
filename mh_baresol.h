@@ -17,31 +17,48 @@ namespace mh {
 	True if maximization, false for minimization. */
 extern bool_param maxi;
 
+class mh_base; // abstract class for algorithms
+
 /** Abstract class representing the bare solution independently from any algorithm.
 	A concrete class must be derived for a specific problem.
 */
 class mh_bare_solution
 {
 protected:
-	/// Parameter group
-	std::string pgroup;
 	/** Objective value of solution.
 		Implicitly set and read by obj(). */
 	double objval = -1;
 	/// Set if the objective value is valid.
 	bool objval_valid = false;
+
 	/** Objective function.
-		Must be overloaded and defined for a concrete problem. 
+		Must be overloaded and defined for a concrete problem.
 		If the objective value for a given solution should be
 		determined, obj() must be used instead of a direct call
 		to objective(). */
 	virtual double objective() = 0;
 
 public:
+	/// Parameter group
+	std::string pgroup = "";
+	/** Possible pointer to algorithm handling this solution. */
+	mh_base *alg = nullptr;
+	/** Value indicating the length of the solution in a generic way,
+	 * e.g., the size of a vector. Keep the default value of 1 if
+	 * your solution does not have a dedicated length.
+	 */
+	int length = 1;
+
 	/** Constructor for uninitialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false. */
-	mh_bare_solution(const std::string &pg="") : pgroup(pg) {}
+	mh_bare_solution(int l=1, mh_base *al=nullptr, const std::string &pg="")
+		: pgroup(pg), alg(al), length(l) {}
+	/** Constructor for uninitialized solution.
+		Must also be defined for a concrete solution class.
+		Sets objval_valid to false. */
+	mh_bare_solution(int l=1, const std::string &pg="")
+		: pgroup(pg), length(l) {}
 	/** The assignment operator "=" calls the virtual copy method.
 	 * For copying solutions, the copy method should generally be used
 	 * as it is safer when copying objects that are only referenced by
@@ -50,7 +67,8 @@ public:
     /** The virtual method to copy a solution. Should be used instead of the classical
      * assignment operator to avoid problems when referring to solutions via a base class. */
     virtual void copy(const mh_bare_solution &s) {
-    	pgroup = s.pgroup; objval = s.objval; objval_valid = s.objval_valid;
+    	pgroup = s.pgroup; alg = s.alg; length = s.length;
+    	objval = s.objval; objval_valid = s.objval_valid;
     }
 	/** Creates an uninitialized object of the same class as the
 		current object.

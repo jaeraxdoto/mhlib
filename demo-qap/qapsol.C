@@ -22,34 +22,31 @@ double_param graspa( "graspa", "alpha for grasp", 0.25, 0.0, 1.0, UPPER_INCLUSIV
 /// Beta parameter for GRASP
 double_param graspb( "graspb", "beta for grasp", 0.5, 0.0, 1.0, UPPER_INCLUSIVE );
 
-qapSol::qapSol(const mh_bare_solution &c) : mh_solution(c), data(length())
+qapSol::qapSol(const mh_bare_solution &c) : mh_solution(c), data(length)
 {
-	int l=length();
 	const qapSol &qapc=cast(c);
 	qi=qapc.qi;
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		data[i]=qapc.data[i];
 }
 
 void qapSol::copy(const mh_bare_solution &orig)
 { 
-	int l=length();
 	mh_solution::copy(orig);
 	const qapSol &qapc=cast(orig);
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++) 
 		data[i]=qapc.data[i]; 
 }
 
 bool qapSol::equals(mh_bare_solution &o)
 { 
-	int l=length();
 	// to be efficient: check first objective values
 	if (o.obj()!=obj())
 		return false;
 
 	const qapSol &qapc=cast(o);
 	// and now all the genes
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++) 
 		if (data[i]!=qapc.data[i])
 			return false;
 	return true;
@@ -57,10 +54,9 @@ bool qapSol::equals(mh_bare_solution &o)
 
 double qapSol::dist(mh_bare_solution &c)
 {
-	int l=length();
 	const qapSol &qapc=cast(c);
 	int diffs=0;
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		if (data[i]!=qapc.data[i])
 			diffs++;
 	return diffs;
@@ -68,24 +64,22 @@ double qapSol::dist(mh_bare_solution &c)
 
 void qapSol::initialize(int count)
 {
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++) 
 		data[i]=i;
-	for (int i=0;i<l-1;i++)
-		swap(data[i],data[random_int(i,l-1)]);
+	for (int i=0;i<length-1;i++)
+		swap(data[i],data[random_int(i,length-1)]);
 	
 	invalidate();
 }
 
 double qapSol::objective()
 {
-	int l=length();
 	double o = 0.0;
 	int i, j;
 
-	for ( i = 0; i < l; i++ )
+	for ( i = 0; i < length; i++ )
 	{
-		for ( j = 0; j < l; j++ )
+		for ( j = 0; j < length; j++ )
 		{
 			o += qi->A(i,j) * qi->B(data[i],data[j]);
 		}
@@ -100,7 +94,6 @@ double qapSol::objective()
 
 void qapSol::mutate(int count) 
 {
-	int l=length();
 	tabuSearch *ts = dynamic_cast<tabuSearch*>(alg);
 	qapTabuAttribute qta(pgroup);
 	swapMove qm;
@@ -113,8 +106,8 @@ void qapSol::mutate(int count)
 
 	for (int i=0;i<count;i++)
 	{
-		qm.r=random_int(l);
-		qm.s=random_int(l);
+		qm.r=random_int(length);
+		qm.s=random_int(length);
 
 		objval += delta_obj(qm);
 		applyMove(qm);
@@ -130,21 +123,20 @@ void qapSol::mutate(int count)
 
 void qapSol::crossover(const mh_bare_solution &parA,const mh_bare_solution &parB)
 {
-	int l=length();
 	const qapSol &a = cast(parA);
 	const qapSol &b = cast(parB);
 
 	// fill all genes from one parent
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		data[i] = b.data[i];
 
-	vector<int> pos(l);
+	vector<int> pos(length);
 
 	// build a table with all positions in the solution
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		pos[a.data[i]] = i;
 
-	vector<bool> d(l,true);
+	vector<bool> d(length,true);
 
 	// tc = city to take
 	int tc = a.data[0];
@@ -161,23 +153,21 @@ void qapSol::crossover(const mh_bare_solution &parA,const mh_bare_solution &parB
 
 void qapSol::write(ostream &ostr,int detailed) const
 {
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++) 
 		ostr << data[i]+1 << ' ';
 	ostr << endl;
 }
 
 void qapSol::save(const std::string &fname)
 {
-	int l=length();
 	char s[40];
 	sprintf(s,nformat(pgroup).c_str(),obj());
 
 	ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);
-	of << l << ' ' << s << endl;
-	for (int i=0;i<l;i++)
+	of << length << ' ' << s << endl;
+	for (int i=0;i<length;i++) 
 		of << data[i]+1 << ' ';
 	of << endl;
 	if (!of)
@@ -186,13 +176,12 @@ void qapSol::save(const std::string &fname)
 
 void qapSol::load(const string &fname)
 {
-	int l=length();
 	ifstream inf(fname);
 	double d;
 	if (!inf)
 		mherror("Cannot open file",fname);
 	inf >> d >> d;
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++) 
 	{
 		inf >> d;
 		if (!inf)
@@ -203,11 +192,10 @@ void qapSol::load(const string &fname)
 
 unsigned long int qapSol::hashvalue()
 {
-	int l=length();
-	int h=0;
-	int window=sizeof(h)*8-unsigned(ceil(log(double(l+1))/
+	unsigned h=0;
+	unsigned window=sizeof(h)*8-unsigned(ceil(log(double(length+1))/
 		log(2.0)));
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		if (data[i])
 			h^=data[i]<<(i%window);
 	return h;
@@ -215,11 +203,10 @@ unsigned long int qapSol::hashvalue()
 
 double qapSol::delta_obj(const nhmove &m)
 {
-	int l=length();
 	double delta = 0.0;
 	const swapMove &qm = dynamic_cast<const swapMove &>(m);
 
-	for ( int k = 0; k < l; k++ )
+	for ( int k = 0; k < length; k++ )
 	{
 		if ( k != qm.r && k != qm.s )
 		{
@@ -252,7 +239,6 @@ inline void qapSol::applyMove(const nhmove &m)
 
 void qapSol::selectImprovement(bool find_best)
 {
-	int l=length();
 	// information about best known move
 	swapMove bqm;
 	double bestobj;
@@ -270,9 +256,9 @@ void qapSol::selectImprovement(bool find_best)
 	if (find_best)
 		bestobj += delta_obj(qm);
 
-	for (int i=0; i<l && cont; i++)
+	for (int i=0; i<length && cont; i++)
 	{
-		for (int j=i+1; j<l && cont; j++)
+		for (int j=i+1; j<length && cont; j++)
 		{
 			qm.r = i;
 			qm.s = j;

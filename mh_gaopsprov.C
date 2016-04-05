@@ -1,15 +1,18 @@
-// mh_gaops.C
+// mh_gaopsprov.C
 
 #include <algorithm>
 #include <cmath>
 #include <string>
-#include "mh_gaops.h"
+#include "mh_baresol.h"
+#include "mh_gaopsprov.h"
 #include "mh_random.h"
 #include "mh_util.h"
 
 namespace mh {
 
 using namespace std;
+
+int_param mvnbop( "mvnbop", "step function 0:rand. neigh., 1:first imp. 2:best imp.", 0, 0, 2 );
 
 int gaopsProvider::mutation(double prob)
 {
@@ -21,20 +24,20 @@ int gaopsProvider::mutation(double prob)
 	}
 	else 
 	{
+		int length = dynamic_cast<const mh_bare_solution &>(*this).length;
 		// Interpret rate as rate/length per gene
-		int l=length();
 		if (prob<=-1000)
-			if (l<=1)
+			if (length<=1)
 				nmut=max(unsigned(1),
 					random_poisson(-prob-1000));
 			else
 				nmut=max(unsigned(1),
-					random_poisson(-prob-1000,l));
+					random_poisson(-prob-1000,length));
 		else
-			if (l<=1)
+			if (length<=1)
 				nmut=random_poisson(-prob);
 			else
-				nmut=random_poisson(-prob,l);
+				nmut=random_poisson(-prob,length);
 	}
 	// actually perform nmut mutations and also return nmut
 	if (nmut>0)
@@ -42,9 +45,10 @@ int gaopsProvider::mutation(double prob)
 	return nmut;
 }
 
-void gaopsProvider::selectNeighbour(int mvnbop)
+void gaopsProvider::selectNeighbour()
 {
-	switch(mvnbop)
+	int mvnbo=mvnbop(dynamic_cast<const mh_bare_solution &>(*this).pgroup);
+	switch(mvnbo)
 	{
 		case 0:
 			selectRandomNeighbour();
@@ -59,7 +63,7 @@ void gaopsProvider::selectNeighbour(int mvnbop)
 			break;
 
 		default:
-			mherror("Invalid parameter for mvnbop()", tostring(mvnbop));
+			mherror("Invalid parameter for mvnbop()", tostring(mvnbo));
 			break;
 	}
 }

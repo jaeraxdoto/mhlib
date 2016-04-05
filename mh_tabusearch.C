@@ -1,7 +1,6 @@
 // mh_tabusearch.C
 
 #include <limits.h>
-#include "mh_localsearch.h"
 #include "mh_tabusearch.h"
 #include "mh_util.h"
 
@@ -30,7 +29,7 @@ void tabuSearch::performIteration()
 	perfIterBeginCallback();
 
 	mh_solution *pold=&mh_solution::cast(*pop->at(0));
-	curChrom->selectNeighbour(mvnbop(pgroup));
+	curChrom->selectNeighbour();
 
 	tmpSol->copy(*curChrom);
 	

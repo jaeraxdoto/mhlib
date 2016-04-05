@@ -16,7 +16,7 @@ int_param permmop("permmop","permutation mutation operator 0:random 1:inversion 
 
 void permSol::initialize(int count)
 {
-	for (int i=0;i<length();i++)
+	for (int i=0;i<length;i++)
 		data[i] = permSolVarType(i);
 	random_shuffle(data);
 	invalidate();
@@ -135,8 +135,6 @@ void permSol::crossover_pmx(const mh_bare_solution &parA, const mh_bare_solution
 
 	int c1,c2;      // cutpoints [0,length[
 
-	int length = this->length();
-
 	get_cutpoints(c1,c2);
 
 	vector<int> m(length,-1); // m defines the mapping
@@ -168,25 +166,25 @@ void permSol::crossover_ox(const mh_bare_solution &parA,const mh_bare_solution &
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
-	int l=length();
+
 	int c1,c2;      // cutpoints [0,length[
 
 	get_cutpoints(c1,c2);
 
 	int t = c2;
     
-	vector<bool> s(l,false);
+	vector<bool> s(length,false);
 
 	for (int i=c1;i<c2;i++)
 		s[data[i]=a.data[i]]=true;
 
-	for (int i=c2;i<l;i++)
+	for (int i=c2;i<length;i++)
 		if (!s[b.data[i]])
-			data[t++%l]=b.data[i];
+			data[t++%length]=b.data[i];
 
 	for (int i=0;i<c2;i++)
 		if (!s[b.data[i]])
-			data[t++%l]=b.data[i];
+			data[t++%length]=b.data[i];
 	invalidate();
 }
 
@@ -195,19 +193,18 @@ void permSol::crossover_cx(const mh_bare_solution &parA,const mh_bare_solution &
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
-	int l=length();
 
 	// fill all variables from one parent
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		data[i] = b.data[i];
 
-	vector<int> pos(l);
+	vector<int> pos(length);
 
 	// build a table with all positions in the solution
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		pos[a.data[i]] = i;
 
-	vector<bool> d(l,true);
+	vector<bool> d(length,true);
 
 	// tc = city to take
 	int tc = a.data[0];
@@ -227,16 +224,15 @@ void permSol::crossover_uobx(const mh_bare_solution &parA,const mh_bare_solution
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
-	int l=length();
 
-	vector<bool> s(l,false);
-	for (int i=0;i<l;i++)
+	vector<bool> s(length,false);
+	for (int i=0;i<length;i++)
 		if (random_bool())
 			data[i]=a.data[i];
 		else
 			s[a.data[i]]=true;
 	int pos=0;
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		if (s[a.data[i]]) // position i needs to be filled
 		{
 			while (!s[b.data[pos]])
@@ -252,18 +248,17 @@ void permSol::crossover_c1(const mh_bare_solution &parA,const mh_bare_solution &
 {
 	const permSol &a = cast(parA);
 	const permSol &b = cast(parB);
-	int l=length();
 
-	int c=random_int(1,l-1);
+	int c=random_int(1,length-1);
 
-	vector<bool> s(l,false);
+	vector<bool> s(length,false);
 	int i;
 	for (i=0;i<c;i++)
 		data[i]=a.data[i];
-	for (;i<l;i++)
+	for (;i<length;i++)
 		s[a.data[i]]=true;
 	int pos=0;
-	for (i=c;i<l;i++)
+	for (i=c;i<length;i++)
 	{
 		while (!s[b.data[pos]])
 			pos++;

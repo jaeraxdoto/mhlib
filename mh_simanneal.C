@@ -4,7 +4,6 @@
 #include "mh_random.h"
 #include "mh_simanneal.h"
 #include "mh_util.h"
-#include "mh_localsearch.h"
 
 namespace mh {
 
@@ -30,7 +29,7 @@ void simulatedAnnealing::performIteration()
 
 	mh_solution *pold=mh_solution::cast(pop->at(0));
 	mh_solution::cast(tmpSol)->copy(mh_solution::cast(*pold));
-	mh_solution::cast(tmpSol)->selectNeighbour(mvnbop(pgroup));
+	mh_solution::cast(tmpSol)->selectNeighbour();
 
 	if (tmpSol->isBetter(*pold))
 		tmpSol=replace(mh_solution::cast(tmpSol));

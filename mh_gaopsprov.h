@@ -1,11 +1,11 @@
-/*! \file mh_gaops.h
+/*! \file mh_gaopsprov.h
 	\brief A provider class for mh_solution objects containing various abstract operators used in genetic algorithms.
 
 	A problem specific solution class must be derived from this
 	base class for a concrete problem. */
 
-#ifndef MH_GAOPS_H
-#define MH_GAOPS_H
+#ifndef MH_GAOPSPROV_H
+#define MH_GAOPSPROV_H
 
 #include <cassert>
 #include "mh_baresol.h"
@@ -14,6 +14,12 @@
 
 namespace mh {
 
+/** \ingroup param
+    neighbor selection function to use
+    - 0: random neighbor,
+    - 1: next improvement,
+    - 2: best improvement. */
+extern int_param mvnbop;
 
 /** A provider class for mh_solution objects containing various abstract operators used in genetic algorithms. */
 class gaopsProvider
@@ -24,10 +30,6 @@ public:
 	/** Cast to a const gaopsProvider. */
 	static const gaopsProvider &cast(const mh_bare_solution &ref)
 	{ return (dynamic_cast<const gaopsProvider &>(ref)); }
-	/** Returns the number of elements ("genes") a solution has.
-		In case a concrete class represents a solution of varying or undefined number of elements,
-		use the default implementation returning 1. */
-	virtual int length() const { return 1; }
 	/** Function for getting the change in the objective function.
 	        The change in the objective function if a certain move
 		is applied is computed.
@@ -73,8 +75,8 @@ public:
 	/** Neighbor selection function.
 	    Replaces the current solution with one of its neighborhood.
 		The actual neighbor selection method can be chosen with
-		parameter mvnbop. TODO */
-	void selectNeighbour(int mvnbop);
+		parameter mvnbop. */
+	void selectNeighbour();
 	/** Replace current solution with a random neighbor.
 	        The default of this operator is to use the mutate method. */
 	virtual void selectRandomNeighbour()
@@ -88,4 +90,4 @@ public:
 
 } // end of namespace mh
 
-#endif // MH_GAOPS_H
+#endif // MH_GAOPSPROVH

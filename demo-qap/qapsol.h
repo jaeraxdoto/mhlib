@@ -65,23 +65,15 @@ public:
 		\param t Associated algorithm object
 		\param pg Parameter group
 	*/
-	qapSol(mh::mh_base* t, const std::string &pg="")
-		: mh::mh_solution(qapInstance::getInstance()->n, t, pg),
-		  qi(qapInstance::getInstance()),
-		  data(qapInstance::getInstance()->n)
+	qapSol(mh::mh_base* t, const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
 		{}
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param pg Parameter group
 	*/
-	qapSol(const std::string &pg="")
-		: mh::mh_solution(qapInstance::getInstance()->n,pg),
-		  qi(qapInstance::getInstance()),  data(qapInstance::getInstance()->n)
+	qapSol(const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
 		{}
 	
-	int length() const
-		{ return data.size(); }
-
 	/** Copy all data from a given solution into the current one.
 		\param orig Object to copy from.
 	*/

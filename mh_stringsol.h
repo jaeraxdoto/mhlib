@@ -84,8 +84,6 @@ public:
 		{ vmax=v; }
 	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,nullptr,pg), data(l)
 		{ vmax=v; }
-	int length() const
-		{ return data.size(); }
 	/** copy all data from a given solution into the current one. */
 	void copy(const mh_bare_solution &orig);
 	/** return true if the current solution is equal to *orig. */
@@ -146,8 +144,7 @@ template <class T> bool stringSol<T>::equals(mh_bare_solution &orig)
 		return false;
 	// and now all the genes
 	const stringSol<T> &sc=cast(orig);
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
 			return false;
 	return true;
@@ -156,8 +153,8 @@ template <class T> bool stringSol<T>::equals(mh_bare_solution &orig)
 template <class T> double stringSol<T>::dist(mh_bare_solution &c)
 {
 	const stringSol<T> &sc=cast(c);
-	int diffs=0, l=length();
-	for (int i=0;i<l;i++)
+	int diffs=0;
+	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
 			diffs++;
 	return diffs;
@@ -165,18 +162,16 @@ template <class T> double stringSol<T>::dist(mh_bare_solution &c)
 
 template <class T> void stringSol<T>::initialize(int count)
 {
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		data[i]=random_int(vmax+1);
 	invalidate();
 }
 
 template <class T> void stringSol<T>::get_cutpoints(int &a, int &b)
 {
-	int l=length();
-	a = random_int(l);
+	a = random_int(length);
 	do
-		b = random_int(l);
+		b = random_int(length);
 	while (a==b);
 	if (a>b)
 		std::swap(a,b);
@@ -206,10 +201,9 @@ template <class T> void stringSol<T>::mutate(int count)
 
 template <class T> void stringSol<T>::mutate_flip(int count)
 {
-	int l=length();
 	for (int i=0;i<count;i++)
 	{
-		int genno=random_int(l);
+		int genno=random_int(length);
 		int r=random_int(0,vmax-1);
 		if (unsigned(r)!=unsigned(data[genno]))
 			data[genno]=r;
@@ -295,8 +289,7 @@ template <class T> void stringSol<T>::crossover_uniform(const mh_bare_solution &
 	// uniform crossover
 	const stringSol<T> &a=cast(parA);
 	const stringSol<T> &b=cast(parB);
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		data[i]=random_bool()?a.data[i]:b.data[i];
 	invalidate();
 }
@@ -307,7 +300,6 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_bare_solutio
 	// k point crossover
 	const stringSol<T> &a=cast(parA);
 	const stringSol<T> &b=cast(parB);
-	int l=length();
 
 	int clength = 0;        // length between 2 crossover points (changes each turn)
 	int current = 0;        // current gen to move
@@ -316,9 +308,9 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_bare_solutio
 	for (int i=0; i<=xp; i++)
 	{
 		if (i==xp)
-			clength = l-current;
+			clength = length-current;
 		else
-			clength = random_int(l-current-1)-(strxpts(pgroup)-i)+1;
+			clength = random_int(length-current-1)-(strxpts(pgroup)-i)+1;
 
 		for (int t=0; t<clength; t++)
 		{
@@ -332,18 +324,16 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_bare_solutio
 
 template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed) const
 {
-	int l=length();
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		ostr << int(data[i]) << ' ';
 }
 
 template <class T> void stringSol<T>::save(const std::string &fname)
 {
-	int l=length();
 	std::ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		of << int(data[i]) << ' ';
 	of << std::endl;
 	if (!of)
@@ -352,11 +342,10 @@ template <class T> void stringSol<T>::save(const std::string &fname)
 
 template <class T> void stringSol<T>::load(const std::string &fname)
 {
-	int l=length();
 	std::ifstream inf(fname);
 	if (!inf)
 		mherror("Cannot open file",fname);
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 	{
 		T d;
 		inf >> d;
@@ -369,10 +358,10 @@ template <class T> void stringSol<T>::load(const std::string &fname)
 
 template <class T> unsigned long int stringSol<T>::hashvalue()
 {
-	int h=0, l=length();
-	int window=sizeof(h)*8-unsigned(ceil(log(double(vmax+1))/
+	unsigned h=0;
+	unsigned window=sizeof(h)*8-unsigned(ceil(log(double(vmax+1))/
 		log(2.0)));
-	for (int i=0;i<l;i++)
+	for (int i=0;i<length;i++)
 		if (data[i])
 			h^=data[i]<<(i%window);
 	return h;

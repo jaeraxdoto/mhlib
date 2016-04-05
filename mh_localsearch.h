@@ -10,12 +10,6 @@
 
 namespace mh {
 
-/** \ingroup param
-    neighbor selection function to use
-    - 0: random neighbor,
-    - 1: next improvement,
-    - 2: best improvement. */
-extern int_param mvnbop;
 
 /** Simple local search.
 	During each iteration, a move in the neighborhood is performed

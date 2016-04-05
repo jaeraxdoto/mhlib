@@ -11,7 +11,7 @@
 #include "mh_baresol.h"
 #include "mh_base.h"
 #include "mh_nhmove.h"
-#include "mh_gaops.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -21,48 +21,22 @@ namespace mh {
 	basic operator declarations for metaheuristics. */
 class mh_solution : public mh_bare_solution, public gaopsProvider
 {
-protected:
-	/** Algorithm for this solution. */
-	mh_base *alg = nullptr;
-
 public:
 	/** Constructor for uninitialized solution with given point to algorithm.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, mh_base *t, const std::string &pg="") : mh_bare_solution(pg), alg(t)
+	mh_solution(int l, mh_base *alg, const std::string &pg="")
+		: mh_bare_solution(l, alg, pg)
 		{ }
 	/** Constructor for uninitialized solution.
 		Must also be defined for a concrete solution class.
 		Sets objval_valid to false and the number of genes
 		(which should be 1 in case of solutions of arbitrary
 		length. */
-	mh_solution(int l, const std::string &pg="") : mh_bare_solution(pg)
-		{ }
-	mh_solution(const mh_bare_solution &s) : mh_bare_solution(s) {
-		const mh_solution &r = cast(s);
-		assert(r.length() == length());
-		alg = r.alg;
-	}
-	/** Creates an uninitialized object of the same class as the
-		current object.
-		Must be overloaded for a concrete solution class.
-		Creates a solution of the same class and with the same
-		constant parameters (e.g. number of genes).
-		The new solution is not initialized. Needed e.g. for
-		creating a population of individuals out of one given
-		template object. */
-	mh_bare_solution *createUninitialized() const=0;
-	/** Copy a solution.
-		Must be overloaded for a concrete solution class.
-		Only two solutions of identical classes may be copied. */
-	void copy(const mh_bare_solution &orig) {
-		const mh_solution &o = cast(orig);
-		assert(o.length() == length());
-		mh_bare_solution::copy(orig);
-		alg = o.alg;
-	}
+	mh_solution(int l, const std::string &pg="") : mh_bare_solution(l,pg) { }
+	mh_solution(const mh_bare_solution &s) : mh_bare_solution(s) { }
 	/** Convenience function for dynamically casting a mh_bare_solution to a mh_solution. */
 	static mh_solution &cast(mh_bare_solution &ref)
 	{ return (dynamic_cast<mh_solution &>(ref)); }
