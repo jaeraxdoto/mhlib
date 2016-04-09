@@ -90,6 +90,20 @@ Besides the actual C++ library, mhlib also contains
 
 ## Changelog: major changes over major releases ##
 
+### Version 4.4 ###
+
+- Class mh_solution was made more abstract, all evolutionary
+  algorithms related operations were split off into the new gaopsProvider
+  class.
+
+- Class mh_advbase was made more abstract, all evolutionary algorithms
+  related opeartions were split off into the new subclass
+  mh_eaadvbase.
+
+- mherror throws now the newly introduced mh_exception instead of a
+  string. You probably want to catch this specific kind of exception 
+  in your main program.
+
 ### Version 4.3 ###
 
 All parts of the mhlib have been put under the new namespace "mh"; to

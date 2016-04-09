@@ -31,7 +31,7 @@ void mherror(const std::string &msg, const std::string &par1, const std::string 
 		ss << "!";
 	ss << std::endl;
 
-	throw ss.str();
+	throw mh_exception(ss.str());
 }
 
 void writeErrorMessage(const string &msg)

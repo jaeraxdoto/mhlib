@@ -402,12 +402,12 @@ int main(int argc, char *argv[])
 		// fdc.write(out,"fdc.tsv");
 	}
 	// catch all exceptions and write error message
-	catch (std::string &s)
-	{ writeErrorMessage(s);  return 1; }
+	catch (mh_exception &s)
+	{ writeErrorMessage(s.what());  return 1; }
 	catch (exception &e)
-	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
+	{ writeErrorMessage(string("Standard exception occurred: ") + e.what()); return 1; }
 	catch (...)
-	{ writeErrorMessage("Unknown exception occured"); return 1; }
+	{ writeErrorMessage("Unknown exception occurred"); return 1; }
 	return 0;
 }
 
