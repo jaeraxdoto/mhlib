@@ -3,6 +3,7 @@
 #include "mh_localsearch.h"
 #include "mh_ssea.h"
 #include "mh_util.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -12,15 +13,15 @@ void localSearch::performIteration()
 
 	perfIterBeginCallback();
 
-	mh_solution *pold=mh_solution::cast(pop->at(0));
+	mh_solution *pold=pop->at(0);
 
-	mh_solution::cast(*tmpSol).copy(mh_solution::cast(*pold));
-	mh_solution::cast(*tmpSol).selectNeighbour();
+	tmpSol->copy(*pold);
+	gaopsProvider::cast(*tmpSol).selectNeighbour();
 
 	if (pold->isWorse(*tmpSol))
 	{
-		mh_solution *r=mh_solution::cast(tmpSol);
-		tmpSol=replace(mh_solution::cast(tmpSol));
+		mh_solution *r=tmpSol;
+		tmpSol=replace(tmpSol);
 		if (!dcdag(pgroup) || r!=tmpSol)
 			nIteration++;
 		return;

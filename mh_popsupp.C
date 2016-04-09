@@ -15,7 +15,7 @@ inline bool worstcompare::operator()(const double &a, const double &b) const
 	return maxi(pgroup)?a<b:a>b;
 }
 
-void pophashtable::add(mh_bare_solution *p,int idx)
+void pophashtable::add(mh_solution *p,int idx)
 { 
 	worstheap_item it=worstheap.end();
 	if (wheap(pgroup))
@@ -25,7 +25,7 @@ void pophashtable::add(mh_bare_solution *p,int idx)
 	table[h].push_back(e);
 }
 
-void pophashtable::remove(mh_bare_solution *p)
+void pophashtable::remove(mh_solution *p)
 {
 	unsigned long int h=p->hashvalue();
 	list<pophashtable_elem> &l=table[h];
@@ -41,7 +41,7 @@ void pophashtable::remove(mh_bare_solution *p)
 		}
 }
 
-int pophashtable::findDuplicate(mh_bare_solution *p)
+int pophashtable::findDuplicate(mh_solution *p)
 {
 	list<pophashtable_elem> l=table[p->hashvalue()];
 	if (!l.empty())

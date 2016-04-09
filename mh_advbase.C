@@ -183,7 +183,7 @@ int mh_advbase::replaceIndex()
 	return r;
 }
 
-mh_bare_solution *mh_advbase::replace(mh_bare_solution *p)
+mh_solution *mh_advbase::replace(mh_solution *p)
 {
 	checkPopulation();
 	
@@ -195,19 +195,19 @@ mh_bare_solution *mh_advbase::replace(mh_bare_solution *p)
 		{
 			// replace the duplicate in the population
 			nDupEliminations++;
-			mh_bare_solution *replaced=pop->replace(r,p);
+			mh_solution *replaced=pop->replace(r,p);
 			return replaced;
 		}
 	}
 
 	int r=replaceIndex();
 	saveBest();
-	mh_bare_solution *replaced=pop->replace(r,p);
+	mh_solution *replaced=pop->replace(r,p);
 	checkBest();
 	return replaced;
 }
 
-void mh_advbase::update(int index, mh_bare_solution *sol) {
+void mh_advbase::update(int index, mh_solution *sol) {
 	checkPopulation();
 	saveBest();
 	pop->update(index,sol);
@@ -222,7 +222,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	char s[40];
 	
 	double tim = (_wctime ? (mhwctime() - timStart) : mhcputime());
-	const mh_bare_solution *best=pop->bestSol();
+	const mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

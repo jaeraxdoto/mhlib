@@ -3,6 +3,7 @@
 #include <iomanip>
 #include "mh_util.h"
 #include "mh_genea.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -14,7 +15,7 @@ generationalEA::generationalEA(pop_base &p, const std::string &pg) : mh_eaadvbas
 	nextGeneration=new mh_solution*[pop->size()];
 	for (int i=0;i<pop->size();i++)
 	{
-		nextGeneration[i]=mh_solution::cast(mh_solution::cast(pop->bestSol())->createUninitialized());
+		nextGeneration[i]=pop->bestSol()->createUninitialized();
 	}
 }
 
@@ -41,7 +42,7 @@ void generationalEA::performIteration()
 	saveBest();
 	for (int i=0;i<pop->size();i++)
 	{
-		nextGeneration[i]=mh_solution::cast(pop->replace(i,nextGeneration[i]));
+		nextGeneration[i]=pop->replace(i,nextGeneration[i]);
 	}
 	checkBest();
 	nIteration++;
@@ -58,7 +59,7 @@ void generationalEA::createNextGeneration()
 	// perform crossover
 	if (elit(pgroup))
 	{
-		mh_solution *pp1=mh_solution::cast(pop->bestSol());
+		mh_solution *pp1=pop->bestSol();
 		nextGeneration[0]->copy(*pp1);
 	}
 	for (int i=start;i<pop->size();i++)
@@ -68,14 +69,14 @@ void generationalEA::createNextGeneration()
 		{
 			// recombination and mutation
 			int p2=select();
-			mh_solution *pp1=mh_solution::cast(pop->at(p1));
-			mh_solution *pp2=mh_solution::cast(pop->at(p2));
+			mh_solution *pp1=pop->at(p1);
+			mh_solution *pp2=pop->at(p2);
 			performCrossover(pp1,pp2,nextGeneration[i]);
 		}
 		else
 		{
 			// no recombination
-			nextGeneration[i]->copy(mh_solution::cast(*pop->at(p1)));
+			nextGeneration[i]->copy(*pop->at(p1));
 		}
 	}
 	
@@ -86,7 +87,7 @@ void generationalEA::createNextGeneration()
 			performMutation(nextGeneration[i],pmut(pgroup));
 			if (plocim(pgroup)>0 && random_prob(plocim(pgroup)))
 			{
-				mh_solution::cast(tmpSol)->locallyImprove();
+				gaopsProvider::cast(*tmpSol).locallyImprove();
 				nLocalImprovements++;
 			}
 		}

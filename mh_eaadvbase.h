@@ -83,11 +83,11 @@ public:
 	virtual ~mh_eaadvbase() {}
 	/** Performs crossover on the given solutions and updates
 		statistics. */
-	void performCrossover(mh_bare_solution *p1, mh_bare_solution *p2,
-		mh_bare_solution *c);
+	void performCrossover(mh_solution *p1, mh_solution *p2,
+		mh_solution *c);
 	/** Performs mutation on the given solution with the given
 		probability and updates statistics. */
-	void performMutation(mh_bare_solution *c, double prob);
+	void performMutation(mh_solution *c, double prob);
 	/** Print statistic informations.
 		Prints out various statistic informations including
 		the best solution of the population.. */

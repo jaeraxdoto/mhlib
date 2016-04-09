@@ -4,6 +4,7 @@
 #include <iomanip>
 #include "mh_advbase.h"
 #include "mh_solution.h"
+#include "mh_gaopsprov.h"
 #include "mh_island.h"
 #include "mh_genea.h"
 #include "mh_grasp.h"
@@ -29,9 +30,9 @@ double_param plocim("plocim","probability for applying local improvement",
 	0.0,0.0,1.0);
 
 
-void mh_eaadvbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, mh_bare_solution *c)
+void mh_eaadvbase::performCrossover(mh_solution *p1,mh_solution *p2, mh_solution *c)
 {
-	mh_solution::cast(c)->crossover(mh_solution::cast(*p1), mh_solution::cast(*p2));
+	gaopsProvider::cast(*c).crossover(*p1, *p2);
 	nCrossovers++;
 	if (cntopd(pgroup))
 	{
@@ -40,17 +41,17 @@ void mh_eaadvbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, m
 	}
 }
 
-void mh_eaadvbase::performMutation(mh_bare_solution *c, double prob)
+void mh_eaadvbase::performMutation(mh_solution *c, double prob)
 {
 	if (prob==0)
 		return;
 	if (!cntopd(pgroup))
-		nMutations+=mh_solution::cast(c)->mutation(prob);
+		nMutations+=gaopsProvider::cast(*c).mutation(prob);
 	else
 	{
-		static mh_solution *tmp2Sol=mh_solution::cast(mh_solution::cast(c)->createUninitialized());
+		static mh_solution *tmp2Sol=c->createUninitialized();
 		tmp2Sol->copy(*c);
-		int muts=mh_solution::cast(tmpSol)->mutation(prob);
+		int muts=gaopsProvider::cast(*tmpSol).mutation(prob);
 		nMutations+=muts;
 		if (muts>0 && tmp2Sol->equals(*c))
 			nMutationDups+=muts;

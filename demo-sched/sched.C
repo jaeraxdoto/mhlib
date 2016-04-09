@@ -176,10 +176,10 @@ public:
 	onePermSol() : permSol(vars())
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_bare_solution *createUninitialized() const
+	virtual mh_solution *createUninitialized() const
 		{ return new onePermSol; }
 	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_bare_solution *clone() const
+	virtual mh_solution *clone() const
 		{ return new onePermSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the the number of values that are on the same place as in the
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 
 		alg->run();		// run Scheduler until a termination condition is fulfilled
 		
-		mh_bare_solution *bestSol = p.bestSol();	// final solution
+		mh_solution *bestSol = p.bestSol();	// final solution
 
 	    // p.write(out(),1);	// write out final population in detailed form
 		if (sfile()!="")	// save best solution in file if sfile() given

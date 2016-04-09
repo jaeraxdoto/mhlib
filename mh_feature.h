@@ -8,6 +8,7 @@
 
 #include "mh_solution.h"
 #include "mh_param.h"
+#include "mh_nhmove.h"
 
 namespace mh {
 

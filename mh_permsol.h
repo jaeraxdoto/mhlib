@@ -37,7 +37,7 @@ typedef unsigned int permSolVarType;
 class permSol : public stringSol<permSolVarType>
 {
 protected:
-	static const permSol &cast(const mh_bare_solution &ref)
+	static const permSol &cast(const mh_solution &ref)
 	{ return (dynamic_cast<const permSol &>(ref)); }
 
 	/** Performs inversion. */
@@ -48,20 +48,20 @@ protected:
 	void mutate_insertion(int count);
 
 	/** This is the partially matched crossover (PMX). */
-	void crossover_pmx(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover_pmx(const mh_solution &parA,const mh_solution &parB);
 	/** This is the order crossover (OX). */
-	void crossover_ox(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover_ox(const mh_solution &parA,const mh_solution &parB);
 	/** This is the cycle crossover (CX). */
-	void crossover_cx(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover_cx(const mh_solution &parA,const mh_solution &parB);
 	/** This is the uniform order based crossover (UOBX). */
-	void crossover_uobx(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover_uobx(const mh_solution &parA,const mh_solution &parB);
 	/** This is the C1 crossover. Up to a random cut point, all variables
 	are copied from the first solution; all remaining variables are
 	appended in the order as they appear in the second solution. */
-	void crossover_c1(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover_c1(const mh_solution &parA,const mh_solution &parB);
 
 public:
-	permSol(const mh_bare_solution &c);
+	permSol(const mh_solution &c);
 	permSol(int l, mh_base *t, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,t,pg) { }
 	permSol(int l, const std::string &pg="") : stringSol<permSolVarType>(l,l-1,pg) { }
 	/** Initialization with random permutation. */
@@ -69,7 +69,7 @@ public:
 	/** Calls concrete mutation method. Controlled by paramter permmop(). */
 	void mutate(int count);
 	/** Calls crossover according to the permxop() parameter. */
-	void crossover(const mh_bare_solution &parA,const mh_bare_solution &parB);
+	void crossover(const mh_solution &parA,const mh_solution &parB);
 	/** Function to apply a certain move.
 	        This will only work with a swapMove. */
 	void applyMove(const nhmove &m);

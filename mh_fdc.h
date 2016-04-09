@@ -9,7 +9,7 @@
 
 #include <string>
 #include <vector>
-#include "mh_baresol.h"
+#include "mh_solution.h"
 #include "mh_log.h"
 #include "mh_param.h"
 
@@ -60,14 +60,14 @@ public:
 		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
-	double perform(mh_bare_solution *opt, const std::string &optfile, int n);
+	double perform(mh_solution *opt, const std::string &optfile, int n);
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
 		 values and distances to the given optimum solution in
 		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
-	double perform(mh_bare_solution *opt, const std::string &optfile)
+	double perform(mh_solution *opt, const std::string &optfile)
 		{ return perform( opt, optfile, fdcn(pgroup) ); }
 	/** Performs fitness-distance correlation analysis. Creates n
 		 random solutions via initialize and stores their objective
@@ -75,7 +75,7 @@ public:
 		 vals. If optfile is not nullptr, the optimum solution is read
 		 in from the file with the given name. Returns the
 		 correlation coefficient and stores it in corr. */ 
-	double perform(mh_bare_solution *opt)
+	double perform(mh_solution *opt)
 		{ return perform( opt, fdcoptf(pgroup), fdcn(pgroup) ); }
 	
 	/** Writes out a message with the correlation coefficient of the
@@ -90,7 +90,7 @@ public:
 		{ write( out, fdcfile(pgroup) ); }
 	
 	/** Creates one random solution. */
-	virtual void initialize(mh_bare_solution *c)
+	virtual void initialize(mh_solution *c)
 		{ c->initialize(0); }
 
 	virtual ~FitnessDistanceCorrelation() {}

@@ -43,9 +43,9 @@ void GRASP::performIteration()
 	
 	delete alg;
 
-	mh_solution::cast(tmpSol)->copy(mh_solution::cast(*spop->at(0)));
+	tmpSol->copy(*spop->at(0));
 	if (pop->at(0)->isWorse(*tmpSol))
-		tmpSol=replace(mh_solution::cast(tmpSol));
+		tmpSol=replace(tmpSol);
 
 	nIteration++;
 

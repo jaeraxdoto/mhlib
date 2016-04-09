@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
-#include "mh_baresol.h"
+#include "mh_solution.h"
 #include "mh_gaopsprov.h"
 #include "mh_random.h"
 #include "mh_util.h"
@@ -24,7 +24,7 @@ int gaopsProvider::mutation(double prob)
 	}
 	else 
 	{
-		int length = dynamic_cast<const mh_bare_solution &>(*this).length;
+		int length = dynamic_cast<const mh_solution &>(*this).length;
 		// Interpret rate as rate/length per gene
 		if (prob<=-1000)
 			if (length<=1)
@@ -47,7 +47,7 @@ int gaopsProvider::mutation(double prob)
 
 void gaopsProvider::selectNeighbour()
 {
-	int mvnbo=mvnbop(dynamic_cast<const mh_bare_solution &>(*this).pgroup);
+	int mvnbo=mvnbop(dynamic_cast<const mh_solution &>(*this).pgroup);
 	switch(mvnbo)
 	{
 		case 0:

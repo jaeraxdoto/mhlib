@@ -34,19 +34,19 @@ public:
 	subPopulation(pop_base *super,int from,int to, const std::string &pg="");
 	/** Get Chromosome via given index.
 		The solution must not be modified or deleted! */
-	virtual mh_bare_solution *at(int index)
+	virtual mh_solution *at(int index)
 		{ return superPopulation->at(indexFrom+index); }
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. */
-	virtual mh_bare_solution *replace(int index, mh_bare_solution *newchrom);
+	virtual mh_solution *replace(int index, mh_solution *newchrom);
 	/** Returns pointer to best solution of population. */
-	virtual mh_bare_solution *bestSol() const
+	virtual mh_solution *bestSol() const
 		{ return superPopulation->at(indexFrom+indexBest); }
 	/** Checks wheter the given solution has a duplicate in
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
-	virtual int findDuplicate(mh_bare_solution *p);
+	virtual int findDuplicate(mh_solution *p);
 	/** Write out population on ostream.
 		Usually used for debugging purposes. */
 	virtual void write(std::ostream &ostr);

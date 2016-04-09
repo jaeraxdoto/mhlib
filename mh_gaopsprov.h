@@ -8,7 +8,7 @@
 #define MH_GAOPSPROV_H
 
 #include <cassert>
-#include "mh_baresol.h"
+#include "mh_solution.h"
 #include "mh_base.h"
 #include "mh_nhmove.h"
 
@@ -28,8 +28,11 @@ public:
 	/** Destructor. */
 	virtual ~gaopsProvider() { }
 	/** Cast to a const gaopsProvider. */
-	static const gaopsProvider &cast(const mh_bare_solution &ref)
+	static const gaopsProvider &cast(const mh_solution &ref)
 	{ return (dynamic_cast<const gaopsProvider &>(ref)); }
+	/** Cast to a gaopsProvider. */
+	static gaopsProvider &cast(mh_solution &ref)
+	{ return (dynamic_cast<gaopsProvider &>(ref)); }
 	/** Function for getting the change in the objective function.
 	        The change in the objective function if a certain move
 		is applied is computed.
@@ -66,7 +69,7 @@ public:
 	/** Generic crossover operator.
 		Builds new solution out of two given parental solutions. Must
 		call invalidate() when the solution changes. */
-	virtual void crossover(const mh_bare_solution &parA, const mh_bare_solution &parB) {
+	virtual void crossover(const mh_solution &parA, const mh_solution &parB) {
 		mherror("gaopsProvider::crossover() not implemented"); }
 	/** Locally improve the current solution.
 		Optional local improve the current solution.

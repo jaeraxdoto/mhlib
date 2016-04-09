@@ -4,6 +4,7 @@
 #include "mh_util.h"
 #include "mh_solution.h"
 #include "mh_ssea.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -26,15 +27,15 @@ void steadyStateEA::performIteration()
 	{
 		// recombination and mutation
 		int p2=select();
-		mh_solution *pp1=mh_solution::cast(pop->at(p1));
-		mh_solution *pp2=mh_solution::cast(pop->at(p2));
+		mh_solution *pp1=pop->at(p1);
+		mh_solution *pp2=pop->at(p2);
 		performCrossover(pp1,pp2,tmpSol);
 		performMutation(tmpSol,pmut(pgroup));
 	}
 	else
 	{
 		// no recombination
-		mh_solution::cast(tmpSol)->copy(mh_solution::cast(*pop->at(p1)));
+		tmpSol->copy(*pop->at(p1));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);
@@ -44,12 +45,12 @@ void steadyStateEA::performIteration()
 	// optionally locally improve the chromosome
 	if (plocim(pgroup) && random_prob(plocim(pgroup)))
 	{
-		mh_solution::cast(tmpSol)->locallyImprove();
+		gaopsProvider::cast(*tmpSol).locallyImprove();
 		nLocalImprovements++;
 	}
 
 	// replace in population
-	mh_solution *r=mh_solution::cast(tmpSol);
+	mh_solution *r=tmpSol;
 	tmpSol=replace(tmpSol);
 	if (!dcdag(pgroup) || r!=tmpSol)
 		nIteration++;

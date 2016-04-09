@@ -50,9 +50,9 @@ subPopulation::subPopulation(pop_base *super,int from,int to, const string &pg)
 	determineBest();
 }
 
-mh_bare_solution *subPopulation::replace(int index, mh_bare_solution *newchrom)
+mh_solution *subPopulation::replace(int index, mh_solution *newchrom)
 {
-	mh_bare_solution *old=superPopulation->replace(indexFrom+index,newchrom);
+	mh_solution *old=superPopulation->replace(indexFrom+index,newchrom);
 	statValid=false;
 	if (phash)
 	{
@@ -66,7 +66,7 @@ mh_bare_solution *subPopulation::replace(int index, mh_bare_solution *newchrom)
 	return old; 
 }
 
-int subPopulation::findDuplicate(mh_bare_solution *p)
+int subPopulation::findDuplicate(mh_solution *p)
 {
 	if (phash)
 		return phash->findDuplicate(p);
@@ -114,7 +114,7 @@ void subPopulation::validateStat()
 void subPopulation::setAlgorithm(mh_base *alg)
 {
 	for (int i=0;i<nSolutions;i++)
-		mh_solution::cast(at(i))->setAlgorithm(alg);
+		at(i)->setAlgorithm(alg);
 }
 
 } // end of namespace mh

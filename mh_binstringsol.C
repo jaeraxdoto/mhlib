@@ -28,7 +28,7 @@ void binStringSol::applyMove(const nhmove &m)
 bool binStringSol::k_flip_localsearch(int k) {
 	assert(k>0 && k<=length);
 	bool better_found=false;
-	mh_solution *best_sol=mh_solution::cast(clone());
+	mh_solution *best_sol=clone();
 	vector<int> p(k,-1);	// flipped positions
 	// initialize 
 	int i=0;	// current index in p to consider

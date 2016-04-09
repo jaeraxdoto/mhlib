@@ -1,6 +1,7 @@
 // mh_tabusearch.C
 
 #include <limits.h>
+#include "mh_gaopsprov.h"
 #include "mh_tabusearch.h"
 #include "mh_util.h"
 
@@ -9,7 +10,7 @@ namespace mh {
 tabuSearch::tabuSearch(pop_base &p, const std::string &pg) : lsbase(p,pg)
 {
 	tl_ne = new tabulist(pgroup);
-	curChrom = &mh_solution::cast(*pop->at(0)->clone());
+	curChrom = pop->at(0)->clone();
 
 	// dynamic_cast to see if we are using a tabuProvider
 	if ( dynamic_cast<tabuProvider*>(tmpSol) == 0 )
@@ -28,13 +29,13 @@ void tabuSearch::performIteration()
 
 	perfIterBeginCallback();
 
-	mh_solution *pold=&mh_solution::cast(*pop->at(0));
-	curChrom->selectNeighbour();
+	mh_solution *pold=pop->at(0);
+	gaopsProvider::cast(*curChrom).selectNeighbour();
 
 	tmpSol->copy(*curChrom);
 	
 	if (tmpSol->isBetter(*pold))
-		tmpSol=replace(&mh_solution::cast(*tmpSol));
+		tmpSol=replace(tmpSol);
 
 	nIteration++;
 

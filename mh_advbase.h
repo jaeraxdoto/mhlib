@@ -14,7 +14,7 @@
 #include "mh_base.h"
 #include "mh_param.h"
 #include "mh_popbase.h"
-#include "mh_baresol.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -113,7 +113,7 @@ protected:
 	double timIterBest = 0;  ///< Time at which best solution was generated.
 
 	// other class variables
-	mh_bare_solution *tmpSol = nullptr;	///< a temporary solution in which the result of operations is stored
+	mh_solution *tmpSol = nullptr;	///< a temporary solution in which the result of operations is stored
 
 	double bestObj = 0;		///< temporary best objective value
 	double timStart = 0;        ///< CPUtime when run() was called
@@ -158,9 +158,9 @@ public:
 		determined by the replaceIndex method.
 		The replaced solution is returned.
 		Duplicate elimination is performed if #dupelim is set. */
-	virtual mh_bare_solution *replace(mh_bare_solution *);
+	virtual mh_solution *replace(mh_solution *);
 	/** Updates the solution with the given index by copying it from *sol. */
-	virtual void update(int index, mh_bare_solution *sol);
+	virtual void update(int index, mh_solution *sol);
 	/** Print statistic informations.
 		Prints out various statistic informations including
 		the best solution of the population.. */
@@ -171,7 +171,7 @@ public:
 	/** Writes the log header */
 	virtual void writeLogHeader();
 	/** Returns pointer to best solution obtained so far. */
-	mh_bare_solution *getBestSol() const
+	mh_solution *getBestSol() const
 		{ return pop->bestSol(); }
 	/** Returns number of the current iteration. */
 	virtual int getIter(void)

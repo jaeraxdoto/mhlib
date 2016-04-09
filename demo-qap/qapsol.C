@@ -22,7 +22,7 @@ double_param graspa( "graspa", "alpha for grasp", 0.25, 0.0, 1.0, UPPER_INCLUSIV
 /// Beta parameter for GRASP
 double_param graspb( "graspb", "beta for grasp", 0.5, 0.0, 1.0, UPPER_INCLUSIVE );
 
-qapSol::qapSol(const mh_bare_solution &c) : mh_solution(c), data(length)
+qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 {
 	const qapSol &qapc=cast(c);
 	qi=qapc.qi;
@@ -30,7 +30,7 @@ qapSol::qapSol(const mh_bare_solution &c) : mh_solution(c), data(length)
 		data[i]=qapc.data[i];
 }
 
-void qapSol::copy(const mh_bare_solution &orig)
+void qapSol::copy(const mh_solution &orig)
 { 
 	mh_solution::copy(orig);
 	const qapSol &qapc=cast(orig);
@@ -38,7 +38,7 @@ void qapSol::copy(const mh_bare_solution &orig)
 		data[i]=qapc.data[i]; 
 }
 
-bool qapSol::equals(mh_bare_solution &o)
+bool qapSol::equals(mh_solution &o)
 { 
 	// to be efficient: check first objective values
 	if (o.obj()!=obj())
@@ -52,7 +52,7 @@ bool qapSol::equals(mh_bare_solution &o)
 	return true;
 }
 
-double qapSol::dist(mh_bare_solution &c)
+double qapSol::dist(mh_solution &c)
 {
 	const qapSol &qapc=cast(c);
 	int diffs=0;
@@ -121,7 +121,7 @@ void qapSol::mutate(int count)
 	}
 }
 
-void qapSol::crossover(const mh_bare_solution &parA,const mh_bare_solution &parB)
+void qapSol::crossover(const mh_solution &parA,const mh_solution &parB)
 {
 	const qapSol &a = cast(parA);
 	const qapSol &b = cast(parB);

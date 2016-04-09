@@ -35,10 +35,10 @@ int population::determineWorst() const
 	return idx;
 }
 
-population::population(const mh_bare_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
+population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
 	: pop_base(psize,pg)
 {
-	chroms=new mh_bare_solution *[nSolutions];
+	chroms=new mh_solution *[nSolutions];
 	for (int i=0;i<nSolutions;i++)
 		if (binit)
 			chroms[i]=c_template.createUninitialized();
@@ -49,10 +49,10 @@ population::population(const mh_bare_solution &c_template, int psize, bool binit
 	determineBest();
 }
 
-population::population(const mh_bare_solution &c_template, const std::string &pg)
+population::population(const mh_solution &c_template, const std::string &pg)
 	: pop_base(pg)
 {
-	chroms=new mh_bare_solution *[nSolutions];
+	chroms=new mh_solution *[nSolutions];
 	for (int i=0;i<nSolutions;i++) {
 		chroms[i]=c_template.createUninitialized();
 	}
@@ -84,9 +84,9 @@ void population::initialize()
 	statValid=false;
 }
 
-mh_bare_solution *population::replace(int index,mh_bare_solution *newchrom)
+mh_solution *population::replace(int index,mh_solution *newchrom)
 {
-	mh_bare_solution *old=chroms[index];
+	mh_solution *old=chroms[index];
 	chroms[index]=newchrom;
 	statValid=false;
 	if (phash)
@@ -101,7 +101,7 @@ mh_bare_solution *population::replace(int index,mh_bare_solution *newchrom)
 	return old; 
 }
 
-void population::update(int index, mh_bare_solution *newchrom)
+void population::update(int index, mh_solution *newchrom)
 {
 	statValid=false;
 	if (phash)
@@ -116,7 +116,7 @@ void population::update(int index, mh_bare_solution *newchrom)
 }
 
 
-int population::findDuplicate(mh_bare_solution *p)
+int population::findDuplicate(mh_solution *p)
 {
 	if (phash)
 		return phash->findDuplicate(p);
@@ -164,7 +164,7 @@ void population::validateStat()
 void population::setAlgorithm(mh_base *alg)
 {
 	for (int i=0;i<nSolutions;i++)
-		mh_solution::cast(chroms[i])->setAlgorithm(alg);
+		chroms[i]->setAlgorithm(alg);
 }
 
 } // end of namespace mh
