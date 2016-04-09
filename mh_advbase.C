@@ -5,30 +5,15 @@
 #include "mh_advbase.h"
 #include "mh_solution.h"
 #include "mh_island.h"
-#include "mh_genea.h"
-#include "mh_grasp.h"
-#include "mh_guidedls.h"
 #include "mh_pop.h"
 #include "mh_localsearch.h"
-#include "mh_simanneal.h"
-#include "mh_ssea.h"
-#include "mh_tabusearch.h"
 #include "mh_util.h"
-#include "mh_vnd.h"
-#include "mh_vns.h"
 
 namespace mh {
 
 using namespace std;
 
-double_param pcross("pcross","crossover probability",1.0,0.0,1.0);
-
-double_param pmut("pmut","mutation probability",-1.0,-2000.0,1000.0);
-
-double_param plocim("plocim","probability for applying local improvement",
-	0.0,0.0,1.0);
-
-int_param tcond("tcond","(DEPRICATED) term. crit. 0:gens, 1:conv, 2:obj, -1:auto",-1,-1,2);
+// int_param tcond("tcond","(DEPRICATED) term. crit. 0:gens, 1:conv, 2:obj, -1:auto",-1,-1,2);
 
 int_param tciter("tciter","termination on convergence iterations",-1,-1,100000000);
 
@@ -57,52 +42,15 @@ mh_advbase::mh_advbase(pop_base &p, const string &pg) : mh_base(pg)
 	// create one temporary solution which is always used to
 	// generate a new solution.
 	tmpSol=pop->bestSol()->createUninitialized();
-	// initialize all statistic data
-	nIteration=0;
-	nSubIterations=0;
-	nSelections=0;
-	nCrossovers=0;
-	nMutations=0;
-	nCrossoverDups=0;
-	nMutationDups=0;
-	nDupEliminations=0;
-	nLocalImprovements=0;
-	nTabus = 0;
-	nAspirations = 0;
-	nDeteriorations = 0;
-	iterBest=0;
-	timIterBest=0.0;
-	timStart=0.0;
-	bestObj=0;
 	// use worstheap only if wheap() is set and repl()==1 
 	// (replace worst)
 	if (repl(pgroup)!=1)
 		wheap.set(false,pgroup);
-
 	_wctime = wctime(pgroup);
 }
 
 mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 {
-	pop=nullptr;
-	tmpSol=nullptr;
-	nIteration=0;
-	nSubIterations=0;
-	nSelections=0;
-	nCrossovers=0;
-	nMutations=0;
-	nCrossoverDups=0;
-	nMutationDups=0;
-	nDupEliminations=0;
-	nLocalImprovements=0;
-	nTabus = 0;
-	nAspirations = 0;
-	nDeteriorations = 0;
-	iterBest=0;
-	timIterBest=0.0;
-	timStart=0.0;
-	bestObj=0;
-
 	_wctime = wctime(pgroup);
 }
 
@@ -165,47 +113,21 @@ int mh_advbase::tournamentSelection()
 	return besti;
 }
 
-void mh_advbase::performCrossover(mh_bare_solution *p1,mh_bare_solution *p2, mh_bare_solution *c)
-{
-	mh_solution::cast(c)->crossover(mh_solution::cast(*p1), mh_solution::cast(*p2));
-	nCrossovers++;
-	if (cntopd(pgroup))
-	{
-		if (c->equals(*p1) || c->equals(*p2))
-			nCrossoverDups++;
-	}
-}
-
-void mh_advbase::performMutation(mh_bare_solution *c, double prob)
-{
-	if (prob==0)
-		return;
-	if (!cntopd(pgroup))
-		nMutations+=mh_solution::cast(c)->mutation(prob);
-	else
-	{
-		static mh_solution *tmp2Sol=mh_solution::cast(mh_solution::cast(c)->createUninitialized());
-		tmp2Sol->copy(*c);
-		int muts=mh_solution::cast(tmpSol)->mutation(prob);
-		nMutations+=muts;
-		if (muts>0 && tmp2Sol->equals(*c))
-			nMutationDups+=muts;
-	}
-}
-
 bool mh_advbase::terminate()
 {
 	checkPopulation();
-	
+
+	return ((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
+		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
+		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
+				    getBestSol()->obj()<=tobj(pgroup))) ||
+				    (ttime(pgroup)>=0 && ttime(pgroup)<=((_wctime ? mhwctime() : mhcputime()) - timStart)));
+	/*
 	switch(tcond(pgroup))
 	{
 		case -1: // new auto scheme, which does not use tcond
-			return ((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
-				(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
-				(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
-						    getBestSol()->obj()<=tobj(pgroup))) ||
-						    (ttime(pgroup)>=0 && ttime(pgroup)<=((_wctime ? mhwctime() : mhcputime()) - timStart)));
 		// DEPRECATED:
+
 		case 0: // terminate after titer (not tciter!) iterations
 			return nIteration>=titer(pgroup);
 		case 1: // terminate after convergence 
@@ -217,6 +139,7 @@ bool mh_advbase::terminate()
 			mherror("Invalid tcond",tcond.getStringValue(pgroup).c_str());
 			return true;
 	}
+	*/
 }
 
 int mh_advbase::replaceIndex()
@@ -313,18 +236,6 @@ void mh_advbase::printStatistics(ostream &ostr)
 	ostr << "iterations:\t" << nIteration << endl;
 	ostr << "subiterations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
-	ostr << "crossovers:\t" << nCrossovers << endl;
-	ostr << "mutations:\t" << nMutations << endl;
-	if (cntopd(pgroup))
-	{
-		ostr << "crossover-duplicates:\t" << nCrossoverDups << endl;
-		ostr << "mutation-duplicates:\t" << nMutationDups << endl;
-	}
-	ostr << "local improvements:\t"  << nLocalImprovements << endl;
-	ostr << "duplicate eliminations:\t" << nDupEliminations << endl;
-	ostr << "deteriorations\t" << nDeteriorations << endl;
-	ostr << "aspirations:\t" << nAspirations << endl;
-	ostr << "tabus:\t\t" << nTabus << endl;
 }
 
 void mh_advbase::writeLogEntry(bool inAnyCase)
@@ -386,15 +297,7 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 	{
 		nSubIterations    += a->nIteration+a->nSubIterations;
 		nSelections        += a->nSelections;
-		nCrossovers        += a->nCrossovers;
-		nMutations         += a->nMutations;
-		nCrossoverDups     += a->nCrossoverDups;
-		nMutationDups      += a->nMutationDups;  
 		nDupEliminations   += a->nDupEliminations;
-		nLocalImprovements += a->nLocalImprovements;
-		nTabus             += a->nTabus;
-		nAspirations       += a->nAspirations; 
-		nDeteriorations    += a->nDeteriorations;
 	}
 }
 

@@ -198,14 +198,14 @@ void VNS::printStatistics(ostream &ostr)
 	ostr << "generations:\t" << nIteration << endl;
 	ostr << "subgenerations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
-	ostr << "crossovers:\t" << nCrossovers << endl;
-	ostr << "mutations:\t" << nMutations << endl;
+	// ostr << "crossovers:\t" << nCrossovers << endl;
+	// ostr << "mutations:\t" << nMutations << endl;
 	//if (cntopd(pgroup))
 	//{
 	//	ostr << "crossover-duplicates:\t" << nCrossoverDups << endl;
 	//	ostr << "mutation-duplicates:\t" << nMutationDups << endl;
 	//}
-	ostr << "local improvements:\t"  << nLocalImprovements << endl;
+	// ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	//ostr << "duplicate eliminations:\t" << nDupEliminations << endl;
 	//ostr << "deteriorations\t" << nDeteriorations << endl;
 	//ostr << "aspirations:\t" << nAspirations << endl;

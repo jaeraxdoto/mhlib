@@ -17,7 +17,7 @@ namespace mh {
 
 /** Abstract solution class for the metaheuristics.
 	A concrete class must be derived for a specific problem.
-	In contrast to class mh_bare_solution, this class containts
+	In contrast to class mh_bare_solution, this class constaints
 	basic operator declarations for metaheuristics. */
 class mh_solution : public mh_bare_solution, public gaopsProvider
 {

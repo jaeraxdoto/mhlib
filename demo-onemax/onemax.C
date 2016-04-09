@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 		out() << endl;
 
 		// generate a template solution of the problem specific class
-		onePermSol tchrom;
-		//oneMaxSol tchrom;
+		//onePermSol tchrom;
+		oneMaxSol tchrom;
 
 		// generate a population of these solutions
 		population p(tchrom);
