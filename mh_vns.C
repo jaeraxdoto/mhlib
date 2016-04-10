@@ -99,7 +99,7 @@ void VNS::performIteration()
 	}
 
 	/* Move or not */
-	tmpSol->reproduce(*spop->at(0));
+	tmpSol->copy(*spop->at(0));
 	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
@@ -115,7 +115,7 @@ void VNS::performIteration()
 	else
 	{
 		// copy best solution into subpopulation
-		spop->at(0)->reproduce(* pop->bestSol());
+		spop->at(0)->copy(*pop->bestSol());
 		k++;
 	}
 
@@ -198,14 +198,14 @@ void VNS::printStatistics(ostream &ostr)
 	ostr << "generations:\t" << nIteration << endl;
 	ostr << "subgenerations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
-	ostr << "crossovers:\t" << nCrossovers << endl;
-	ostr << "mutations:\t" << nMutations << endl;
+	// ostr << "crossovers:\t" << nCrossovers << endl;
+	// ostr << "mutations:\t" << nMutations << endl;
 	//if (cntopd(pgroup))
 	//{
 	//	ostr << "crossover-duplicates:\t" << nCrossoverDups << endl;
 	//	ostr << "mutation-duplicates:\t" << nMutationDups << endl;
 	//}
-	ostr << "local improvements:\t"  << nLocalImprovements << endl;
+	// ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	//ostr << "duplicate eliminations:\t" << nDupEliminations << endl;
 	//ostr << "deteriorations\t" << nDeteriorations << endl;
 	//ostr << "aspirations:\t" << nAspirations << endl;

@@ -90,7 +90,7 @@ public:
 		{ write( out, fdcfile(pgroup) ); }
 	
 	/** Creates one random solution. */
-	virtual void initialize(mh_solution *c) 
+	virtual void initialize(mh_solution *c)
 		{ c->initialize(0); }
 
 	virtual ~FitnessDistanceCorrelation() {}

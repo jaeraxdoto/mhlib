@@ -47,13 +47,13 @@ protected:
 	
 		\param ref Object to dynamically cast
 	*/
-	static const qapSol &toQAPSol(const mh::mh_solution &ref)
+	static const qapSol &cast(const mh::mh_solution &ref)
 		{ return (dynamic_cast<const qapSol &>(ref)); }
 public:
 	mh::mh_solution *createUninitialized() const
 		{ return new qapSol(alg, pgroup); }
 	mh::mh_solution *clone() const
-		{ return new qapSol((mh::mh_solution&)*this); }
+		{ return new qapSol(*this); }
 	double objective();
 
 	/** Copy constructor.
@@ -63,13 +63,13 @@ public:
 	
 	/** Normal constructor, number of genes must be passed to base class.
 		\param t Associated algorithm object
-		\param pg Parametergroup
+		\param pg Parameter group
 	*/
 	qapSol(mh::mh_base* t, const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n, t, pg), qi(qapInstance::getInstance()), data(length)
 		{}
 	
 	/** Normal constructor, number of genes must be passed to base class.
-		\param pg Parametergroup
+		\param pg Parameter group
 	*/
 	qapSol(const std::string &pg="") : mh::mh_solution(qapInstance::getInstance()->n,pg), qi(qapInstance::getInstance()),  data(length)
 		{}

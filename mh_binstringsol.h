@@ -6,6 +6,7 @@
 #define MH_BINSTRINGSOL_H
 
 #include "mh_stringsol.h"
+#include "mh_nhmove.h"
 
 namespace mh {
 
@@ -13,7 +14,7 @@ namespace mh {
 class binStringSol : public stringSol<bool>
 {
 protected:
-	static const binStringSol &toBSSol(const mh_solution &ref)
+	static const binStringSol &cast(const mh_solution &ref)
 		{ return (dynamic_cast<const binStringSol &>(ref)); }
 public:
 	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }

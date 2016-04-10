@@ -4,6 +4,7 @@
 #include <iomanip>
 #include "mh_subpop.h"
 #include "mh_util.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -49,7 +50,7 @@ subPopulation::subPopulation(pop_base *super,int from,int to, const string &pg)
 	determineBest();
 }
 
-mh_solution *subPopulation::replace(int index,mh_solution *newchrom)
+mh_solution *subPopulation::replace(int index, mh_solution *newchrom)
 {
 	mh_solution *old=superPopulation->replace(indexFrom+index,newchrom);
 	statValid=false;

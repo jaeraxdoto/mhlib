@@ -7,6 +7,7 @@
 
 #include "mh_param.h"
 #include "mh_pop.h"
+#include "mh_solution.h"
 #include "mh_lsbase.h"
 #include "mh_vnd.h"
 
@@ -20,16 +21,16 @@ extern int_param vnsnum;
     VNS neighborhood ordering:
     - 0: static
     - 1: random
-    - 2: adaptive */
+    - 2: adaptive. */
 extern int_param vnsorder;
 
 /** DEPRECATED, better use mh_scheduler; \ingroup param
-    Parameter tgen for embedded VND
+    Parameter tgen for embedded VND.
  */
 extern int_param vnsvndtiter;
 
 /** DEPRECATED, better use mh_scheduler; \ingroup param
-    Parameter ttime for embedded VND
+    Parameter ttime for embedded VND.
  */
 extern int_param vnsvndttime;
 

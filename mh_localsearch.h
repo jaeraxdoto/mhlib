@@ -10,6 +10,7 @@
 
 namespace mh {
 
+
 /** Simple local search.
 	During each iteration, a move in the neighborhood is performed
 	and the current solution is replaced if the new solution is not

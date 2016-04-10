@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 		// Probably set some parameters to new default values
 		maxi.setDefault(1);			// we maximize here
 		popsize.setDefault(1);		// other values make no sense with the Scheduler
+		titer.setDefault(1000);	// the maximum number of performed iterations
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
@@ -151,12 +152,12 @@ int main(int argc, char *argv[])
 		delete alg;
 	}
 	// catch all exceptions and write error message
-	catch (std::string &s)
-	{ writeErrorMessage(s);  return 1; }
+	catch (mh_exception &e)
+	{ writeErrorMessage(e.what());  return 1; }
 	catch (exception &e)
-	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
+	{ writeErrorMessage(string("Standard exception occurred: ") + e.what()); return 1; }
 	catch (...)
-	{ writeErrorMessage("Unknown exception occured"); return 1; }
+	{ writeErrorMessage("Unknown exception occurred"); return 1; }
 	return 0;
 }
 

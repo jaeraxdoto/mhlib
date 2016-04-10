@@ -37,7 +37,7 @@ typedef unsigned int permSolVarType;
 class permSol : public stringSol<permSolVarType>
 {
 protected:
-	static const permSol &toPermSol(const mh_solution &ref)
+	static const permSol &cast(const mh_solution &ref)
 	{ return (dynamic_cast<const permSol &>(ref)); }
 
 	/** Performs inversion. */

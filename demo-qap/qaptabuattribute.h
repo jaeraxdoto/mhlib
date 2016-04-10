@@ -16,7 +16,7 @@ class qapTabuAttribute : public mh::swapMove, public mh::tabuAttribute
 	friend class qapSol;
 
 protected:
-	static const qapTabuAttribute &toQAPTabuAttribute(const mh::tabuAttribute &ref)
+	static const qapTabuAttribute &cast(const mh::tabuAttribute &ref)
 		{ return (dynamic_cast<const qapTabuAttribute &>(ref)); }
 
 public:

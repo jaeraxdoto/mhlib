@@ -39,13 +39,13 @@ public:
 		binStringSol(sol), probinst(sol.probinst)
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_solution *createUninitialized() const
+	mh_solution *createUninitialized() const
 		{ return new MAXSATSol(probinst); }
 	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_solution *clone() const
+	mh_solution *clone() const
 		{ return new MAXSATSol(*this); }
 	/** Dynamically cast an mh::mh_solution reference to a reference of this class. */
-	static const MAXSATSol &toMAXSATSol(const mh::mh_solution &ref) {
+	static const MAXSATSol &cast(const mh::mh_solution &ref) {
 		return (dynamic_cast<const MAXSATSol &>(ref));
 	}
 	/** Determine the objective value of the solution. Here we count the number

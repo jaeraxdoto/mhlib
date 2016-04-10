@@ -7,11 +7,27 @@
 #define MH_UTIL_H
 
 #include <string>
+#include <exception>
 #include "mh_param.h"
 
 /** The mhlib has this single namespace containing all its components.
 	Only the demo applications have their own namespaces. */
 namespace mh {
+
+/** General class for mhlib-specific exceptions. */
+class mh_exception : public std::exception {
+protected:
+	std::string msg; ///< Description for the cause of the exception.
+public:
+	/** Constructor stores given error message. */
+	mh_exception(const std::string &msg) : msg(msg) {}
+	/** Destructor. */
+	virtual ~mh_exception() {}
+	/** Get exception message. */
+	virtual const char *what() const noexcept {
+		return msg.c_str();
+	}
+};
 
 /** Writes an error message and exits.
 	This function is used to present an error message together with up

@@ -44,7 +44,7 @@ double FitnessDistanceCorrelation::perform(mh_solution *opt,
 		vals[i].f=c->obj();
 		vals[i].d=c->dist(*opt);
 		sumdistbetween+=c->dist(*cl);
-		*cl=*c;
+		cl->copy(*c);
 	}
 	
 	// actually calculate average values and correlation coefficient

@@ -4,7 +4,7 @@
 #ifndef MH_ISLAND_H
 #define MH_ISLAND_H
 
-#include "mh_advbase.h"
+#include "mh_eaadvbase.h"
 #include "mh_param.h"
 
 namespace mh {
@@ -30,12 +30,12 @@ extern double_param pmig;
 /** A GA using the island model and several sub-GAs.
 	During each generation, the performGeneration-function is called for
 	each island, afterwards migration between the islands is performed. */
-class islandModelEA : public mh_advbase
+class islandModelEA : public mh_eaadvbase
 {
 public:
 	/** The constructor.
 		If no sub-EA template is given, a steady-state EA is used. */
-	islandModelEA(pop_base &p, mh_advbase *mh_templ, const std::string &pg="");
+	islandModelEA(pop_base &p, mh_eaadvbase *mh_templ, const std::string &pg="");
 	islandModelEA(pop_base &p, const std::string &pg="");
 	/** The destructor.
 		Deletes sub-EAs. */
@@ -46,7 +46,7 @@ public:
 	    { return new islandModelEA(p,ps); }
 	/** The EA's main loop.
 		Performs generations and migration until the termination
-		criterion is fullfilled. */
+		criterion is fulfilled. */
 	void run();
 	/** Performs a single generation.
 		Calls the islands' corresponding function. */
@@ -56,11 +56,11 @@ protected:
 	/** Performs migration between islands. */
 	virtual void performMigration();
 	/** Initializes the island-model EA. */
-	void init(mh_advbase *mh_templ);
+	void init(mh_eaadvbase *mh_templ);
 	/** Updates the statistics values with the sums of all sub-EAs. */
 	virtual void sumStatistics();
 	
-	mh_advbase **subEAs;  // Sub-EAs used for the islands.
+	mh_eaadvbase **subEAs;  // Sub-EAs used for the islands.
 };
 
 } // end of namespace mh

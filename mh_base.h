@@ -11,15 +11,15 @@
 
 namespace mh {
 
-/** The most abstract base class for all EAs.
+/** The most abstract base class for all optimization algorithms/metaheuristics.
 	This abstract base contains methods and attributes that might be
-	needed in any EA.
-	If you derive a new EA, use mh_base as the
+	needed in any optimization algorithm using mhlib.
+	If you implement a new optimization algorithm, use mh_base as the
 	base class, if no other, derived class suits your needs. */
 class mh_base
 {
 public:
-	/// The Constructor.
+	/// The constructor.
 	mh_base( const std::string &pg = "") : pgroup(pg) {}
 	/// Virtual destructor.
 	virtual ~mh_base() {}
@@ -27,7 +27,7 @@ public:
 	virtual void run() = 0;
 
 public:
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 };
 

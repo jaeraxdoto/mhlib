@@ -4,6 +4,7 @@
 #include "mh_random.h"
 #include "mh_simanneal.h"
 #include "mh_util.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -28,8 +29,8 @@ void simulatedAnnealing::performIteration()
 	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
-	tmpSol->reproduce(*pold);
-	tmpSol->selectNeighbour();
+	tmpSol->copy(*pold);
+	gaopsProvider::cast(*tmpSol).selectNeighbour();
 
 	if (tmpSol->isBetter(*pold))
 		tmpSol=replace(tmpSol);

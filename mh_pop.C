@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include "mh_pop.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -85,7 +86,7 @@ void population::initialize()
 
 mh_solution *population::replace(int index,mh_solution *newchrom)
 {
-	mh_solution *old=chroms[index]; 
+	mh_solution *old=chroms[index];
 	chroms[index]=newchrom;
 	statValid=false;
 	if (phash)

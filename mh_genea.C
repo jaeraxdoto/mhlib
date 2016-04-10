@@ -3,12 +3,13 @@
 #include <iomanip>
 #include "mh_util.h"
 #include "mh_genea.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
 bool_param elit("elit","use elitism?",true);
 
-generationalEA::generationalEA(pop_base &p, const std::string &pg) : mh_advbase(p,pg)
+generationalEA::generationalEA(pop_base &p, const std::string &pg) : mh_eaadvbase(p,pg)
 {
 	selectedChroms=new int[pop->size()];
 	nextGeneration=new mh_solution*[pop->size()];
@@ -75,7 +76,7 @@ void generationalEA::createNextGeneration()
 		else
 		{
 			// no recombination
-			nextGeneration[i]->reproduce(*pop->at(p1));
+			nextGeneration[i]->copy(*pop->at(p1));
 		}
 	}
 	
@@ -86,7 +87,7 @@ void generationalEA::createNextGeneration()
 			performMutation(nextGeneration[i],pmut(pgroup));
 			if (plocim(pgroup)>0 && random_prob(plocim(pgroup)))
 			{
-				tmpSol->locallyImprove();
+				gaopsProvider::cast(*tmpSol).locallyImprove();
 				nLocalImprovements++;
 			}
 		}

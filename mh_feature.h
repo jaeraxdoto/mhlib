@@ -8,6 +8,7 @@
 
 #include "mh_solution.h"
 #include "mh_param.h"
+#include "mh_nhmove.h"
 
 namespace mh {
 
@@ -19,7 +20,7 @@ extern double_param glsa;
 class feature
 {
 protected:
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 	
 public:

@@ -4,7 +4,7 @@
 #ifndef MH_SSEA_H
 #define MH_SSEA_H
 
-#include "mh_advbase.h"
+#include "mh_eaadvbase.h"
 #include "mh_param.h"
 
 namespace mh {
@@ -31,17 +31,17 @@ extern double_param pmutnc;
 	of variation operators (crossover and mutation). The new solution
 	replaces an existing solution (e.g. the worst of the population).
 	Usually, generated duplicates discarded ("duplicate elimination"). */ 
-class steadyStateEA : public mh_advbase
+class steadyStateEA : public mh_eaadvbase
 {
 public:
 	/** The constructor.
 		An initialized population already containing chromosomes 
 		must be given. Note that the population is NOT owned by the 
 		EA and will not be deleted by its destructor. */
-	steadyStateEA(pop_base &p, const std::string &pg="") : mh_advbase(p,pg) {};
+	steadyStateEA(pop_base &p, const std::string &pg="") : mh_eaadvbase(p,pg) {};
 	/** Another constructor.
 		Creates an empty EA that can only be used as a template. */
-	steadyStateEA(const std::string &pg="") : mh_advbase(pg) {};
+	steadyStateEA(const std::string &pg="") : mh_eaadvbase(pg) {};
 	/** Create new steadyStateGA.
 		Returns a pointer to a new steadyStateEA. */
 	mh_advbase *clone(pop_base &p,const std::string &pg="")

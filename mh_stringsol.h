@@ -11,6 +11,7 @@
 #include <cmath>
 #include <vector>
 #include "mh_solution.h"
+#include "mh_gaopsprov.h"
 #include "mh_random.h"
 #include "mh_stringsol.h"
 #include "mh_util.h"
@@ -18,7 +19,7 @@
 namespace mh {
 
 /** \ingroup param
-	Used crossover operator for string solutionosomes:
+	Used crossover operator for string solutions:
 	- 0: random choice (uniform, and multipoint with k=1...strxpts() equally
 		likely)
 	- 1: uniform crossover
@@ -43,21 +44,21 @@ extern int_param strmop;
 
 /** A solution class for solutions represented by strings of integers of
 	the same domain 0...vmax. */
-template <class T> class stringSol : public mh_solution
+template <class T> class stringSol : public mh_solution, public gaopsProvider
 {
 protected:
 	std::vector<T> data;	/** Actual gene vector. */
 	T vmax; 	/** Maximum value. */
 
-	static const stringSol &toSSol(const mh_solution &ref)
+	static const stringSol &cast(const mh_solution &ref)
 		{ return (dynamic_cast<const stringSol &>(ref)); }
 
 	/** Performs uniform crossover. */
 	void crossover_uniform(const mh_solution &parA, const mh_solution &parB);
 	/** Performs multi-point crossover with xp crossover points. */
-	void crossover_multipoint(const mh_solution &parA, 
+	void crossover_multipoint(const mh_solution &parA,
 		const mh_solution &parB, int xp=strxpts());
-	/** Calls multipoint crossover, with crossing number 1. */
+	/** Calls multi-point crossover, with crossing number 1. */
 	void crossover_1point(const mh_solution &parA, const mh_solution &parB)
 		{ crossover_multipoint(parA, parB, 1); }
 	/** Calls multipoint crossover, with crossing number 2. */
@@ -80,18 +81,20 @@ public:
 	stringSol(const mh_solution &c);
 	/** normal constructor, number of genes must be passed to base
 		class, as well as maximum value for each gene. */
-	stringSol(int l, int v, mh_base *t, const std::string &pg="") : mh_solution(l,t,pg), data(l)
+	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,pg), data(l)
 		{ vmax=v; }
-	stringSol(int l, int v, const std::string &pg="") : mh_solution(l,nullptr,pg), data(l)
+	/** normal constructor, number of genes must be passed to base
+		class, as well as maximum value for each gene. */
+	stringSol(int l, int v, mh_base *alg, const std::string &pg="") : mh_solution(l,alg,pg), data(l)
 		{ vmax=v; }
 	/** copy all data from a given solution into the current one. */
-	virtual void copy(const mh_solution &orig);
+	void copy(const mh_solution &orig);
 	/** return true if the current solution is equal to *orig. */
 	virtual bool equals(mh_solution &orig);
-	/** Returns the hamming distance. */
+	/** Returns the Hamming distance. */
 	virtual double dist(mh_solution &c);
 	virtual ~stringSol() { }
-	/** randomly initialize all genes. */
+	/** Randomly initialize all genes. */
 	void initialize(int count);
 	/** Calls a mutation method, controlled by the parameter strmop(). */
 	void mutate(int count);
@@ -121,21 +124,19 @@ typedef stringSol<unsigned int> intStringSol;
 
 //---------------------- Implementation of stringSol -------------------------
 
-template <class T> stringSol<T>::stringSol(const mh_solution &c) :
-	mh_solution(c),data(length)
+template <class T> stringSol<T>::stringSol(const mh_solution &c) : mh_solution(c)
 {
-	const stringSol<T> &sc=toSSol(c);
-	for (int i=0;i<length;i++)
-		data[i]=sc.data[i];
+	const stringSol<T> &sc=cast(c);
+	data=sc.data;
 	vmax = sc.vmax;
 }
 
 template <class T> void stringSol<T>::copy(const mh_solution &orig)
 {
-	mh_solution::copy(orig);
-	const stringSol<T> &sc=toSSol(orig);
-	for (int i=0;i<length;i++)
-		data[i]=sc.data[i];
+	const stringSol<T> &sc=cast(orig);
+
+	mh_solution::copy(sc);
+	data = sc.data;
 	vmax = sc.vmax;
 }
 
@@ -145,7 +146,7 @@ template <class T> bool stringSol<T>::equals(mh_solution &orig)
 	if (orig.obj()!=obj())
 		return false;
 	// and now all the genes
-	const stringSol<T> &sc=toSSol(orig);
+	const stringSol<T> &sc=cast(orig);
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
 			return false;
@@ -154,7 +155,7 @@ template <class T> bool stringSol<T>::equals(mh_solution &orig)
 
 template <class T> double stringSol<T>::dist(mh_solution &c)
 {
-	const stringSol<T> &sc=toSSol(c);
+	const stringSol<T> &sc=cast(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=sc.data[i])
@@ -258,7 +259,7 @@ template <class T> void stringSol<T>::mutate_insertion(int count)
 	invalidate();
 }
 
-template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh_solution &parB)
+template <class T> void stringSol<T>::crossover(const mh_solution &parA, const mh_solution &parB)
 {
 	int c=strxop(pgroup),pts=strxpts(pgroup);
 	if (c==0)
@@ -289,8 +290,8 @@ template <class T> void stringSol<T>::crossover(const mh_solution &parA,const mh
 template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,const mh_solution &parB)
 {
 	// uniform crossover
-	const stringSol<T> &a=toSSol(parA);
-	const stringSol<T> &b=toSSol(parB);
+	const stringSol<T> &a=cast(parA);
+	const stringSol<T> &b=cast(parB);
 	for (int i=0;i<length;i++)
 		data[i]=random_bool()?a.data[i]:b.data[i];
 	invalidate();
@@ -300,8 +301,8 @@ template <class T> void stringSol<T>::crossover_uniform(const mh_solution &parA,
 template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &parA,const mh_solution &parB,int xp)
 {
 	// k point crossover
-	const stringSol<T> &a=toSSol(parA);
-	const stringSol<T> &b=toSSol(parB);
+	const stringSol<T> &a=cast(parA);
+	const stringSol<T> &b=cast(parB);
 
 	int clength = 0;        // length between 2 crossover points (changes each turn)
 	int current = 0;        // current gen to move

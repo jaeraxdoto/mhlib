@@ -2,7 +2,9 @@
 
 #include <iomanip>
 #include "mh_util.h"
+#include "mh_solution.h"
 #include "mh_ssea.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
@@ -33,7 +35,7 @@ void steadyStateEA::performIteration()
 	else
 	{
 		// no recombination
-		tmpSol->reproduce(*pop->at(p1));
+		tmpSol->copy(*pop->at(p1));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);
@@ -43,7 +45,7 @@ void steadyStateEA::performIteration()
 	// optionally locally improve the chromosome
 	if (plocim(pgroup) && random_prob(plocim(pgroup)))
 	{
-		tmpSol->locallyImprove();
+		gaopsProvider::cast(*tmpSol).locallyImprove();
 		nLocalImprovements++;
 	}
 

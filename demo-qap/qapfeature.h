@@ -24,7 +24,7 @@ protected:
 	
 public:
 	/** Normal constructor.
-	 \param pg Parametergroup */
+	 \param pg Parameter group */
 	qapFeature(const std::string &pg="" );
  	
 	/** Function for getting the penalty.
