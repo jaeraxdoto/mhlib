@@ -7,11 +7,7 @@
 #define MH_SCHEDMETH_H
 
 #include <assert.h>
-#include <vector>
 #include <string>
-#include "mh_advbase.h"
-#include "mh_pop.h"
-#include "mh_c11threads.h"
 
 namespace mh {
 
