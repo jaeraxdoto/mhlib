@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <string>
 
+#include "mh_solution.h"
+
 namespace mh {
 
 //--------------------------- SchedulerMethod ------------------------------
