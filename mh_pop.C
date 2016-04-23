@@ -35,6 +35,17 @@ int population::determineWorst() const
 	return idx;
 }
 
+population::population(std::function<mh_solution *()> createsol, int psize, bool binit,
+		bool nohashing, const std::string &pg)
+{
+	chroms=new mh_solution *[nSolutions];
+	for (int i=0;i<nSolutions;i++)
+		chroms[i]=createsol();
+	if (binit)
+		initialize();
+	determineBest();
+}
+
 population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
 	: pop_base(psize,pg)
 {
