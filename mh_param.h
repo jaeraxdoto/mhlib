@@ -33,6 +33,8 @@
 #include <unordered_map>
 #include <sstream>
 #include <string>
+#include <functional>
+
 #include "mh_util.h"
 
 /*! mhlib's namespace. */
@@ -212,6 +214,25 @@ private:
 	unarycheck check;
 };
 
+//--------------------------- uFctValidator ------------------------------
+
+/** Generic unary-function-check validator.
+	Used within class param. */
+template<class T>
+class uFctValidator : public paramValidator
+{
+public:
+	/// Stores a function used for validation.
+	uFctValidator(std::function<bool(T)> c) : check(c) {}
+	/// It is checked if the value conforms to the unary check of the stored function.
+	virtual bool validate(const mh::param &par, const std::string pgroup="") const override;
+	/// Write out short help for valid values.
+	virtual void printHelp(std::ostream &os) const override;
+private:
+	/// check to perform
+	std::function<bool(T)> check;
+};
+
 
 //--------------------------- gen_param ------------------------------
 
@@ -257,6 +278,17 @@ public:
 	gen_param(const std::string &nam,const std::string &descr,const T &def,
 		const T value,const unarycheck check) :
 		param(nam,descr,new unaryValidator<T>(value,check)),
+		value(def), defval(def)
+		{ validate(); }
+	/** Register a parameter with a paramValidator;
+		\param nam Short name of parameter, corresponding to variable name.
+		\param descr Short description (less than one line).
+		\param def Default value.
+		\param validator The validator to use for checking.
+		*/
+	gen_param(const std::string &nam,const std::string &descr,const T &def,
+		const paramValidator* validator) :
+		param(nam,descr,validator),
 		value(def), defval(def)
 		{ validate(); }
 	/** Access of a parameter's value without a specified parameter-group.
@@ -429,6 +461,17 @@ template <class T> void unaryValidator<T>::printHelp(std::ostream &os)
 		default:
 			break;
 	}
+}
+
+template <class T>
+bool uFctValidator<T>::validate(const mh::param &par, const std::string pgroup) const {
+	const gen_param<T> &p=dynamic_cast<const gen_param<T> &>(par);
+	return check(p(pgroup));
+}
+
+template <class T>
+void uFctValidator<T>::printHelp(std::ostream &os) const {
+		os << "Unary function validator" << std::endl;
 }
 
 template <class T> std::string gen_param<T>::getStringValue_impl(const T &val)
