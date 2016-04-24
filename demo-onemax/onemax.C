@@ -157,12 +157,10 @@ int main(int argc, char *argv[])
 		param::printAll(out());
 		out() << endl;
 
-		// generate a template solution of the problem specific class
-		//onePermSol tchrom;
-		oneMaxSol tchrom;
+		// generate a population of the corresponding solutions solutions
+		population p([](){return new oneMaxSol();});
+		// population p([](){return new onePermSol();}); // activate to solve ONEPERM
 
-		// generate a population of these solutions
-		population p(tchrom);
 		// p.write(out()); 	// write out initial population
 		// generate the EA
 		mh_advbase *alg;

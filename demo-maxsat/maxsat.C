@@ -110,13 +110,11 @@ int main(int argc, char *argv[])
 		probinst.write(out());	// write out some info on instance
 		out() << endl;
 
-		// generate a template solution of the problem specific class
-		MAXSATSol tsol(&probinst);
-		// generate a population of uninitialized solutions; do not use hashing
+		// generate a population of uninitialized solutions; do not use hashing;
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
-		population p(tsol,popsize(),false,false);
+		population p([&probinst](){return new MAXSATSol(&probinst);}, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
 		// create the the Scheduler and register SchedulableMethods

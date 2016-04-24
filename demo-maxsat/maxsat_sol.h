@@ -31,13 +31,11 @@ public:
 
 	/** The default constructor. It stores the pointer to the problem instance
 	    and passes the number of variables to the binStringSol constructor. */
-	MAXSATSol(const MAXSATInst *_probinst) :
-		binStringSol(_probinst->nVars), probinst(_probinst)
-		{}
+	MAXSATSol(const MAXSATInst *probinst) :
+		binStringSol(probinst->nVars), probinst(probinst) {}
 	/** Copy constructor. */	
 	MAXSATSol(const MAXSATSol &sol) :
-		binStringSol(sol), probinst(sol.probinst)
-		{}
+		binStringSol(sol), probinst(sol.probinst) {}
 	/** Create a new uninitialized instance of this class. */
 	mh_solution *createUninitialized() const
 		{ return new MAXSATSol(probinst); }

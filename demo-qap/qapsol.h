@@ -9,6 +9,7 @@
 #include "mh_solution.h"
 #include "mh_feature.h"
 #include "mh_interfaces.h"
+#include "mh_gaopsprov.h"
 #include "mh_random.h"
 #include "qapinstance.h"
 #include "qaptabuattribute.h"
@@ -31,7 +32,7 @@ extern mh::double_param graspb;
 
 
 /** A concrete solution class for the quadratic assignment problem. */
-class qapSol : public mh::mh_solution, public mh::featureProvider, public mh::tabuProvider, public mh::gcProvider
+class qapSol : public mh::mh_solution, public mh::gaopsProvider, public mh::featureProvider, public mh::tabuProvider, public mh::gcProvider
 {
 	friend class qapFeature;
 	

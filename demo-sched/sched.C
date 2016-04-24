@@ -361,17 +361,17 @@ int main(int argc, char *argv[])
 		}
 
 		// generate a template solution of the problem specific class
-		mh_solution *tsol = nullptr;
+		std::function<mh_solution *()> createsol;
 		switch (prob()) {
-		case 0: tsol = new oneMaxSol; break;
-		case 1: tsol = new onePermSol; break;
+		case 0: createsol = [](){return new oneMaxSol();}; break;
+		case 1: createsol = [](){return new onePermSol();}; break;
 		default: mherror("Invalid problem", tostring(prob()));
 		}
 		// generate a population of uninitialized solutions; do not use hashing
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
-		population p(*tsol,popsize(),false,false);
+		population p(createsol, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
@@ -394,7 +394,6 @@ int main(int argc, char *argv[])
 		alg->printStatistics(out());	// write result & statistics
 
 		delete alg;
-		delete tsol;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;

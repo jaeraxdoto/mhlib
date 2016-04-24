@@ -78,12 +78,10 @@ int main(int argc, char *argv[])
 		qi = qapInstance::getInstance();
 		qi->initialize(ifile());
 		
-		// generate a template solution of the problem specific qapSol tsol;
-		qapSol tsol;
-		
-		// generate a population of these solutions
-		population p(tsol,popsize(),true);
+		// generate a population of solutions
+		population p([](){return new qapSol();}, popsize(), true);
 		// p.write(out()); 	// write out initial population
+
 		// generate the algorithm
 		mh_advbase *alg;
 		alg=create_mh(p);
