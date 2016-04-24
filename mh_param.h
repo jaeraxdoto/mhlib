@@ -223,7 +223,7 @@ class uFctValidator : public paramValidator
 {
 public:
 	/// Stores a function used for validation.
-	uFctValidator(std::function<bool(T)> c) : check(c) {}
+	uFctValidator(const std::function<bool(T)> &c) : check(c) {}
 	/// It is checked if the value conforms to the unary check of the stored function.
 	virtual bool validate(const mh::param &par, const std::string pgroup="") const override;
 	/// Write out short help for valid values.
@@ -280,11 +280,13 @@ public:
 		param(nam,descr,new unaryValidator<T>(value,check)),
 		value(def), defval(def)
 		{ validate(); }
-	/** Register a parameter with a paramValidator;
+	/** Register a parameter with a paramValidator
 		\param nam Short name of parameter, corresponding to variable name.
 		\param descr Short description (less than one line).
 		\param def Default value.
 		\param validator The validator to use for checking.
+		(Ownership of the allocated object is passed to the callee,
+		who will therefore take care of it's deletion.)
 		*/
 	gen_param(const std::string &nam,const std::string &descr,const T &def,
 		const paramValidator* validator) :
