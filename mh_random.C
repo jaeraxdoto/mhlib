@@ -41,7 +41,7 @@ static const double RNMX=(1.0-EPS);
 
 mh_randomNumberGenerator defaultRNG;
 
-// thread-local pointer to achtive random number generator
+// thread-local pointer to active random number generator
 static thread_local mh_randomNumberGenerator* pRandomNumberGenerator = &defaultRNG;
 
 mh_randomNumberGenerator* randomNumberGenerator() {

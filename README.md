@@ -6,26 +6,21 @@ mhlib is a collection of modules supporting the efficient and simple implementat
 
 ![ ](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
 
-This library is available under the GNU General Public License Version 3
-available at https://www.gnu.org/copyleft/gpl.html
+Copyright 2016 G&uuml;nther Raidl <raidl@ac.tuwien.ac.at>,
+Algorithms and Complexity Group, TU Wien,
+http://www.ac.tuwien.ac.at 
 
-(c) Algorithms and Complexity Group, TU Wien
-http://www.ac.tuwien.ac.at  
-Mainly responsible is Günther Raidl <raidl@ac.tuwien.ac.at>
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-To use the library you need a GNU C++ compiler and doxygen for the documentation,
-call "make all" and have a look at the documentation in the doxy
-subdirectory. Under MS Windows, we recommend to use a more recent version of 
-the mingw-w64 compiler, either in the 32 or 64 bit version, or the g++ compiler 
-under the cygwin environment.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-Note that this library is mainly the result of a collection of 
-students projects, and we are not able to guarantee support. 
-Although we believe that most modules are stable and efficiently implemented, 
-there might be differences in the quality of the code among different modules.
-
-However, we are always happy to get informed about applications,
-potential errors or suggestions for improvement.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 
 ## Introduction ##
@@ -34,6 +29,17 @@ This library is intended to be a problem-independent C++ library
 suitable for the development of efficient metaheuristics for 
 combinatorial optimization problems.
 
+To use the library you need a GNU C++ compiler and doxygen for the
+documentation, call "make all" and have a look at the documentation in
+the doxy subdirectory. Under MS Windows, we recommend to use a more
+recent version of the mingw-w64 compiler, either in the 32 or 64 bit
+version, or the g++ compiler under the cygwin environment.
+
+Note that this library is mainly the result of a collection of 
+students projects, and we are not able to guarantee support. 
+Although we believe that most modules are stable and efficiently implemented, 
+there might be differences in the quality of the code among different modules.
+However, we are always happy to get informed about applications,
 The library is in development since 1999 at the 
 Algorithms and Complexity Group,
 Institute of Computer Graphics and Algorithms, TU Wien, Vienna, Austria.
