@@ -2,11 +2,11 @@
 
 https://bitbucket.org/ads-tuwien/mhlib
 
-mhlib is a collection of modules supporting the efficient and simple implementation of metaheuristics.
+*mhlib* is a collection of modules supporting the efficient and simple implementation of metaheuristics in C++11.
 
 ![ ](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
 
-Copyright 2016 G&uuml;nther Raidl <raidl@ac.tuwien.ac.at>,
+Copyright 1999-2016 G&uuml;nther Raidl <raidl@ac.tuwien.ac.at>,
 Algorithms and Complexity Group, TU Wien,
 http://www.ac.tuwien.ac.at 
 
@@ -29,11 +29,10 @@ This library is intended to be a problem-independent C++ library
 suitable for the development of efficient metaheuristics for 
 combinatorial optimization problems.
 
-To use the library you need a GNU C++ compiler and doxygen for the
-documentation, call "make all" and have a look at the documentation in
-the doxy subdirectory. Under MS Windows, we recommend to use a more
-recent version of the mingw-w64 compiler, either in the 32 or 64 bit
-version, or the g++ compiler under the cygwin environment.
+To use the library you need a GNU C++11 compiler and doxygen for the
+documentation. Under MS Windows, we recommend to use a more recent
+version of the mingw-w64 compiler, either in the 32 or 64 bit version,
+or the g++ compiler under the cygwin environment.
 
 Note that this library is mainly the result of a collection of 
 students projects, and we are not able to guarantee support. 
@@ -46,13 +45,15 @@ Institute of Computer Graphics and Algorithms, TU Wien, Vienna, Austria.
 Formerly, it was called EAlib, as it originated from some classes for
 evolutionary algorithms.
 
-Mainly responsible for it is *Guenther Raidl* (raidl@ac.tuwien.ac.at),
+Mainly responsible for it is *Guenther Raidl* <raidl@ac.tuwien.ac.at>,
 to whom also belongs the copyright. 
 Please report any problems to him. Thank you.
 
-*Daniel Wagner* (d.wagner@cti.ac.at) contributed some local search alike
-algorithms and an extensive example for the QAP and many minor changes or
-improvements. Further contributions are due to *Sandro Pirkwieser*, *Matthias Prandtstetter*, and *Frederico Dusberger*.
+*Daniel Wagner* contributed some local search alike algorithms and an
+extensive example for the QAP and many minor changes or improvements.
+Further contributions are due to *Sandro Pirkwieser*, *Matthias
+Prandtstetter*, *Frederico Dusberger*, *Johannes Maschler*, and *Martin
+Riedler*.
 
 Besides the actual C++ library, mhlib also contains 
 
@@ -68,8 +69,16 @@ Besides the actual C++ library, mhlib also contains
   means of variable neighborhood search (VNS).  This program also
   includes some specific functions for testing multithreading.
 
-- **summary.pl**: A Perl script used to statistically summarize many runs
-  over many instances.
+- **demo-onemax** and **demo-qap**: These are demonstration programs in
+  particular for the classes realizing evolutionary algorithms, but also
+  simulated annealing and tabu search. The also demonstrated mh_vns and mh_vnd
+  are deprecated; new implementations should use mh_scheduler for
+  realizing VNS, VND, GRASP, and Large Neighborhood Search. 
+  While demo-onemax solves the ONEMAX and ONEPERM problems, demo-qap
+  solves the quadratic assignment problem.
+
+- **summary.py**: A Python script used to summarize key result values of
+  many runs over many instances.
 
 - **aggregate.R**: An R (https://www.r-project.org/) script used to
   further aggregate the results obtained by summary.pl and in particular
@@ -86,13 +95,6 @@ Besides the actual C++ library, mhlib also contains
   point to the main irace directory, which is usually 
   /usr/lib/R/site-library/irace or ~/.R_libs/irace.
 
-- **demo-onemax** and **demo-qap**: These are demonstration programs in
-  particular for the classes realizing evolutionary algorithms, but also
-  simulated annealing and tabu search. The also demonstrated mh_vns and mh_vnd
-  are deprecated; new implementations should use mh_scheduler for
-  realizing VNS, VND, GRASP, and Large Neighborhood Search. 
-  While demo-onemax solves the ONEMAX and ONEPERM problems, demo-qap
-  solves the quadratic assignment problem.
 
 ## Changelog: major changes over major releases ##
 
@@ -129,7 +131,15 @@ A module mh_scheduler and corresponding demo program demo_sched have been introd
 
 ## Installing mhlib ##
 
-Unpack the .tgz or .zip file in a directory or clone the project from the git-repository. Call "make all" in the mhlib-directory.
+Clone the project from the git-repository by 
+
+	`git clone git@bitbucket.org:ads-tuwien/mhlib.git`. 
+
+Call 
+
+	`make all; make doc` 
+	
+from the mhlib-directory.
 
 mhlib has been tested with GNU g++ 4.9.2 under GNU/Linux and Cygwin, but it
 should be possible to easily adapt it for other platforms/compilers.
@@ -138,15 +148,49 @@ It is based on the C++11 standard.
 
 ## Learning to use and extend mhlib ##
 
-To start learning mhlib, it is probably best to look at the
-simple exemplary main programs in demo-onemax.
-It shows how to use parameters and the most important classes of the library on the simple ONEMAX and ONEPERM problem.
+To start learning mhlib, it is probably best to first look at **demo-maxsat**.
+It shows how to use the most important classes general classes like mh_solution, population, classes for parameter handling, and especially Scheduler for solving the MAXSAT problem by a simple generalized variable
+neighborhoods search. You might use this demo as a template for your own
+application. **demo-sched** is another example using the
+Scheduler for solving the ONEMAX and ONEPERM problem and also provides
+some test functionality for multi-threading. 
+Especially for genetic algorithms but also the older VNS and the less
+actively maintained tabu search and simulated annealing modules, **demo-onemax** and **demo-qap** are recommended as templates.
 
-A more complex example for the quadratic assignment problem is provided
-in the demo-qap directory.
+Then its best to look at the detailed HTML source documentation, which can be built from the source code using *doxygen* by calling `make doc`. Since mhlib has an own parameter handling mechanism and many global parameters controlling the behavior of the library, you should also take a look at them in particular.
 
-More recently, in version 4.0, a Scheduler module has been added that supports
-variants of variable neighborhood search, GRASP, and large neighborhood search more efficiently and even with multithreading. For an example see the demo-sched directory.
 
-Then, its probably best to look at the documentation of all the include 
-files, which can best be browsed by using doxygen to produce HTML-documentation from the include files (call 'make doc'). Since mhlib has an own parameter handling mechanism and many global parameters controlling the behavior of the library, you should also take a look at them in particular.
+## Acknowledgements ##
+
+### mingw-std-threads ###
+
+mhlib includes and uses the library **mingw-std-threads** for multi-threading
+under Windows. This library is separately available at
+https://github.com/meganz/mingw-std-threads under the
+following license:
+
+Copyright (c) 2016, Mega Limited
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+

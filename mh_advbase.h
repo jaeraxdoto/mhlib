@@ -47,7 +47,7 @@ extern int_param titer;
 extern int_param tciter;
 
 /** \ingroup param
-	The objective value for termination when #tcond==2. Active if >=0. */
+	The objective value for termination. Active if >=0. */
 extern double_param tobj;
 
 /** \ingroup param
