@@ -176,7 +176,7 @@ public:
 	void write(double val);
 	/** Write a string to the log.
 		A separator is inserted in the front of it. */ 
-	void write(const char *val);
+	void write(const std::string &val);
 	/** Finish the log for this iteration.
 		The line is inserted into the buffer or actually written to the
 		stream (depending on ffreq). */ 

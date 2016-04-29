@@ -206,7 +206,7 @@ void logging::write(double val)
 	curStream << delimiter << s;
 }
 
-void logging::write(const char *val)
+void logging::write(const std::string &val)
 {
 	curStream << delimiter << val;
 }

@@ -40,6 +40,10 @@ extern bool_param schsync;
  */
 extern double_param schpmig;
 
+/** \ingroup param
+ * If set then the Scheduler's method name is also appended to each log entry.
+ */
+extern bool_param lmethod;
 
 
 /**
@@ -491,7 +495,23 @@ public:
 	 * In particular, the total runtime of the algorithm, the best found objective value, and
 	 * in which iteration and after how much time it was found.
 	 */
-	virtual void printStatistics(std::ostream &ostr) override;
+	void printStatistics(std::ostream &ostr) override;
+
+	/**
+	 * Writing the log header.
+	 */
+	virtual void writeLogHeader(bool finishEntry=true) override;
+	/**
+	 * Standard method for writing the log entry.
+	 * It calls the new extended method with "-" as method name.
+	 */
+	virtual bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true) override {
+		return writeLogEntry(inAnyCase,"-",finishEntry);
+	}
+	/**
+	 * Write the log entry including the given method name if parameter lmethod is set.
+	 */
+	virtual bool writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry=true);
 };
 
 

@@ -26,6 +26,7 @@ bool_param schsync("schsync", "scheduler: synchronize all threads for being more
 
 double_param schpmig("schpmig", "scheduler: probability for migrating global best solutions at each shaking iteration", 0.1, 0, 1);
 
+bool_param lmethod("lmethod","append Scheduler's method name to each log entry",true);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
@@ -120,7 +121,7 @@ void SchedulerWorker::run() {
 						scheduler->nIteration = scheduler->lastLogIter;
 						for(unsigned int i=scheduler->lastLogIter+1; i <= schedNIteration; i++) {
 							scheduler->nIteration++;
-							scheduler->writeLogEntry();
+							scheduler->writeLogEntry(false,method->name);
 						}
 						scheduler->lastLogIter = scheduler->nIteration;
 
@@ -184,7 +185,7 @@ void SchedulerWorker::run() {
 
 				if(!scheduler->_schsync) {
 					if (!termnow || scheduler->nIteration>logstr.lastIter())
-						scheduler->writeLogEntry(termnow);
+						scheduler->writeLogEntry(termnow, method->name);
 				}
 				scheduler->mutex.unlock();
 				if (scheduler->terminate())
@@ -229,7 +230,7 @@ void Scheduler::run() {
 	timStart = (_wctime ? mhwctime() : mhcputime());
 
 	writeLogHeader();
-	writeLogEntry();
+	writeLogEntry(false,"-");
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
@@ -257,7 +258,7 @@ void Scheduler::run() {
 		nIteration = lastLogIter;
 		for(unsigned int i=lastLogIter+1; i <= schedNIteration; i++) {
 			nIteration++;
-			writeLogEntry();
+			writeLogEntry(false,"?");
 		}
 		lastLogIter = nIteration;
 	}
@@ -360,6 +361,47 @@ void Scheduler::printStatistics(ostream &ostr) {
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
 }
+
+void Scheduler::writeLogHeader(bool finishEntry) {
+	// mh_advbase::writeLogHeader(false);
+	// if (lmethod(pgroup))
+	// 	logstr.write("method");
+	// if (finishEntry)
+	//		logstr.finishEntry();
+	checkPopulation();
+	logstr.headerEntry();
+	if (ltime(pgroup))
+		logstr.write(_wctime ? "wctime" : "cputime");
+	if (lmethod(pgroup))
+		logstr.write("method");
+	if (finishEntry)
+		logstr.finishEntry();
+}
+
+
+bool Scheduler::writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry) {
+	// if (mh_advbase::writeLogEntry(inAnyCase,false)) {
+	//	if (lmethod(pgroup))
+	//		logstr.write(method);
+	//	if (finishEntry)
+	//		logstr.finishEntry();
+	//	return true;
+	//}
+	//return false;
+	checkPopulation();
+	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
+	{
+		if (ltime(pgroup))
+			logstr.write((_wctime ? (mhwctime() - timStart) : mhcputime()));
+		if (lmethod(pgroup))
+			logstr.write(method);
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
+	}
+	return false;
+}
+
 
 //--------------------------------- SchedulerMethodSelector ---------------------------------------------
 

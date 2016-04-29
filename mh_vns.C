@@ -124,8 +124,7 @@ void VNS::performIteration()
 	perfIterEndCallback();
 }
 
-
-void VNS::writeLogEntry(bool inAnyCase) {
+bool VNS::writeLogEntry(bool inAnyCase,bool finishEntry) {
 	checkPopulation();
 	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
@@ -135,11 +134,14 @@ void VNS::writeLogEntry(bool inAnyCase) {
 		//	logstr.write(nDupEliminations);
 		if (ltime(pgroup))
 			logstr.write(mhcputime());
-		logstr.finishEntry();
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
 	}
+	return false;
 }
 
-void VNS::writeLogHeader() {
+void VNS::writeLogHeader(bool finishEntry) {
 	checkPopulation();
 
 	logstr.headerEntry();
@@ -149,7 +151,8 @@ void VNS::writeLogHeader() {
 	// 		logstr.write("dupelim");
 	// 	if (logcputime(pgroup))
 	// 		logstr.write("cputime");
-	logstr.finishEntry();
+	if (finishEntry)
+		logstr.finishEntry();
 }
 
 void VNS::printStatisticsShaking(ostream &ostr)

@@ -238,7 +238,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	ostr << "selections:\t" << nSelections << endl;
 }
 
-void mh_advbase::writeLogEntry(bool inAnyCase)
+bool mh_advbase::writeLogEntry(bool inAnyCase, bool finishEntry)
 {
 	checkPopulation();
 	
@@ -251,11 +251,14 @@ void mh_advbase::writeLogEntry(bool inAnyCase)
 			logstr.write(nDupEliminations);
 		if (ltime(pgroup))
 			logstr.write((_wctime ? (mhwctime() - timStart) : mhcputime()));
-		logstr.finishEntry();
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
 	}
+	return false;
 }
 
-void mh_advbase::writeLogHeader()
+void mh_advbase::writeLogHeader(bool finishEntry)
 {
 	checkPopulation();
 	
@@ -267,7 +270,8 @@ void mh_advbase::writeLogHeader()
 		logstr.write("dupelim");
 	if (ltime(pgroup))
 		logstr.write(_wctime ? "wctime" : "cputime");
-	logstr.finishEntry();
+	if (finishEntry)
+		logstr.finishEntry();
 }
 
 void mh_advbase::checkPopulation()

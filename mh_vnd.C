@@ -132,7 +132,7 @@ void VND::performIteration(){
 	perfIterEndCallback();
 }
 
-void VND::writeLogEntry(bool inAnyCase) {
+bool VND::writeLogEntry(bool inAnyCase,bool finishEntry) {
 	checkPopulation();
 	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
@@ -142,11 +142,14 @@ void VND::writeLogEntry(bool inAnyCase) {
 		//	logstr.write(nDupEliminations);
 		if (ltime(pgroup))
 			logstr.write(mhcputime());
-		logstr.finishEntry();
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
 	}
+	return false;
 }
 
-void VND::writeLogHeader() {
+void VND::writeLogHeader(bool finishEntry) {
 	checkPopulation();
 
 	logstr.headerEntry();
@@ -157,7 +160,8 @@ void VND::writeLogHeader() {
 	// 		logstr.write("dupelim");
 	// 	if (logcputime(pgroup))
 	// 		logstr.write("cputime");
-	logstr.finishEntry();
+	if (finishEntry)
+		logstr.finishEntry();
 }
 
 void VND::printStatisticsVND(ostream &ostr)

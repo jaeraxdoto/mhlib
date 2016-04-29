@@ -166,10 +166,13 @@ public:
 		the best solution of the population.. */
 	virtual void printStatistics(std::ostream &ostr);
 	/** Writes the log entry for the current iteration.
-		If inAnyCase is set, then the entry is written in any case. */
-	virtual void writeLogEntry(bool inAnyCase=false);
-	/** Writes the log header */
-	virtual void writeLogHeader();
+		\param inAnyCase if set, then the entry is written in any case
+		\param finishEntry if set, then the entry is finished, otherwise, further info might be written out
+		\return true if the entry was actually written */
+	virtual bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true);
+	/** Writes the log header.
+	 * \param finishEntry if set, then the entry is finished, otherwise, further info might be written out. */
+	virtual void writeLogHeader(bool finishEntry=true);
 	/** Returns pointer to best solution obtained so far. */
 	mh_solution *getBestSol() const
 		{ return pop->bestSol(); }
