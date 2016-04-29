@@ -232,6 +232,11 @@ public:
 		lastMethod = -1;
 	}
 
+	/* Returns true if a previously applied method is known. */
+	bool hasLastMethod() {
+		return lastMethod != -1;
+	}
+
 	/** Selects a method according to the chosen selection strategy from the methodList.
 	 */
 	SchedulerMethod *select();
@@ -374,12 +379,6 @@ public:
 			delete method;
 	}
 
-	/** Cloning is prohibited for the scheduler. */
-	virtual Scheduler* clone() const {
-		mherror("Scheduler cannot be cloned");
-		return nullptr;
-	}
-
 	/* Set a callback method, which is then periodically called with the currently best objective value
 	 * during the optimization, whenever a method returs.  If it returns 1 the optimization will stop.
 	 * Initially, no callback method is set, i.e., callback=nullptr. */
@@ -408,13 +407,13 @@ public:
 	 * A certain number of SchedulerWorker objects, defined by the threads() parameter, is created and
 	 * started in individual threads, each running its own loop .
 	 */
-	void run();
+	void run() override;
 
 	/**
 	 * This method does here nothing and is only implemented since it is required by the underlying
 	 * base class mh_advbase.
 	 */
-	void performIteration() {
+	void performIteration() override {
 		mherror("Scheduler does not implement/use performGeneration");
 	}
 
@@ -428,7 +427,7 @@ public:
 	 * for all termination criteria, the scheduler's termination flag is set to true,
 	 * if any criterion applies.
 	 */
-	bool terminate();
+	bool terminate() override;
 
 	/**
 	 * Determines the next method to be applied and sets it in the given worker.
@@ -492,7 +491,7 @@ public:
 	 * In particular, the total runtime of the algorithm, the best found objective value, and
 	 * in which iteration and after how much time it was found.
 	 */
-	virtual void printStatistics(std::ostream &ostr);
+	virtual void printStatistics(std::ostream &ostr) override;
 };
 
 
@@ -563,7 +562,7 @@ public:
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
      */
-	void getNextMethod(SchedulerWorker *worker);
+	void getNextMethod(SchedulerWorker *worker) override;
 
 	/**
 	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
@@ -574,7 +573,7 @@ public:
 	 * is ignored and no result information is appended to the vector's result list.
 	 * This method is called with mutex locked.
 	 */
-	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult);
+	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) override;
 
 	/**
 	 * Updates the the scheduler's population in case the best incumbent solution among all workers
@@ -592,7 +591,7 @@ public:
 	 * @param worker current worker object
 	 * @param methodTime CPU time used by the method call
 	 */
-	void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
+	void updateMethodStatistics(SchedulerWorker *worker, double methodTime) override;
 
 	/**
 	 * Separate statistics update for shaking methods, which is called after performing

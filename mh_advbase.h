@@ -136,7 +136,7 @@ public:
 	/** Create new object of same class.
 		Virtual method, uses the classes constructor to create a
 		new algorithm object of the same class as the called object. */
-	virtual mh_advbase *clone(pop_base &p, const std::string &pg="");
+	virtual mh_advbase *clone(pop_base &p, const std::string &pg="") const;
 	/** The algorithms's main loop.
 		Performs iterations until the termination criterion is
 		fulfilled.

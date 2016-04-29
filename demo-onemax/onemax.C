@@ -49,11 +49,11 @@ class oneMaxSol : public binStringSol, public gcProvider
 public:
 	oneMaxSol() : binStringSol(vars())
 		{}
-	virtual mh_solution *createUninitialized() const
+	virtual mh_solution *createUninitialized() const override
 		{ return new oneMaxSol; }
-	virtual mh_solution *clone() const
+	virtual mh_solution *clone() const override
 		{ return new oneMaxSol(*this); }
-	double objective();
+	double objective() override;
 	void greedyConstruct();
 	double delta_obj(const nhmove &m);
 };

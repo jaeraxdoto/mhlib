@@ -102,15 +102,15 @@ public:
 	oneMaxSol() : binStringSol(vars())
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_solution *createUninitialized() const
+	virtual mh_solution *createUninitialized() const override
 		{ return new oneMaxSol; }
 	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_solution *clone() const
+	virtual mh_solution *clone() const override
 		{ return new oneMaxSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the 1s in the solution string.
 	 */
-	double objective();
+	double objective() override;
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly.
 	 */
@@ -176,17 +176,17 @@ public:
 	onePermSol() : permSol(vars())
 		{}
 	/** Create a new uninitialized instance of this class. */
-	virtual mh_solution *createUninitialized() const
+	virtual mh_solution *createUninitialized() const override
 		{ return new onePermSol; }
 	/** Clone this solution, i.e., return a new copy. */
-	virtual mh_solution *clone() const
+	virtual mh_solution *clone() const override
 		{ return new onePermSol(*this); }
 	/** Determine the objective value of the solution. In this example
 	 * we count the the number of values that are on the same place as in the
 	 * target permutation (0,1,2,...,vars()-1). Should the solution be uninitialized,
 	 * in which case all variables have value 0, return value -1.
 	 */
-	double objective();
+	double objective() override;
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
@@ -199,6 +199,7 @@ public:
 	 * mutate function from the base class.
 	 */
 	bool localimp(int k) {
+		out() << "Obj before localimp = " << obj() << endl; // TODO
 		spendTime();
 		mutate(k);
 		return true;
@@ -209,6 +210,7 @@ public:
 	bool shaking(int k) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
+		out() << "Obj before shaking =" << obj() << endl; // TODO
 		spendTime();
 		mutate(k);
 		return true;

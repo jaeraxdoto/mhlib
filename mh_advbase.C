@@ -54,7 +54,7 @@ mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 	_wctime = wctime(pgroup);
 }
 
-mh_advbase *mh_advbase::clone(pop_base &p, const string &pg)
+mh_advbase *mh_advbase::clone(pop_base &p, const string &pg) const
 {
 	mherror("clone in class derived from mh_advbase not supported");
 	return nullptr;

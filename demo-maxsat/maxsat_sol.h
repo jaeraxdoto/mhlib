@@ -37,10 +37,10 @@ public:
 	MAXSATSol(const MAXSATSol &sol) :
 		binStringSol(sol), probinst(sol.probinst) {}
 	/** Create a new uninitialized instance of this class. */
-	mh_solution *createUninitialized() const
+	mh_solution *createUninitialized() const override
 		{ return new MAXSATSol(probinst); }
 	/** Clone this solution, i.e., return a new copy. */
-	mh_solution *clone() const
+	mh_solution *clone() const override
 		{ return new MAXSATSol(*this); }
 	/** Dynamically cast an mh::mh_solution reference to a reference of this class. */
 	static const MAXSATSol &cast(const mh::mh_solution &ref) {
@@ -48,7 +48,7 @@ public:
 	}
 	/** Determine the objective value of the solution. Here we count the number
 	 * of satisfied clauses. */
-	double objective();
+	double objective() override;
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly. Returns true as the solution
 	 * has (most likely) changed. */

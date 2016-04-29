@@ -158,7 +158,7 @@ void SchedulerWorker::run() {
 				double methodTime = mhcputime() - startTime;
 
 				if (tmpSolChanged) {
-					if(tmpSol->isBetter(*pop[0]))
+					if (tmpSol->isBetter(*pop[0]))
 						tmpSolObjChange = OBJ_BETTER;
 					else
 						tmpSolObjChange = OBJ_WORSE;
@@ -281,7 +281,7 @@ bool Scheduler::terminate() {
 	}
 
 	// "standard" termination criteria, modified to allow for termination after a certain
-	// wall clock time, rather than cpu time, if _wall_clock_time == 1
+	// wall clock time, rather than cpu time, if _wctime is set
 	checkPopulation();
 	if((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
 		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
@@ -443,17 +443,22 @@ void GVNSScheduler::copyBetter(SchedulerWorker *worker, bool updateSchedulerData
 }
 
 void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	// must have the exact number of methods added
+	// must have the correct number of methods added
 	assert(methodPool.size() == constheu.size() + locimpnh[0]->size() + shakingnh[0]->size());
 
 	// perform a construction method, either, because there is still a method available that
-	// has not been applied, yet, or because the worker has just been created.
+	// has not been applied yet, or because the worker has just been created.
 	if (!constheu.empty() && (worker->method == nullptr || constheu.hasFurtherMethod())) {
 		worker->method = constheu.select();
 		if(worker->method != nullptr)
 			return;
 	}
+	if (!locimpnh[worker->id]->hasLastMethod() && !shakingnh[worker->id]->hasLastMethod()
+			&& worker->pop[0]->isBetter(*worker->tmpSol)) {
+		worker->tmpSol->copy(*worker->pop[0]);	// Copy best solution from former construction heuristic
+	}
 	if (!locimpnh[0]->empty()) {
+
 		// choose next local improvement method
 		worker->method = locimpnh[worker->id]->select();
 		if (worker->method != nullptr)
@@ -500,6 +505,7 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 				initialSolutionExists = true;
 		}
 		else {
+			// unsuccessful construction method (i.e., no better solution)
 			if(updateSchedulerData)
 				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 		}
@@ -518,7 +524,8 @@ void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData
 			// unsuccessful local improvement method call
 			if (locimpnh[worker->id]->hasFurtherMethod()) {
 				// continue VND with next neighborhood and incumbent VND solution
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
+				if (worker->tmpSolObjChange != OBJ_NONE)
+					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 				return;
 			}
 			else {
@@ -584,7 +591,7 @@ void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
 		initialSolutionExists = true;
 		update(0, best);
 	}
-	// possibly replace threads' incumbents by best global solution
+	// solution migration: possibly replace threads' incumbents by best global solution
 	if(_schpmig > 0)
 		for(unsigned int i=0; i < workers.size(); i++)
 			workers[i]->checkGlobalBest();
