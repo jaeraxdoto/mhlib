@@ -54,8 +54,8 @@ string_param sfile("sfile","name of file to save final solution to","");
 int_param methsch("methsch","number of construction heuristics",1,0,100000);
 
 /** \ingroup param
-	Number of local search (VND) methods (neighborhoods). */
-int_param methsls("methsls","number of local search methods",1,0,1000);
+	Number of local improvement (VND) methods (neighborhoods). */
+int_param methsli("methsli","number of local improvement methods",1,0,1000);
 
 /** \ingroup param
 	Number of shaking (VNS) methods (neighborhoods). */
@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
 
 		// create the the Scheduler and register SchedulableMethods
 		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsls(),methssh());
-		/* Add construction heuristic, local search and shaking methods to scheduler.
+		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
+		/* Add construction heuristic, local improvement and shaking methods to scheduler.
 		 * The following parameters are passed to the constructor of
 		 * SolMemberSchedulerMethod: an abbreviated name of the method as string,
 		 * the pointer to the method, a user-specific int parameter that might be used to control
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 		for (int i=1;i<=methsch();i++)
 				alg->addSchedulerMethod(new SolMemberSchedulerMethod<MAXSATSol>("conh"+tostring(i),
 					&MAXSATSol::construct,i,0));
-			for (int i=1;i<=methsls();i++)
+			for (int i=1;i<=methsli();i++)
 				alg->addSchedulerMethod(new SolMemberSchedulerMethod<MAXSATSol>("locim"+tostring(i),
 					&MAXSATSol::localimp,i,1));
 			for (int i=1;i<=methssh();i++)

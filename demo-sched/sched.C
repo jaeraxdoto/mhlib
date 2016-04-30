@@ -64,8 +64,8 @@ string_param sfile("sfile","name of file to save solution to","");
 int_param methsch("methsch","number of construction heuristics",1,0,100000);
 
 /** \ingroup param
-	Number of local search (VND) methods (neighborhoods). */
-int_param methsls("methsls","number of local search methods",1,0,1000);
+	Number of local improvement (VND) methods (neighborhoods). */
+int_param methsli("methsli","number of local improvement methods",1,0,1000);
 
 /** \ingroup param
 	Number of shaking (VNS) methods (neighborhoods). */
@@ -199,7 +199,7 @@ public:
 	 * mutate function from the base class.
 	 */
 	bool localimp(int k) {
-		out() << "Obj before localimp = " << obj() << endl; // TODO
+		// out() << "Obj before localimp = " << obj() << endl;
 		spendTime();
 		mutate(k);
 		return true;
@@ -210,7 +210,7 @@ public:
 	bool shaking(int k) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
-		out() << "Obj before shaking =" << obj() << endl; // TODO
+		// out() << "Obj before shaking = " << obj() << endl;
 		spendTime();
 		mutate(k);
 		return true;
@@ -299,7 +299,7 @@ template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
 	for (int i=1;i<=methsch();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
 			&SolClass::construct,i,0));
-	for (int i=1;i<=methsls();i++)
+	for (int i=1;i<=methsli();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
 			&SolClass::localimp,i,1));
 	for (int i=1;i<=methssh();i++)
@@ -378,7 +378,7 @@ int main(int argc, char *argv[])
 
 		// generate the Scheduler and add SchedulableMethods
 		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsls(),methssh());
+		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
 		switch (prob()) {
 		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
 		case 1: registerSchedulerMethods<onePermSol>(alg); break;

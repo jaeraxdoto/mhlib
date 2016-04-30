@@ -45,16 +45,22 @@ extern double_param schpmig;
  */
 extern bool_param lmethod;
 
+/** \ingroup param
+ * GVNS selection strategy for local search neighborhoods.
+ * 	 * 0 MSSequentialRep: choose one after the other in the given order, then restarting again with first
+	 * 1 MSSequentialOnce: choose one after the other, each just once, and then return nullptr
+	 * 2 MSRandomRep: uniform random selection with repetitions
+	 * 3 MSRandomOnce: uniform random selection, but each just once; finally return nullptr
+	 * 4 MSSelfadaptive: random selection with self-adaptive probabilities */
+extern int_param schlisel;
 
-/**
- * Enumeration of the different outcomes for the objective of a modified solution in comparison
- * to the original objective value.
+/** \ingroup param
+ * GVNS: If set, the local improvement methods are repeatedly performed until a locally optimum solution
+ * is reached, as in classical VND. Otherwise, each local improvement neighborhood is only
+ * performed once for each constructed solution and within each shaking iteration.
  */
-enum SolutionObjectiveChange {
-	OBJ_WORSE = -1,
-	OBJ_NONE = 0,
-	OBJ_BETTER = 1
-};
+extern bool_param schlirep;
+
 
 //--------------------------- MethodApplicationResult ------------------------------
 
@@ -62,15 +68,25 @@ enum SolutionObjectiveChange {
  * This struct stores all the relevant data in the context of the application of a specific method
  * in order to have access to the result later.
  */
-struct MethodApplicationResult {
+struct SchedulerMethodResult {
 
 	/**
 	 * Stores the method that has been applied.
 	 */
 	SchedulerMethod* method;
 
+	/**
+	 * Enum for the different outcomes for the objective of a solution after applying
+	 * a method in comparison to the original objective value.
+	 */
+	enum ObjChange {
+		OBJ_WORSE = -1,
+		OBJ_SAME = 0,
+		OBJ_BETTER = 1
+	};
+
 	/** Indicates the result of the last method call w.r.t. tmpSol */
-	SolutionObjectiveChange solObjChange;
+	ObjChange solObjChange;
 
 	/**
 	 * Stores the absolute difference in the objective values between the incumbent solution and
@@ -81,7 +97,7 @@ struct MethodApplicationResult {
 	/**
 	 * Constructor initializing data.
 	 */
-	MethodApplicationResult(SchedulerMethod* _method, SolutionObjectiveChange _solObjChange, double _objDiff) {
+	SchedulerMethodResult(SchedulerMethod* _method, ObjChange _solObjChange, double _objDiff) {
 		method = _method;
 		solObjChange = _solObjChange;
 		objDiff = _objDiff;
@@ -111,7 +127,7 @@ public:
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
 	bool terminate;				///< Indicates if this thread specifically is to be terminated.
-	std::vector<MethodApplicationResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
+	std::vector<SchedulerMethodResult> results;	///< List for storing the results achieved with this worker. Currently only used in the context of thread synchronization.
 
 	/**
 	 * Population of solutions associated with this worker.
@@ -125,7 +141,7 @@ public:
 	mh_solution *tmpSol;
 
 	/** Indicates the result of the last method call w.r.t. tmpSol */
-	SolutionObjectiveChange tmpSolObjChange;
+	SchedulerMethodResult::ObjChange tmpSolObjChange;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -140,7 +156,7 @@ public:
 		method = nullptr;
 		startTime = 0;
 		tmpSol = sol->clone();
-		tmpSolObjChange = OBJ_NONE;
+		tmpSolObjChange = SchedulerMethodResult::OBJ_SAME;
 		shakingStartTime = 0;
 		rng = _rng;
 
@@ -177,9 +193,10 @@ public:
 
 /**
  * Class for selecting a method out of a subset of alternative SchedulerMethods.
- * Different selection strategies such as sequential, uniformly random or self-adaptive
+ * Different standard selection strategies such as sequential, uniformly random or self-adaptive
  * are provided. Also contains the contextual data required for the selection.
  * A SchedulerMethodSelector can be associated with a worker thread only or the whole Scheduler.
+ * Derive your own class for realizing advanced selection strategies.
  */
 class SchedulerMethodSelector {
 
@@ -190,7 +207,7 @@ public:
 	 * - MSRandom: uniform random selection
 	 * - MSRandomOnce: uniform random selection, but each just once; finally return nullptr
 	 * - MSSelfadaptive: random selection with self-adaptive probabilities */
-	enum MethodSelStrat { MSSequential, MSSequentialOnce, MSRandom, MSRandomOnce, MSSelfadaptive };
+	enum MethodSelStrat { MSSequentialRep, MSSequentialOnce, MSRandomRep, MSRandomOnce, MSSelfadaptive };
 
 protected:
 
@@ -243,10 +260,10 @@ public:
 
 	/** Selects a method according to the chosen selection strategy from the methodList.
 	 */
-	SchedulerMethod *select();
+	virtual SchedulerMethod *select();
 
 	/** Returns true if at least one more method can be returned. */
-	bool hasFurtherMethod() {
+	virtual bool hasFurtherMethod() {
 		return lastMethod < int(methodList.size())-1;
 	}
 
@@ -529,7 +546,7 @@ public:
 class GVNSScheduler : public Scheduler {
 
 protected:
-	SchedulerMethodSelector constheu;	///< Selector for construction heuristic methods
+	SchedulerMethodSelector *constheu;	///< Selector for construction heuristic methods
 	std::vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
 	std::vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
 
@@ -539,6 +556,16 @@ protected:
 	 * exists.
 	 */
 	bool initialSolutionExists;
+
+	int _schlisel=schlisel(pgroup);	///< Mirrored mhlib parameter #schlisel.
+	bool _schlirep=schlirep(pgroup); ///< Mirrored mhlib parameter #schlirep.
+
+	/* Dynamically creates a selector for the construction heuristic methods. */
+	virtual SchedulerMethodSelector *createSelector_constheu();
+	/* Dynamically creates a selector for the local improvement methods. */
+	virtual SchedulerMethodSelector *createSelector_locimpnh();
+	/* Dynamically creates a selector for the shaking/LNS methods.*/
+	virtual SchedulerMethodSelector *createSelector_shakingnh();
 
 	/**
 	 * An improved solution has been obtained by a method and is stored in tmpSol.
@@ -559,12 +586,13 @@ public:
 
 	/** Cloning is not implemented for this class. */
 	virtual GVNSScheduler* clone() const {
-		mherror("Cloning not implemented in VNSScheduler");
+		mherror("Cloning not implemented in GVNSScheduler");
 		return nullptr;
 	}
 
 	/** Cleanup: delete SchedulerMethodSelectors. */
 	~GVNSScheduler() {
+		delete constheu;
 		for (int t=0;t<schthreads();t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
