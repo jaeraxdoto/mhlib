@@ -350,7 +350,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	double wctime = mhwctime();
 	double cputime = mhcputime();
 
-	const mh_solution *best=pop->bestSol();
+	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

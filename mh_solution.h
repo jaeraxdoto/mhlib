@@ -131,7 +131,7 @@ public:
 		@param ostr the output stream
 		@param detailed tells how detailed the description
 		should be (0...least detailed). */
-	virtual void write(std::ostream &ostr,int detailed=0) const {
+	virtual void write(std::ostream &ostr,int detailed=0) {
 		mherror("mh_solution::write: not implemented");
 	}
 	/** Saves a solution to a file. (Not necessarily needed.) */

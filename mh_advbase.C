@@ -222,7 +222,7 @@ void mh_advbase::printStatistics(ostream &ostr)
 	char s[40];
 	
 	double tim = (_wctime ? (mhwctime() - timStart) : mhcputime());
-	const mh_solution *best=pop->bestSol();
+	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

@@ -187,7 +187,7 @@ void VNS::printStatistics(ostream &ostr)
 	char s[60];
 	
 	double tim=mhcputime();
-	const mh_solution *best=pop->bestSol();
+	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;

@@ -151,7 +151,7 @@ void qapSol::crossover(const mh_solution &parA,const mh_solution &parB)
 	invalidate();
 }
 
-void qapSol::write(ostream &ostr,int detailed) const
+void qapSol::write(ostream &ostr,int detailed)
 {
 	for (int i=0;i<length;i++) 
 		ostr << data[i]+1 << ' ';

@@ -113,7 +113,7 @@ public:
 		\param ostr Stream to use.
 		\param detailed Does not have any effect.
 	*/
-	void write(std::ostream &ostr,int detailed=0) const override;
+	void write(std::ostream &ostr,int detailed=0) override;
 	
 	/** Saves a solution to a file.
 		The values of the permutation are incremented by
