@@ -111,6 +111,9 @@ Besides the actual C++ library, mhlib also contains
 - mherror throws now the newly introduced mh_exception instead of a
   string. You probably want to catch this specific kind of exception 
   in your main program.
+  
+- The const specifier of write functions in classes mh_solution, binStringSol 
+  and stringSol removed to allow the recomputation of the objective.
 
 ### Version 4.3 ###
 

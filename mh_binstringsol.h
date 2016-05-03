@@ -22,7 +22,7 @@ public:
 	binStringSol(int l, mh_base *t, const std::string &pg="") : stringSol<bool>(l,1,t,pg) { }
 	binStringSol(int l, const std::string &pg="") : stringSol<bool>(l,1,pg) { }
 	/** Writes out the binary string. */
-	void write(std::ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) override;
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
 	void applyMove(const nhmove &m);

@@ -13,7 +13,7 @@ using namespace std;
 // instantiate template
 template class stringSol<bool>;
 
-void binStringSol::write(ostream &ostr,int detailed) const
+void binStringSol::write(ostream &ostr,int detailed)
 {
 	for (int i=0;i<length;i++) 
 		ostr << (data[i]?1:0);

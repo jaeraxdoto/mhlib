@@ -100,7 +100,7 @@ public:
 	void mutate(int count);
 	/** Calls a crossover method, controlled by the parameter strxop(). */
 	void crossover(const mh_solution &parA,const mh_solution &parB);
-	void write(std::ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) override;
 	void save(const std::string &fname);
 	void load(const std::string &fname);
 	/** Calculates a hash-value out of the binary string. */
@@ -325,7 +325,7 @@ template <class T> void stringSol<T>::crossover_multipoint(const mh_solution &pa
 	invalidate();
 }
 
-template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed) const
+template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed)
 {
 	for (int i=0;i<length;i++)
 		ostr << int(data[i]) << ' ';
