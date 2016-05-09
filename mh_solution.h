@@ -156,7 +156,7 @@ public:
 		Sets objval to be invalid. During the next call to obj(), the
 		solution is evaluated anew. Must be called when the
 		solution changes. */
-	void invalidate()
+	virtual void invalidate()
 		{ objval_valid=false; }
 	/** Hashing function.
 		This function returns a hash-value for the solution.
