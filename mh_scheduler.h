@@ -523,12 +523,12 @@ public:
 	 * It calls the new extended method with "-" as method name.
 	 */
 	virtual bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true) override {
-		return writeLogEntry(inAnyCase,"-",finishEntry);
+		return writeLogEntry(inAnyCase,finishEntry,"-");
 	}
 	/**
 	 * Write the log entry including the given method name if parameter lmethod is set.
 	 */
-	virtual bool writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry=true);
+	virtual bool writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method);
 };
 
 

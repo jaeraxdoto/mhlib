@@ -88,23 +88,23 @@ public:
 	stringSol(int l, int v, mh_base *alg, const std::string &pg="") : mh_solution(l,alg,pg), data(l)
 		{ vmax=v; }
 	/** copy all data from a given solution into the current one. */
-	void copy(const mh_solution &orig);
+	void copy(const mh_solution &orig) override;
 	/** return true if the current solution is equal to *orig. */
-	virtual bool equals(mh_solution &orig);
+	virtual bool equals(mh_solution &orig) override;
 	/** Returns the Hamming distance. */
-	virtual double dist(mh_solution &c);
+	virtual double dist(mh_solution &c) override;
 	virtual ~stringSol() { }
 	/** Randomly initialize all genes. */
-	void initialize(int count);
+	void initialize(int count) override;
 	/** Calls a mutation method, controlled by the parameter strmop(). */
-	void mutate(int count);
+	void mutate(int count) override;
 	/** Calls a crossover method, controlled by the parameter strxop(). */
-	void crossover(const mh_solution &parA,const mh_solution &parB);
+	void crossover(const mh_solution &parA,const mh_solution &parB) override;
 	void write(std::ostream &ostr,int detailed=0) override;
-	void save(const std::string &fname);
-	void load(const std::string &fname);
+	void save(const std::string &fname) override;
+	void load(const std::string &fname) override;
 	/** Calculates a hash-value out of the binary string. */
-	unsigned long int hashvalue();
+	unsigned long int hashvalue() override;
 	/** Returns the gene with given index. */
 	virtual T get_gene(int index) const
 		{ return data[index]; }

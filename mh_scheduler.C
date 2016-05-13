@@ -75,7 +75,7 @@ void SchedulerWorker::run() {
 					scheduler->getNextMethod(this);	// try to find an available method for scheduling
 					// if thread synchronization is active and this thread has not started, yet,
 					// set the isWorking flag to true and notify possibly waiting threads
-					if(scheduler->_schsync && !isWorking) {
+					if (scheduler->_schsync && !isWorking) {
 						scheduler->mutexOrderThreads.lock();
 						isWorking = true;
 						scheduler->cvOrderThreads.notify_all();
@@ -83,7 +83,7 @@ void SchedulerWorker::run() {
 					}
 					scheduler->mutex.unlock(); // End of atomic operation
 
-					if(method == nullptr) {	// no method could be scheduled
+					if (method == nullptr) {	// no method could be scheduled
 						if(scheduler->finish) // should the algorithm be terminated due to exhaustion of all available methods
 							break;
 						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
@@ -121,13 +121,15 @@ void SchedulerWorker::run() {
 
 						// write out log entries for all iterations passed since the last logging:
 						// these entries are identical listing for each iteration the state after the last global update
+						/* !!!
 						unsigned int schedNIteration = scheduler->nIteration;
 						scheduler->nIteration = scheduler->lastLogIter;
 						for(unsigned int i=scheduler->lastLogIter+1; i <= schedNIteration; i++) {
 							scheduler->nIteration++;
-							scheduler->writeLogEntry(false,method->name);
+							scheduler->writeLogEntry(false,true,method->name);
 						}
 						scheduler->lastLogIter = scheduler->nIteration;
+						*/
 
 
 						// If termination after a certain number of iterations is requested,
@@ -187,10 +189,10 @@ void SchedulerWorker::run() {
 
 				// scheduler->perfGenEndCallback();
 
-				if(!scheduler->_schsync) {
+				// !!! if (!scheduler->_schsync) {
 					if (!termnow || scheduler->nIteration>logstr.lastIter())
-						scheduler->writeLogEntry(termnow, method->name);
-				}
+						scheduler->writeLogEntry(termnow, true, method->name);
+				// !!!}
 				scheduler->mutex.unlock();
 				if (scheduler->terminate())
 					break;
@@ -234,7 +236,7 @@ void Scheduler::run() {
 	timStart = (_wctime ? mhwctime() : mhcputime());
 
 	writeLogHeader();
-	writeLogEntry(false,"-");
+	writeLogEntry(false,true,"*");
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
@@ -258,13 +260,15 @@ void Scheduler::run() {
 
 		// write out log entries for all iterations passed since the last logging:
 		// these entries are identical listing for each iteration the state after the last global update
+		/* !!! TODO: Wird lastLogIter überhaupt gebraucht?
 		unsigned int schedNIteration = nIteration;
 		nIteration = lastLogIter;
 		for(unsigned int i=lastLogIter+1; i <= schedNIteration; i++) {
 			nIteration++;
-			writeLogEntry(false,"?");
+			writeLogEntry(false,true,"?");
 		}
 		lastLogIter = nIteration;
+		*/
 	}
 	for(auto w : workers)
 		delete w;
@@ -383,7 +387,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 }
 
 
-bool Scheduler::writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry) {
+bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method) {
 	// if (mh_advbase::writeLogEntry(inAnyCase,false)) {
 	//	if (lmethod(pgroup))
 	//		logstr.write(method);

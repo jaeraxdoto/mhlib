@@ -25,7 +25,7 @@ public:
 	void write(std::ostream &ostr,int detailed=0) override;
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
-	void applyMove(const nhmove &m);
+	void applyMove(const nhmove &m) override;
 	/** Performs a best improvement k-flip local search, returning
 	    true if an improved solution has been found. */
 	bool k_flip_localsearch(int k);
