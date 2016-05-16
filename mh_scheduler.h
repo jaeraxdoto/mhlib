@@ -61,7 +61,6 @@ extern int_param schlisel;
  */
 extern bool_param schlirep;
 
-
 //--------------------------- MethodApplicationResult ------------------------------
 
 /**
@@ -585,7 +584,7 @@ public:
 	/** Cleanup: delete SchedulerMethodSelectors. */
 	~GVNSScheduler() {
 		delete constheu;
-		for (int t=0;t<schthreads();t++) {
+		for (unsigned int t=0;t<_schthreads;t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
 		}

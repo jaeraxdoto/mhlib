@@ -32,6 +32,8 @@ int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:rando
 
 bool_param schlirep("schlirep","GVNS: perform locimp nhs repeatedly",1);
 
+bool_param schlog("schlog", "If set to true (default), logging for the scheduler is active. Otherwise, no log output will be generated",true);
+
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
 /** Central stack of exceptions possibly occurring in threads,
@@ -219,9 +221,12 @@ void Scheduler::run() {
 
 	timStart = (_wctime ? mhwctime() : mhcputime());
 
-	writeLogHeader();
-	writeLogEntry(false,true,"*");
-	logstr.flush();
+	// only start the log, if logging is active
+	if(_schlog) {
+		writeLogHeader();
+		writeLogEntry(false,true,"*");
+		logstr.flush();
+	}
 
 	// spawn the worker threads, each with its own random number generator having an own seed
 	for(unsigned int i=0; i < _schthreads; i++) {
@@ -248,8 +253,11 @@ void Scheduler::run() {
 	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
 
-	logstr.emptyEntry();
-	logstr.flush();
+	// only do this if logging is active
+	if(_schlog) {
+		logstr.emptyEntry();
+		logstr.flush();
+	}
 }
 
 bool Scheduler::terminate() {
@@ -347,6 +355,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	// 	logstr.write("method");
 	// if (finishEntry)
 	//		logstr.finishEntry();
+
 	checkPopulation();
 	logstr.headerEntry();
 	if (ltime(pgroup))
@@ -367,6 +376,7 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 	//	return true;
 	//}
 	//return false;
+
 	checkPopulation();
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
