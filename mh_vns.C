@@ -11,7 +11,7 @@ namespace mh {
 
 using namespace std;
 
-int_param vnsnum("vnsnum", "Maximum number of VNS neighborhood used",10000,0,10000);
+int_param vnsnum("vnsnum", "maximum number of VNS neighborhood used",10000,0,10000);
 
 int_param vnsorder("vnsorder","VNS nb-order 0:static, 1:random, 2:adaptive",0,0,2);
 
@@ -99,7 +99,7 @@ void VNS::performIteration()
 	}
 
 	/* Move or not */
-	tmpSol->reproduce(*spop->at(0));
+	tmpSol->copy(*spop->at(0));
 	if (pop->at(0)->isWorse(*tmpSol))
 	{
 		// Improved solution found
@@ -115,7 +115,7 @@ void VNS::performIteration()
 	else
 	{
 		// copy best solution into subpopulation
-		spop->at(0)->reproduce(* pop->bestSol());
+		spop->at(0)->copy(*pop->bestSol());
 		k++;
 	}
 
@@ -124,8 +124,7 @@ void VNS::performIteration()
 	perfIterEndCallback();
 }
 
-
-void VNS::writeLogEntry(bool inAnyCase) {
+bool VNS::writeLogEntry(bool inAnyCase,bool finishEntry) {
 	checkPopulation();
 	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
@@ -135,11 +134,14 @@ void VNS::writeLogEntry(bool inAnyCase) {
 		//	logstr.write(nDupEliminations);
 		if (ltime(pgroup))
 			logstr.write(mhcputime());
-		logstr.finishEntry();
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
 	}
+	return false;
 }
 
-void VNS::writeLogHeader() {
+void VNS::writeLogHeader(bool finishEntry) {
 	checkPopulation();
 
 	logstr.headerEntry();
@@ -149,7 +151,8 @@ void VNS::writeLogHeader() {
 	// 		logstr.write("dupelim");
 	// 	if (logcputime(pgroup))
 	// 		logstr.write("cputime");
-	logstr.finishEntry();
+	if (finishEntry)
+		logstr.finishEntry();
 }
 
 void VNS::printStatisticsShaking(ostream &ostr)
@@ -167,7 +170,7 @@ void VNS::printStatisticsShaking(ostream &ostr)
 	for (int k = 1; k <= kmax; k++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VNS-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%",
+		snprintf(tmp,sizeof(tmp),"VNS-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%",
 		k,nShake[k],nShakeSuccess[k],
 		double(nShakeSuccess[k])/double(nShake[k])*100.0,
 		double(sumShakeGain[k])/double(nShake[k]),
@@ -184,12 +187,12 @@ void VNS::printStatistics(ostream &ostr)
 	char s[60];
 	
 	double tim=mhcputime();
-	const mh_solution *best=pop->bestSol();
+	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in generation:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);
@@ -198,14 +201,14 @@ void VNS::printStatistics(ostream &ostr)
 	ostr << "generations:\t" << nIteration << endl;
 	ostr << "subgenerations:\t" << nSubIterations << endl;
 	ostr << "selections:\t" << nSelections << endl;
-	ostr << "crossovers:\t" << nCrossovers << endl;
-	ostr << "mutations:\t" << nMutations << endl;
+	// ostr << "crossovers:\t" << nCrossovers << endl;
+	// ostr << "mutations:\t" << nMutations << endl;
 	//if (cntopd(pgroup))
 	//{
 	//	ostr << "crossover-duplicates:\t" << nCrossoverDups << endl;
 	//	ostr << "mutation-duplicates:\t" << nMutationDups << endl;
 	//}
-	ostr << "local improvements:\t"  << nLocalImprovements << endl;
+	// ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	//ostr << "duplicate eliminations:\t" << nDupEliminations << endl;
 	//ostr << "deteriorations\t" << nDeteriorations << endl;
 	//ostr << "aspirations:\t" << nAspirations << endl;

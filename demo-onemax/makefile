@@ -1,7 +1,6 @@
-# makefile for building the qap example
-# written by Guenther Raidl and Daniel Wagner
+# makefile for building this application
 
-# default location of EALIB is parent directory
+# default location of MHLIB is parent directory
 ifndef MHLIB
   MHLIB=..
 endif

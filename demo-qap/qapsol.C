@@ -24,7 +24,7 @@ double_param graspb( "graspb", "beta for grasp", 0.5, 0.0, 1.0, UPPER_INCLUSIVE 
 
 qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 {
-	const qapSol &qapc=toQAPSol(c);
+	const qapSol &qapc=cast(c);
 	qi=qapc.qi;
 	for (int i=0;i<length;i++)
 		data[i]=qapc.data[i];
@@ -33,7 +33,7 @@ qapSol::qapSol(const mh_solution &c) : mh_solution(c), data(length)
 void qapSol::copy(const mh_solution &orig)
 { 
 	mh_solution::copy(orig);
-	const qapSol &qapc=toQAPSol(orig);
+	const qapSol &qapc=cast(orig);
 	for (int i=0;i<length;i++) 
 		data[i]=qapc.data[i]; 
 }
@@ -44,7 +44,7 @@ bool qapSol::equals(mh_solution &o)
 	if (o.obj()!=obj())
 		return false;
 
-	const qapSol &qapc=toQAPSol(o);
+	const qapSol &qapc=cast(o);
 	// and now all the genes
 	for (int i=0;i<length;i++) 
 		if (data[i]!=qapc.data[i])
@@ -54,7 +54,7 @@ bool qapSol::equals(mh_solution &o)
 
 double qapSol::dist(mh_solution &c)
 {
-	const qapSol &qapc=toQAPSol(c);
+	const qapSol &qapc=cast(c);
 	int diffs=0;
 	for (int i=0;i<length;i++)
 		if (data[i]!=qapc.data[i])
@@ -86,7 +86,7 @@ double qapSol::objective()
 	}
 
 	aObjProvider *ap = dynamic_cast<aObjProvider*>(alg);
-	if (ap!=NULL)
+	if (ap!=nullptr)
 		o += ap->aobj(this);
 	
 	return o;
@@ -112,7 +112,7 @@ void qapSol::mutate(int count)
 		objval += delta_obj(qm);
 		applyMove(qm);
 
-		if (ts!=NULL && ( ts->isTabu(&qta) && !ts->aspiration( this ) ) )
+		if (ts!=nullptr && ( ts->isTabu(&qta) && !ts->aspiration( this ) ) )
 		{
 			objval += delta_obj(qm);
 			applyMove(qm);
@@ -121,10 +121,10 @@ void qapSol::mutate(int count)
 	}
 }
 
-void qapSol::crossover(const mh_solution &parA,const mh_solution &parB) 
+void qapSol::crossover(const mh_solution &parA,const mh_solution &parB)
 {
-	const qapSol &a = toQAPSol(parA);
-	const qapSol &b = toQAPSol(parB);
+	const qapSol &a = cast(parA);
+	const qapSol &b = cast(parB);
 
 	// fill all genes from one parent
 	for (int i=0;i<length;i++)
@@ -151,14 +151,14 @@ void qapSol::crossover(const mh_solution &parA,const mh_solution &parB)
 	invalidate();
 }
 
-void qapSol::write(ostream &ostr,int detailed) const
+void qapSol::write(ostream &ostr,int detailed)
 {
 	for (int i=0;i<length;i++) 
 		ostr << data[i]+1 << ' ';
 	ostr << endl;
 }
 
-void qapSol::save(const char *fname)
+void qapSol::save(const std::string &fname)
 {
 	char s[40];
 	sprintf(s,nformat(pgroup).c_str(),obj());
@@ -171,13 +171,13 @@ void qapSol::save(const char *fname)
 		of << data[i]+1 << ' ';
 	of << endl;
 	if (!of)
-		mherror("Cannot open file",fname);
+		mherror("Cannot write file",fname);
 }
 
-void qapSol::load(const char *fname)
+void qapSol::load(const string &fname)
 {
 	ifstream inf(fname);
-	int d;
+	double d;
 	if (!inf)
 		mherror("Cannot open file",fname);
 	inf >> d >> d;
@@ -185,8 +185,8 @@ void qapSol::load(const char *fname)
 	{
 		inf >> d;
 		if (!inf)
-			mherror("Cannot open file",fname);
-		data[i]=int(d-1);
+			mherror("Cannot read file",fname);
+		data[i]=int(d)-1;
 	}
 }
 
@@ -225,7 +225,7 @@ double qapSol::delta_obj(const nhmove &m)
 			(qi->B(data[qm.s],data[qm.r]) - qi->B(data[qm.r],data[qm.s]));
 
 	aObjProvider *ap = dynamic_cast<aObjProvider*>(alg);
-	if (ap!=NULL)
+	if (ap!=nullptr)
 		delta += ap->delta_aobj(this,&m);
 
 	return delta;
@@ -269,7 +269,7 @@ void qapSol::selectImprovement(bool find_best)
 			{
 				qta = qm;
 
-				if ( ts==NULL || (ts!=NULL && ( !ts->isTabu(&qta) || ts->aspiration( this ) ) ) )
+				if ( ts==nullptr || (ts!=nullptr && ( !ts->isTabu(&qta) || ts->aspiration( this ) ) ) )
 				{
 					bqm = qm;
 					bestobj = objval;
@@ -287,7 +287,7 @@ void qapSol::selectImprovement(bool find_best)
 	objval += delta_obj(bqm);
 	applyMove(bqm);
 
-	if ( ts!=NULL )
+	if ( ts!=nullptr )
 	{
 		qta = bqm;
 		ts->tl_ne->add( new qapTabuAttribute( qta ) );

@@ -11,9 +11,9 @@ namespace mh {
 
 using namespace std;
 
-bool_param vndlog("vndlog","Logging is performed in VND",false);
+bool_param vndlog("vndlog","logging is performed in VND",false);
 
-int_param vndnum("vndnum","Max. number of VND neighborhood to be used",10000,0,10000);
+int_param vndnum("vndnum","max. number of VND neighborhood to be used",10000,0,10000);
 
 int_param vndorder("vndorder","VND nb-order 0:static, 1:random, 2:adaptive",0,0,2);
 
@@ -106,7 +106,7 @@ void VND::performIteration(){
 	VNDProvider *vnd = dynamic_cast<VNDProvider *>(tmpSol);
 
 	double starttime=mhcputime();
-	tmpSol->reproduce(*pop->at(0));
+	tmpSol->copy(*pop->at(0));
 
 	/* Select neighborhood */
 	int lidx=nborder->get(l);
@@ -132,7 +132,7 @@ void VND::performIteration(){
 	perfIterEndCallback();
 }
 
-void VND::writeLogEntry(bool inAnyCase) {
+bool VND::writeLogEntry(bool inAnyCase,bool finishEntry) {
 	checkPopulation();
 	if (logstr.startEntry(nIteration, pop->bestObj(), inAnyCase)) {
 		// 		logstr.write(pop->getWorst());
@@ -142,11 +142,14 @@ void VND::writeLogEntry(bool inAnyCase) {
 		//	logstr.write(nDupEliminations);
 		if (ltime(pgroup))
 			logstr.write(mhcputime());
-		logstr.finishEntry();
+		if (finishEntry)
+			logstr.finishEntry();
+		return true;
 	}
+	return false;
 }
 
-void VND::writeLogHeader() {
+void VND::writeLogHeader(bool finishEntry) {
 	checkPopulation();
 
 	logstr.headerEntry();
@@ -157,7 +160,8 @@ void VND::writeLogHeader() {
 	// 		logstr.write("dupelim");
 	// 	if (logcputime(pgroup))
 	// 		logstr.write("cputime");
-	logstr.finishEntry();
+	if (finishEntry)
+		logstr.finishEntry();
 }
 
 void VND::printStatisticsVND(ostream &ostr)
@@ -176,7 +180,7 @@ void VND::printStatisticsVND(ostream &ostr)
 	for (int l = 1; l <= lmax; l++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
+		snprintf(tmp,sizeof(tmp),"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
 		l,nSearch[l],nSearchSuccess[l],
 		double(nSearchSuccess[l])/double(nSearch[l])*100.0,
 		double(sumSearchGain[l])/double(nSearch[l]),
@@ -194,12 +198,12 @@ void VND::printStatistics(ostream &ostr)
 	char s[60];
 	
 	double tim=mhcputime();
-	const mh_solution *best=pop->bestSol();
+	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	sprintf( s, nformat(pgroup).c_str(), pop->bestObj() );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
 	ostr << "best objective value:\t" << s << endl;
 	ostr << "best obtained in generation:\t" << iterBest << endl;
-	sprintf( s, nformat(pgroup).c_str(), timIterBest );
+	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);
@@ -263,7 +267,7 @@ void VNDStatAggregator::printStatisticsVND(ostream &ostr)
 	for (int l = 1; l <= lmax; l++) 
 	{
 		char tmp[200];
-		sprintf(tmp,"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
+		snprintf(tmp,sizeof(tmp),"VND-NH %2d: %6d success: %6d\t= %9.4f %%\tavg obj-gain: %12.5f\trel success: %9.4f %%\ttime: %8.3f",
 		l,nSearch[l],nSearchSuccess[l],
 		double(nSearchSuccess[l])/double(nSearch[l])*100.0,
 		double(sumSearchGain[l])/double(nSearch[l]),

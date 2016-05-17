@@ -4,16 +4,17 @@
 #include "mh_random.h"
 #include "mh_simanneal.h"
 #include "mh_util.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
-/// Cooling-Slope
+/// Cooling slope
 double_param saca( "saca", "slope for geometric cooling", 0.95, 1.0, UPPER );
 
-/// Cooling-Interval
+/// Cooling interval
 int_param sacint( "sacint", "interval between cooling steps", 1, 1, LOWER_EQUAL );
 
-/// Anfangstemperatur
+/// Initial temperature
 double_param satemp( "satemp", "initial temperature for simulated annealing", 1.0, 0.0, LOWER );
 
 simulatedAnnealing::simulatedAnnealing(pop_base &p, const std::string &pg) : lsbase(p,pg)
@@ -28,8 +29,8 @@ void simulatedAnnealing::performIteration()
 	perfIterBeginCallback();
 
 	mh_solution *pold=pop->at(0);
-	tmpSol->reproduce(*pold);
-	tmpSol->selectNeighbour();
+	tmpSol->copy(*pold);
+	gaopsProvider::cast(*tmpSol).selectNeighbour();
 
 	if (tmpSol->isBetter(*pold))
 		tmpSol=replace(tmpSol);

@@ -26,7 +26,7 @@ void qapFeature::updatePenalties(const mh_solution *c)
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 
 	// check if a valid qapSol* was provided
-	if ( qapc==NULL )
+	if ( qapc==nullptr )
 		mherror("Solution is not a qapSol");
 	
 	for (int i=0; i<qi->n; i++)
@@ -63,7 +63,7 @@ double qapFeature::penalty(const mh_solution *c)
 {
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 
-	if ( qapc==NULL )
+	if ( qapc==nullptr )
 		mherror("Solution is not a qapSol");
 
 	double p = 0.0;
@@ -81,10 +81,10 @@ double qapFeature::delta_penalty(const mh_solution *c, const nhmove *m)
 	const qapSol *qapc = dynamic_cast<const qapSol*>(c);
 	const swapMove *qm = dynamic_cast<const swapMove*>(m);
 
-	if ( qapc==NULL )
+	if ( qapc==nullptr )
 		mherror("Solution is not a qapSol");
 
-	if ( qm==NULL )
+	if ( qm==nullptr )
 		mherror("Move is not a swapMove");
 
 	double delta = 0.0;

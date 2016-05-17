@@ -108,7 +108,7 @@ public:
 		will only use the first chromosome. 
 		If no NBStructureOrder object is provided, the VND creates
 		its own static one. */
-	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=NULL);
+	VND(pop_base &p, const std::string &pg="", NBStructureOrder *nbo=nullptr);
 	/** The destructor. */
 	virtual ~VND() 
 	{
@@ -120,10 +120,13 @@ public:
 	/** Performs a single generation.
 		Is called from run() */
 	virtual void performIteration();
-	/** Write only meaningful information into log. */
-	virtual void writeLogHeader();
-	/** Write only meaningful information into log. */
-	virtual void writeLogEntry(bool inAnyCase = false);
+	/** Writes the log entry for the current iteration.
+		\param inAnyCase if set, then the entry is written in any case
+		\param finishEntry if set, then the entry is finished, otherwise, further info might be written out.  */
+	bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true) override;
+	/** Writes the log header.
+	 * \param finishEntry if set, then the entry is finished, otherwise, further info might be written out. */
+	void writeLogHeader(bool finishEntry=true) override;
 	/** Write detailed statistics on searched neighborhoods. */
 	void printStatisticsVND(std::ostream &ostr);
 	/** General print Statistics method extended. */

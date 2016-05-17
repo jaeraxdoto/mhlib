@@ -7,7 +7,7 @@ namespace mh {
 
 inline double glsSubAlgorithm::aobj(mh_solution *c)
 {
-	if (gls!=NULL)
+	if (gls!=nullptr)
 		return gls->aobj(c);
 	else
 		return 0.0;
@@ -15,7 +15,7 @@ inline double glsSubAlgorithm::aobj(mh_solution *c)
 
 inline double glsSubAlgorithm::delta_aobj(mh_solution *c, const nhmove *m)
 {
-	if (gls!=NULL)
+	if (gls!=nullptr)
 		return gls->delta_aobj(c,m);
 	else
 		return 0.0;

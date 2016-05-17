@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include "mh_pop.h"
+#include "mh_solution.h"
 
 namespace mh {
 
@@ -32,6 +33,17 @@ int population::determineWorst() const
 				idx=i;
 	}
 	return idx;
+}
+
+population::population(std::function<mh_solution *()> createsol, int psize, bool binit,
+		bool nohashing, const std::string &pg)
+{
+	chroms=new mh_solution *[nSolutions];
+	for (int i=0;i<nSolutions;i++)
+		chroms[i]=createsol();
+	if (binit)
+		initialize();
+	determineBest();
 }
 
 population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
@@ -85,7 +97,7 @@ void population::initialize()
 
 mh_solution *population::replace(int index,mh_solution *newchrom)
 {
-	mh_solution *old=chroms[index]; 
+	mh_solution *old=chroms[index];
 	chroms[index]=newchrom;
 	statValid=false;
 	if (phash)

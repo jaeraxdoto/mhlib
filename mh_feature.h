@@ -8,6 +8,7 @@
 
 #include "mh_solution.h"
 #include "mh_param.h"
+#include "mh_nhmove.h"
 
 namespace mh {
 
@@ -19,7 +20,7 @@ extern double_param glsa;
 class feature
 {
 protected:
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 	
 public:
@@ -29,15 +30,14 @@ public:
 	        Needed if dynamic data structures are involved. */
 	virtual ~feature() {}
  	/** Function for getting the penalty.
-	        The penalty is computed with respect to a passed
-		chromosome. */
+	        The penalty is computed with respect to a passed solution. */
 	virtual double penalty(const mh_solution *c) = 0;
 	/** Function for getting the change in the penalty.
 	        The change in the objective function if a certain move
 		is applied is computed. */
 	virtual double delta_penalty(const mh_solution *c, const nhmove *m) = 0;
 	/** Update penalty values.
-	        With respect to a given chromosome.	*/
+	        With respect to a given solution.	*/
 	virtual void updatePenalties(const mh_solution *c) = 0;
 	/** Reset penalties of all features to zero. */
 	virtual void resetPenalties() = 0;

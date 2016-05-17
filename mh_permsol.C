@@ -8,23 +8,17 @@ namespace mh {
 
 using namespace std;
 
-int_param permxop("permxop","permutation crossover operator (0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1)",1,0,50);
+int_param permxop("permxop","permutation crossover operator 0:random 1:pmx 2:ox 3:cx 4:uobx 5:c1",1,0,50);
 // 6:erx 7:eerx 8:mpx not yet implemented
 
-int_param permmop("permmop","permutation mutation operator (0:random 1:inversion 2:exchange 3:insertion)",1,0,50);
+int_param permmop("permmop","permutation mutation operator 0:random 1:inversion 2:exchange 3:insertion",1,0,50);
 // 4:displacement not yet implemented
 
 void permSol::initialize(int count)
 {
 	for (int i=0;i<length;i++)
 		data[i] = permSolVarType(i);
-	for (int i=0;i<length-1;i++)
-	{
-		permSolVarType t=data[i];
-		int x=random_int(i,length-1);
-		data[i]=data[x];
-		data[x]=t;
-	}
+	random_shuffle(data);
 	invalidate();
 }
 
@@ -134,10 +128,10 @@ void permSol::crossover(const mh_solution &parA,const mh_solution &parB)
 }
 
 // PMX operator
-void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
+void permSol::crossover_pmx(const mh_solution &parA, const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	int c1,c2;      // cutpoints [0,length[
 
@@ -170,8 +164,8 @@ void permSol::crossover_pmx(const mh_solution &parA,const mh_solution &parB)
 // OX operator
 void permSol::crossover_ox(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	int c1,c2;      // cutpoints [0,length[
 
@@ -197,8 +191,8 @@ void permSol::crossover_ox(const mh_solution &parA,const mh_solution &parB)
 // CX operator
 void permSol::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	// fill all variables from one parent
 	for (int i=0;i<length;i++)
@@ -228,8 +222,8 @@ void permSol::crossover_cx(const mh_solution &parA,const mh_solution &parB)
 // UOBX operator
 void permSol::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	vector<bool> s(length,false);
 	for (int i=0;i<length;i++)
@@ -252,8 +246,8 @@ void permSol::crossover_uobx(const mh_solution &parA,const mh_solution &parB)
 // a variation of the UOBX operator
 void permSol::crossover_c1(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	int c=random_int(1,length-1);
 
@@ -278,8 +272,8 @@ void permSol::crossover_c1(const mh_solution &parA,const mh_solution &parB)
 // ERX operator
 void permSol::crossover_erx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	LEDA::d_array<int,LEDA::set<int> > hash;
 	LEDA::list<int> res;                    // result list
@@ -337,8 +331,8 @@ void permSol::crossover_erx(const mh_solution &parA,const mh_solution &parB)
 // enhanced ERX operator
 void permSol::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	LEDA::d_array<int,LEDA::set<int> > hash;
 	LEDA::list<int> res;                    // result list
@@ -427,8 +421,8 @@ void permSol::crossover_eerx(const mh_solution &parA,const mh_solution &parB)
 // Maximal preservative crossover
 void permSol::crossover_mpx(const mh_solution &parA,const mh_solution &parB)
 {
-	const permSol &a = toPermSol(parA);
-	const permSol &b = toPermSol(parB);
+	const permSol &a = cast(parA);
+	const permSol &b = cast(parB);
 
 	int c1,c2,t=0,r=random_bool();
 

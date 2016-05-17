@@ -19,17 +19,17 @@ namespace mh {
 class tabuSearch : public lsbase, public tabulistProvider
 {
 protected:
-	/** The current active chromosome.
-	        This must not necessarily be the best known chromosome so
+	/** The current active solution.
+	        This must not necessarily be the best known solution so
 		far, therefore it is not in the population. */
-	mh_solution *curChrom = NULL;
+	mh_solution *curChrom = nullptr;
 	
 public:
 	/** A tabulist containing tabuattributes which are tabu. */
-	tabulist *tl_ne = NULL;
+	tabulist *tl_ne = nullptr;
 
 	/** The constructor.
-	        An initialized population already containing chromosomes 
+	        An initialized population already containing solutions
 		must be given. Note that the population is NOT owned by the 
 		algorithm, and will not be deleted by its destructor. */
 	tabuSearch(pop_base &p, const std::string &pg="");

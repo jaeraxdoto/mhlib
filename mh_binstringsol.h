@@ -6,6 +6,7 @@
 #define MH_BINSTRINGSOL_H
 
 #include "mh_stringsol.h"
+#include "mh_nhmove.h"
 
 namespace mh {
 
@@ -13,7 +14,7 @@ namespace mh {
 class binStringSol : public stringSol<bool>
 {
 protected:
-	static const binStringSol &toBSSol(const mh_solution &ref)
+	static const binStringSol &cast(const mh_solution &ref)
 		{ return (dynamic_cast<const binStringSol &>(ref)); }
 public:
 	binStringSol(const mh_solution &c) : stringSol<bool>(c) { }
@@ -21,10 +22,13 @@ public:
 	binStringSol(int l, mh_base *t, const std::string &pg="") : stringSol<bool>(l,1,t,pg) { }
 	binStringSol(int l, const std::string &pg="") : stringSol<bool>(l,1,pg) { }
 	/** Writes out the binary string. */
-	void write(std::ostream &ostr,int detailed=0) const;
+	void write(std::ostream &ostr,int detailed=0) override;
 	/** Function to apply a certain move.
 	        This will only work with a bitflipMove. */
-	void applyMove(const nhmove &m);
+	void applyMove(const nhmove &m) override;
+	/** Performs a best improvement k-flip local search, returning
+	    true if an improved solution has been found. */
+	bool k_flip_localsearch(int k);
 };
 
 } // end of namespace mh

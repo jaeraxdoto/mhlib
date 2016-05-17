@@ -1,5 +1,5 @@
 # makefile for building the mh library
-# written by Guenther Raidl and Daniel Wagner
+# written by Guenther Raidl, Daniel Wagner and others
 
 include makefile.common
 

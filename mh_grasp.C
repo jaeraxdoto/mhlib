@@ -43,7 +43,7 @@ void GRASP::performIteration()
 	
 	delete alg;
 
-	tmpSol->reproduce(*spop->at(0));
+	tmpSol->copy(*spop->at(0));
 	if (pop->at(0)->isWorse(*tmpSol))
 		tmpSol=replace(tmpSol);
 

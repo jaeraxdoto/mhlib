@@ -2,13 +2,15 @@
 
 #include <iomanip>
 #include "mh_util.h"
+#include "mh_solution.h"
 #include "mh_ssea.h"
+#include "mh_gaopsprov.h"
 
 namespace mh {
 
-bool_param dcdag("dcdag","don't count duplicate as generation",false);
+bool_param dcdag("dcdag","do not count duplicate as generation",false);
 
-double_param pmutnc("pmutnc","mutation prob. for chroms created via crossover",
+double_param pmutnc("pmutnc","mutation prob. for sols created via recombination",
 	0.0,-2000.0,1000.0);
 
 bool_param cntopd("cntopd","count operator duplicates",false);
@@ -33,7 +35,7 @@ void steadyStateEA::performIteration()
 	else
 	{
 		// no recombination
-		tmpSol->reproduce(*pop->at(p1));
+		tmpSol->copy(*pop->at(p1));
 		double pm=pmutnc(pgroup);
 		if (pm==0)
 			pm=pmut(pgroup);
@@ -43,7 +45,7 @@ void steadyStateEA::performIteration()
 	// optionally locally improve the chromosome
 	if (plocim(pgroup) && random_prob(plocim(pgroup)))
 	{
-		tmpSol->locallyImprove();
+		gaopsProvider::cast(*tmpSol).locallyImprove();
 		nLocalImprovements++;
 	}
 

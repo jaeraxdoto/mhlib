@@ -6,7 +6,7 @@ namespace mh {
 
 int_param popsize("popsize","size of the population",100,1,10000000);
 
-int_param dupelim("dupelim","eliminate duplicates: 0:no 1:child 2:ini+child"
+int_param dupelim("dupelim","eliminate duplicates 0:no 1:child 2:ini+child"
 	,1,0,2);
 
 void pop_base::init(int psize, bool nohashing)

@@ -95,11 +95,11 @@ public:
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. */
-	virtual mh_solution *replace(int index,mh_solution *newchrom) = 0;
+	virtual mh_solution *replace(int index, mh_solution *newchrom) = 0;
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */
-	virtual void update(int index, mh_solution *newchrom) {
+	virtual void update(int index ,mh_solution *newchrom) {
 		mherror("Update not supported in popbase");
 	}
 	/** Index of best solution in population. */

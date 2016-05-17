@@ -4,6 +4,7 @@
 #ifndef MH_POP_H
 #define MH_POP_H
 
+#include <functional>
 #include "mh_solution.h"
 #include "mh_param.h"
 #include "mh_popbase.h"
@@ -48,6 +49,14 @@ protected:
 	int determineWorst() const;
 public:
 	/** A population of solutions is created.
+		@param createsol a function that dynamically creates a solution and returns a pointer to it
+		@param psize the size of the population
+		@param binit if set, initialize is called for all solutions
+		@param nohashing if set, hashing is avoided in the population; otherwise it depends on dupelim()
+		@param pg the parameter group to be used */
+	population(std::function<mh_solution *()>createsol, int psize=popsize(), bool binit=true,
+			bool nohashing=false, const std::string &pg="");
+	/** A population of solutions is created.
 		The size is given as parameter psize.
 		The template solution is used to create solutions of the same type.
 		If binit is set, the new solutions are all initialized, otherwise they
@@ -77,7 +86,7 @@ public:
 	/** Replaces a solution at a specific index with another one.
 		The caller has to take care to delete or store the returned
 		prior solution. Population data is updated. */
-	mh_solution *replace(int index,mh_solution *newchrom);
+	mh_solution *replace(int index, mh_solution *newchrom);
 	/** Copy the given solution into the solution at position index in
 	 * the population and update population data.
 	 */

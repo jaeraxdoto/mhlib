@@ -49,11 +49,11 @@ class oneMaxSol : public binStringSol, public gcProvider
 public:
 	oneMaxSol() : binStringSol(vars())
 		{}
-	virtual mh_solution *createUninitialized() const
+	virtual mh_solution *createUninitialized() const override
 		{ return new oneMaxSol; }
-	virtual mh_solution *clone() const
+	virtual mh_solution *clone() const override
 		{ return new oneMaxSol(*this); }
-	double objective();
+	double objective() override;
 	void greedyConstruct();
 	double delta_obj(const nhmove &m);
 };
@@ -157,12 +157,10 @@ int main(int argc, char *argv[])
 		param::printAll(out());
 		out() << endl;
 
-		// generate a template solution of the problem specific class
-		onePermSol tchrom;
-		//oneMaxSol tchrom;
+		// generate a population of the corresponding solutions solutions
+		population p([](){return new oneMaxSol();});
+		// population p([](){return new onePermSol();}); // activate to solve ONEPERM
 
-		// generate a population of these solutions
-		population p(tchrom);
 		// p.write(out()); 	// write out initial population
 		// generate the EA
 		mh_advbase *alg;
@@ -182,11 +180,11 @@ int main(int argc, char *argv[])
 		delete alg;
 	}
 	// catch all exceptions and write error message
-	catch (std::string &s)
-	{ writeErrorMessage(s);  return 1; }
+	catch (mh_exception &s)
+	{ writeErrorMessage(s.what());  return 1; }
 	catch (exception &e)
-	{ writeErrorMessage(string("Standard exception occured: ") + e.what()); return 1; }
+	{ writeErrorMessage(string("Standard exception occurred: ") + e.what()); return 1; }
 	catch (...)
-	{ writeErrorMessage("Unknown exception occured"); return 1; }
+	{ writeErrorMessage("Unknown exception occurred"); return 1; }
 	return 0;
 }
