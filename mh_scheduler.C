@@ -119,19 +119,6 @@ void SchedulerWorker::run() {
 						scheduler->updateDataFromResultsVectors(true);
 						setRandomNumberGenerator(rng); // reset to thread's rng
 
-						// write out log entries for all iterations passed since the last logging:
-						// these entries are identical listing for each iteration the state after the last global update
-						/* !!!
-						unsigned int schedNIteration = scheduler->nIteration;
-						scheduler->nIteration = scheduler->lastLogIter;
-						for(unsigned int i=scheduler->lastLogIter+1; i <= schedNIteration; i++) {
-							scheduler->nIteration++;
-							scheduler->writeLogEntry(false,true,method->name);
-						}
-						scheduler->lastLogIter = scheduler->nIteration;
-						*/
-
-
 						// If termination after a certain number of iterations is requested,
 						// ensure that only exactly titer updates are performed and that possibly
 						// superfluous iterations are not considered in a deterministic way
@@ -189,10 +176,9 @@ void SchedulerWorker::run() {
 
 				// scheduler->perfGenEndCallback();
 
-				// !!! if (!scheduler->_schsync) {
-					if (!termnow || scheduler->nIteration>logstr.lastIter())
-						scheduler->writeLogEntry(termnow, true, method->name);
-				// !!!}
+				if (!termnow || scheduler->nIteration>logstr.lastIter())
+					scheduler->writeLogEntry(termnow, true, method->name);
+
 				scheduler->mutex.unlock();
 				if (scheduler->terminate())
 					break;
@@ -225,9 +211,7 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
 	_schpmig = schpmig(pgroup);
-
  	workersWaiting = 0;
- 	lastLogIter = 0;
 }
 
 void Scheduler::run() {
@@ -255,21 +239,8 @@ void Scheduler::run() {
 		w->thread.join();
 	// if thread synchronization is active, perform final update of the scheduler's population
 	// and write final log entries
-	if(_schsync) {
+	if(_schsync)
 		updateDataFromResultsVectors(true);
-
-		// write out log entries for all iterations passed since the last logging:
-		// these entries are identical listing for each iteration the state after the last global update
-		/* !!! TODO: Wird lastLogIter überhaupt gebraucht?
-		unsigned int schedNIteration = nIteration;
-		nIteration = lastLogIter;
-		for(unsigned int i=lastLogIter+1; i <= schedNIteration; i++) {
-			nIteration++;
-			writeLogEntry(false,true,"?");
-		}
-		lastLogIter = nIteration;
-		*/
-	}
 	for(auto w : workers)
 		delete w;
 
