@@ -32,8 +32,6 @@ int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:rando
 
 bool_param schlirep("schlirep","GVNS: perform locimp nhs repeatedly",1);
 
-bool_param schlog("schlog", "If set to true (default), logging for the scheduler is active. Otherwise, no log output will be generated",true);
-
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
 /** Central stack of exceptions possibly occurring in threads,
@@ -213,6 +211,7 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
 	_schpmig = schpmig(pgroup);
+
  	workersWaiting = 0;
 }
 
@@ -221,12 +220,9 @@ void Scheduler::run() {
 
 	timStart = (_wctime ? mhwctime() : mhcputime());
 
-	// only start the log, if logging is active
-	if(_schlog) {
-		writeLogHeader();
-		writeLogEntry(false,true,"*");
-		logstr.flush();
-	}
+	writeLogHeader();
+	writeLogEntry(false,true,"*");
+	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
 	for(unsigned int i=0; i < _schthreads; i++) {
@@ -253,11 +249,8 @@ void Scheduler::run() {
 	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
 
-	// only do this if logging is active
-	if(_schlog) {
-		logstr.emptyEntry();
-		logstr.flush();
-	}
+	logstr.emptyEntry();
+	logstr.flush();
 }
 
 bool Scheduler::terminate() {
