@@ -376,6 +376,12 @@ protected:
 	 */
 	std::condition_variable cvOrderThreads;
 
+	/**
+	 * Rethrows the exceptions that have possibly occurred in the threads and have been collected in the worker_exceptions vector.
+	 * I.e. the exceptions are passed to the main thread.
+	 */
+	void rethrowExceptions();
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
