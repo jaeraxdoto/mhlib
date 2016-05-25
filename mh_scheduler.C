@@ -211,6 +211,7 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
 	_titer = titer(pgroup);
 	_schpmig = schpmig(pgroup);
+
  	workersWaiting = 0;
 }
 
@@ -238,15 +239,14 @@ void Scheduler::run() {
 	for(auto w : workers)
 		w->thread.join();
 	// if thread synchronization is active, perform final update of the scheduler's population
-	// and write final log entries
 	if(_schsync)
 		updateDataFromResultsVectors(true);
+
 	for(auto w : workers)
 		delete w;
 
 	// handle possibly transferred exceptions
-	for (const exception_ptr &ep : worker_exceptions)
-		std::rethrow_exception(ep);
+	rethrowExceptions();
 
 	logstr.emptyEntry();
 	logstr.flush();
@@ -347,6 +347,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	// 	logstr.write("method");
 	// if (finishEntry)
 	//		logstr.finishEntry();
+
 	checkPopulation();
 	logstr.headerEntry();
 	if (ltime(pgroup))
@@ -367,6 +368,7 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 	//	return true;
 	//}
 	//return false;
+
 	checkPopulation();
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
@@ -379,6 +381,11 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 		return true;
 	}
 	return false;
+}
+
+void Scheduler::rethrowExceptions() {
+	for (const exception_ptr &ep : worker_exceptions)
+		std::rethrow_exception(ep);
 }
 
 
