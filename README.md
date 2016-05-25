@@ -6,7 +6,7 @@ https://bitbucket.org/ads-tuwien/mhlib
 
 ![ ](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
 
-Copyright 1999-2016 G&uuml;nther Raidl <raidl@ac.tuwien.ac.at>,
+Copyright 1999-2016 Guenther Raidl <raidl@ac.tuwien.ac.at>,
 Algorithms and Complexity Group, TU Wien,
 http://www.ac.tuwien.ac.at 
 

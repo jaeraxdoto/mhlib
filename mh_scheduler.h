@@ -61,7 +61,6 @@ extern int_param schlisel;
  */
 extern bool_param schlirep;
 
-
 //--------------------------- MethodApplicationResult ------------------------------
 
 /**
@@ -378,12 +377,10 @@ protected:
 	std::condition_variable cvOrderThreads;
 
 	/**
-	 * Stores the iteration at which the last log entries have been written.
-	 * This is necessary for writing out the correct number of log entries if the worker threads
-	 * are synchronized, since in that case, an update is performed only every #schthreads iterations.
-	 * Only meaningful if #schsync is true.
+	 * Rethrows the exceptions that have possibly occurred in the threads and have been collected in the worker_exceptions vector.
+	 * I.e. the exceptions are passed to the main thread.
 	 */
-	unsigned int lastLogIter;
+	void rethrowExceptions();
 
 public:
 	/**
@@ -523,12 +520,12 @@ public:
 	 * It calls the new extended method with "-" as method name.
 	 */
 	virtual bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true) override {
-		return writeLogEntry(inAnyCase,"-",finishEntry);
+		return writeLogEntry(inAnyCase,finishEntry,"-");
 	}
 	/**
 	 * Write the log entry including the given method name if parameter lmethod is set.
 	 */
-	virtual bool writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry=true);
+	virtual bool writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method);
 };
 
 
@@ -593,7 +590,7 @@ public:
 	/** Cleanup: delete SchedulerMethodSelectors. */
 	~GVNSScheduler() {
 		delete constheu;
-		for (int t=0;t<schthreads();t++) {
+		for (unsigned int t=0;t<_schthreads;t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
 		}

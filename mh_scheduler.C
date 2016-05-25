@@ -75,7 +75,7 @@ void SchedulerWorker::run() {
 					scheduler->getNextMethod(this);	// try to find an available method for scheduling
 					// if thread synchronization is active and this thread has not started, yet,
 					// set the isWorking flag to true and notify possibly waiting threads
-					if(scheduler->_schsync && !isWorking) {
+					if (scheduler->_schsync && !isWorking) {
 						scheduler->mutexOrderThreads.lock();
 						isWorking = true;
 						scheduler->cvOrderThreads.notify_all();
@@ -83,7 +83,7 @@ void SchedulerWorker::run() {
 					}
 					scheduler->mutex.unlock(); // End of atomic operation
 
-					if(method == nullptr) {	// no method could be scheduled
+					if (method == nullptr) {	// no method could be scheduled
 						if(scheduler->finish) // should the algorithm be terminated due to exhaustion of all available methods
 							break;
 						if(scheduler->_schsync)	// if thread synchronization is active, do not block here
@@ -118,17 +118,6 @@ void SchedulerWorker::run() {
 						resetRandomNumberGenerator();	// use default rng during the global update, as the current thread is unknown
 						scheduler->updateDataFromResultsVectors(true);
 						setRandomNumberGenerator(rng); // reset to thread's rng
-
-						// write out log entries for all iterations passed since the last logging:
-						// these entries are identical listing for each iteration the state after the last global update
-						unsigned int schedNIteration = scheduler->nIteration;
-						scheduler->nIteration = scheduler->lastLogIter;
-						for(unsigned int i=scheduler->lastLogIter+1; i <= schedNIteration; i++) {
-							scheduler->nIteration++;
-							scheduler->writeLogEntry(false,method->name);
-						}
-						scheduler->lastLogIter = scheduler->nIteration;
-
 
 						// If termination after a certain number of iterations is requested,
 						// ensure that only exactly titer updates are performed and that possibly
@@ -187,10 +176,9 @@ void SchedulerWorker::run() {
 
 				// scheduler->perfGenEndCallback();
 
-				if(!scheduler->_schsync) {
-					if (!termnow || scheduler->nIteration>logstr.lastIter())
-						scheduler->writeLogEntry(termnow, method->name);
-				}
+				if (!termnow || scheduler->nIteration>logstr.lastIter())
+					scheduler->writeLogEntry(termnow, true, method->name);
+
 				scheduler->mutex.unlock();
 				if (scheduler->terminate())
 					break;
@@ -225,7 +213,6 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 	_schpmig = schpmig(pgroup);
 
  	workersWaiting = 0;
- 	lastLogIter = 0;
 }
 
 void Scheduler::run() {
@@ -234,7 +221,7 @@ void Scheduler::run() {
 	timStart = (_wctime ? mhwctime() : mhcputime());
 
 	writeLogHeader();
-	writeLogEntry(false,"-");
+	writeLogEntry(false,true,"*");
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
@@ -252,26 +239,14 @@ void Scheduler::run() {
 	for(auto w : workers)
 		w->thread.join();
 	// if thread synchronization is active, perform final update of the scheduler's population
-	// and write final log entries
-	if(_schsync) {
+	if(_schsync)
 		updateDataFromResultsVectors(true);
 
-		// write out log entries for all iterations passed since the last logging:
-		// these entries are identical listing for each iteration the state after the last global update
-		unsigned int schedNIteration = nIteration;
-		nIteration = lastLogIter;
-		for(unsigned int i=lastLogIter+1; i <= schedNIteration; i++) {
-			nIteration++;
-			writeLogEntry(false,"?");
-		}
-		lastLogIter = nIteration;
-	}
 	for(auto w : workers)
 		delete w;
 
 	// handle possibly transferred exceptions
-	for (const exception_ptr &ep : worker_exceptions)
-		std::rethrow_exception(ep);
+	rethrowExceptions();
 
 	logstr.emptyEntry();
 	logstr.flush();
@@ -372,6 +347,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	// 	logstr.write("method");
 	// if (finishEntry)
 	//		logstr.finishEntry();
+
 	checkPopulation();
 	logstr.headerEntry();
 	if (ltime(pgroup))
@@ -383,7 +359,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 }
 
 
-bool Scheduler::writeLogEntry(bool inAnyCase, const std::string &method, bool finishEntry) {
+bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method) {
 	// if (mh_advbase::writeLogEntry(inAnyCase,false)) {
 	//	if (lmethod(pgroup))
 	//		logstr.write(method);
@@ -392,6 +368,7 @@ bool Scheduler::writeLogEntry(bool inAnyCase, const std::string &method, bool fi
 	//	return true;
 	//}
 	//return false;
+
 	checkPopulation();
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
@@ -404,6 +381,11 @@ bool Scheduler::writeLogEntry(bool inAnyCase, const std::string &method, bool fi
 		return true;
 	}
 	return false;
+}
+
+void Scheduler::rethrowExceptions() {
+	for (const exception_ptr &ep : worker_exceptions)
+		std::rethrow_exception(ep);
 }
 
 
