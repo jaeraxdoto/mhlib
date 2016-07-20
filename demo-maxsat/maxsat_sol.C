@@ -28,23 +28,26 @@ double MAXSATSol::objective()
 	return fulfilled;
 }
 
-bool MAXSATSol::construct(int k) {
+SchedulerMethod::Result MAXSATSol::construct(int k) {
 	initialize(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return true;
+	return SchedulerMethod::RESULT_CHANGED;
 }
 
-bool MAXSATSol::localimp(int k)
+SchedulerMethod::Result MAXSATSol::localimp(int k)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return k_flip_localsearch(k);
+	if (k_flip_localsearch(k))
+		return SchedulerMethod::RESULT_CHANGED;
+	else
+		return SchedulerMethod::RESULT_UNCHANGED;
 }
 
-bool MAXSATSol::shaking(int k)
+SchedulerMethod::Result MAXSATSol::shaking(int k)
 {
 	mutate_flip(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return true;		// solution changed in general
+	return SchedulerMethod::RESULT_CHANGED;		// solution changed in general
 }
 
 } // maxsat namespace

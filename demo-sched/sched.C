@@ -114,17 +114,17 @@ public:
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly.
 	 */
-	bool construct(int k) {
+	SchedulerMethod::Result construct(int k) {
 		spendTime();
 		initialize(k);
-		return true;
+		return SchedulerMethod::RESULT_CHANGED;
 	}
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	bool localimp(int k);
+	SchedulerMethod::Result localimp(int k);
 	/** A simple shaking function: Invert k randomly chosen positions. */
-	bool shaking(int k);
+	SchedulerMethod::Result shaking(int k);
 };
 
 double oneMaxSol::objective()
@@ -136,19 +136,19 @@ double oneMaxSol::objective()
 	return sum;
 }
 
-bool oneMaxSol::localimp(int k)
+SchedulerMethod::Result oneMaxSol::localimp(int k)
 {
 	spendTime();
 	if (!data[k])
 	{
 		data[k] = 1;
 		invalidate();
-		return true;
+		return SchedulerMethod::RESULT_CHANGED;
 	}
-	return false;	// no change
+	return SchedulerMethod::RESULT_UNCHANGED;	// no change
 }
 
-bool oneMaxSol::shaking(int k)
+SchedulerMethod::Result oneMaxSol::shaking(int k)
 {
 	spendTime();
 	for (int j=0; j<k; j++) {
@@ -157,7 +157,7 @@ bool oneMaxSol::shaking(int k)
 	}
 	invalidate();
 	// mutate(k);
-	return true;
+	return SchedulerMethod::RESULT_CHANGED;
 }
 
 
@@ -190,30 +190,30 @@ public:
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	bool construct(int k) {
+	SchedulerMethod::Result construct(int k) {
 		spendTime();
 		initialize(k);
-		return true;
+		return SchedulerMethod::RESULT_CHANGED;
 	}
 	/** A simple local improvement function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	bool localimp(int k) {
+	SchedulerMethod::Result localimp(int k) {
 		// out() << "Obj before localimp = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return true;
+		return SchedulerMethod::RESULT_CHANGED;
 	}
 	/** A simple shaking function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	bool shaking(int k) {
+	SchedulerMethod::Result shaking(int k) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
 		// out() << "Obj before shaking = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return true;
+		return SchedulerMethod::RESULT_CHANGED;
 	}
 };
 

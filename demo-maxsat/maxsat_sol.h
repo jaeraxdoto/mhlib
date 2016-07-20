@@ -10,6 +10,7 @@
 #ifndef MAXSAT_SOL_H
 #define MAXSAT_SOL_H
 
+#include "mh_schedmeth.h"
 #include "mh_binstringsol.h"
 #include "maxsat_inst.h"
 
@@ -50,13 +51,12 @@ public:
 	 * of satisfied clauses. */
 	double objective() override;
 	/** A simple construction heuristic, just calling the base class' initialize
-	 * function, initializing each bit randomly. Returns true as the solution
-	 * has (most likely) changed. */
-	bool construct(int k);
+	 * function, initializing each bit randomly. */
+	mh::SchedulerMethod::Result construct(int k);
 	/** A best improvement local search in the k-flip neighborhood. */
-	bool localimp(int k);
+	mh::SchedulerMethod::Result localimp(int k);
 	/** A simple shaking method: Flip k randomly chosen positions. */
-	bool shaking(int k);
+	mh::SchedulerMethod::Result shaking(int k);
 };
 
 } // end of namespace maxsat
