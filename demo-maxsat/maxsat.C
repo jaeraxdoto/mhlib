@@ -27,7 +27,7 @@
 #include "mh_pop.h"
 #include "mh_advbase.h"
 #include "mh_log.h"
-#include "mh_scheduler.h"
+#include "mh_gvns.h"
 
 #include "maxsat_inst.h"
 #include "maxsat_sol.h"
@@ -118,8 +118,7 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// create the the Scheduler and register SchedulableMethods
-		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
+		GVNS *alg = new GVNS(p,methsch(),methsli(),methssh());
 		/* Add construction heuristic, local improvement and shaking methods to scheduler.
 		 * The following parameters are passed to the constructor of
 		 * SolMemberSchedulerMethod: an abbreviated name of the method as string,

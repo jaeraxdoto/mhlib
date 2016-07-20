@@ -28,9 +28,6 @@ double_param schpmig("schpmig", "scheduler: probability for migrating global bes
 
 bool_param lmethod("lmethod","scheduler: append method name to each log entry",true);
 
-int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt",1,0,4);
-
-bool_param schlirep("schlirep","GVNS: perform locimp nhs repeatedly",1);
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
 
@@ -147,9 +144,9 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
-				startTime = mhcputime();
+				startTime[0] = mhcputime();
 				bool tmpSolChanged = method->run(tmpSol);
-				double methodTime = mhcputime() - startTime;
+				double methodTime = mhcputime() - startTime[0];
 
 				if (tmpSolChanged) {
 					if (tmpSol->isBetter(*pop[0]))
@@ -225,7 +222,7 @@ void Scheduler::run() {
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
-	for(unsigned int i=0; i < _schthreads; i++) {
+	for (unsigned int i=0; i < _schthreads; i++) {
 		mh_randomNumberGenerator* rng = new mh_randomNumberGenerator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
@@ -436,232 +433,6 @@ SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
 		return nullptr;
 	else
 		return scheduler->methodPool[methodList[lastMethod]];
-}
-
-
-//--------------------------------- GVNSScheduler ---------------------------------------------
-
-SchedulerMethodSelector *GVNSScheduler::createSelector_constheu() {
-	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialOnce);
-}
-
-SchedulerMethodSelector *GVNSScheduler::createSelector_locimpnh() {
-	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MethodSelStrat(_schlisel));
-}
-
-SchedulerMethodSelector *GVNSScheduler::createSelector_shakingnh() {
-	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialRep);
-}
-
-GVNSScheduler::GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-		unsigned int nshakingnh, const std::string &pg) :
-		Scheduler(p, pg) {
-	initialSolutionExists = false;
-	constheu = createSelector_constheu();
-	for (unsigned int t=0; t<_schthreads; t++) {
-		locimpnh.push_back(createSelector_locimpnh());
-		shakingnh.push_back(createSelector_shakingnh());
-	}
-	unsigned int i = 0;
-	for (; i < nconstheu; i++)
-			constheu->add(i);
-	for (; i < nconstheu + nlocimpnh; i++)
-		for (unsigned int t=0; t<_schthreads; t++)
-			locimpnh[t]->add(i);
-	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		for (unsigned int t=0; t<_schthreads; t++)
-			shakingnh[t]->add(i);
-}
-
-void GVNSScheduler::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
-	worker->pop.update(0, worker->tmpSol);
-	if (updateSchedulerData && worker->pop[0]->isBetter(*(pop->at(0))))
-		update(0, worker->pop[0]);
-}
-
-void GVNSScheduler::getNextMethod(SchedulerWorker *worker) {
-	// must have the correct number of methods added
-	assert(methodPool.size() == constheu->size() + locimpnh[0]->size() + shakingnh[0]->size());
-
-	// perform a construction method, either, because there is still a method available that
-	// has not been applied yet, or because the worker has just been created.
-	if (!constheu->empty() && (worker->method == nullptr || constheu->hasFurtherMethod())) {
-		worker->method = constheu->select();
-		if(worker->method != nullptr)
-			return;
-	}
-	// When proceeding from the construction methods to local improvement or shaking,
-	// continue with the best solution from all construction methods
-	if (!locimpnh[worker->id]->hasLastMethod() && !shakingnh[worker->id]->hasLastMethod()
-			&& worker->pop[0]->isBetter(*worker->tmpSol)) {
-		worker->tmpSol->copy(*worker->pop[0]);	// Copy best solution from former construction heuristic
-	}
-	// perform local improvement
-	if (!locimpnh[0]->empty()) {
-
-		// choose next local improvement method
-		worker->method = locimpnh[worker->id]->select();
-		if (worker->method != nullptr)
-			return;
-		else
-			// all local improvement methods applied to this solution, VND done
-			locimpnh[worker->id]->resetLastMethod();
-	}
-	// perform next shaking method
-	if (!shakingnh[0]->empty()) {
-		// if the worker's method is nullptr and no local improvement methods are available,
-		// this means that no construction method has been scheduled before for this worker,
-		// then check if globally a solution has already been constructed by some worker.
-		if(worker->method == nullptr && locimpnh[0]->empty()) {
-			if(!initialSolutionExists)
-				return;	// no, then there is no need to schedule an improvement method, yet.
-			else {
-				// yes, then we assign the best known solution and schedule a method to be applied to it.
-				worker->pop.update(0, pop->at(0));
-				worker->tmpSol->copy(*worker->pop[0]);
-			}
-		}
-		worker->method = shakingnh[worker->id]->select();
-		if (worker->method != nullptr) {
-			worker->shakingStartTime = (_wctime ? (mhwctime() - timStart) : mhcputime());
-			return;
-		}
-	}
-
-	// there exists no more method whose scheduling would be meaningful.
-	// -> initiate termination
-	finish = true;
-	worker->method = nullptr;
-	return;
-}
-
-
-void GVNSScheduler::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
-	if (worker->method->idx < constheu->size()) {
-		// construction method has been applied
-		if(worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER) {
-			copyBetter(worker, updateSchedulerData);	// save new best solution
-			if (!_schsync)
-				initialSolutionExists = true;
-		}
-		else {
-			// unsuccessful construction method (i.e., no better solution)
-			if(updateSchedulerData)
-				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
-		}
-		return;
-	}
-
-	if (worker->method->idx < locimpnh[0]->size() + constheu->size()) {
-		// local improvement neighborhood has been applied
-		if (worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER) {
-			// improvement achieved, save solution and possibly restart with first local improvement method
-			copyBetter(worker, updateSchedulerData);	// save new best solution within local improvement
-			if (_schlirep) {
-				// restart with first local improvement method
-				locimpnh[worker->id]->resetLastMethod();
-				return;
-			}
-		}
-		else {
-			// unsuccessful local improvement method call
-			if (locimpnh[worker->id]->hasFurtherMethod()) {
-				// continue VND with next neighborhood and incumbent VND solution
-				if (worker->tmpSolObjChange != SchedulerMethodResult::OBJ_SAME)
-					worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
-				return;
-			}
-		}
-		// the embedded VND is done
-		// update statistics for last shaking method (including the just finished local improvement)
-		if (worker->pop[0]->isBetter(*(worker->pop[1]))) {
-			updateShakingMethodStatistics(worker,true);
-			worker->pop.update(1,worker->pop[0]);
-			shakingnh[worker->id]->resetLastMethod();
-			if(updateSchedulerData)
-				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
-			worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
-		}
-		else {
-			// Go back to best solution before last shaking
-			updateShakingMethodStatistics(worker,false);
-			worker->tmpSol->copy(*worker->pop[1]);
-			worker->pop.update(0,worker->tmpSol);
-		}
-	}
-	else {
-		// shaking neighborhood method has been applied
-		if (locimpnh[0]->empty()) {
-			// no local improvement methods, directly handle result of shaking
-			// update statistics for that method
-			if (worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER) {
-				// improvement achieved:
-				worker->pop.update(1,worker->pop[0]);
-				copyBetter(worker, updateSchedulerData);	// save new best solution
-				updateShakingMethodStatistics(worker,true);
-				shakingnh[worker->id]->resetLastMethod();
-			}
-			else {
-				// unsuccessful neighborhood method call
-				updateShakingMethodStatistics(worker,false);
-				if(updateSchedulerData)
-					worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
-				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
-			}
-		}
-		else {
-			// do not update statistics for that method (will be done after local improvement)
-			// start available local improvement neighborhoods
-			if (worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER)
-				copyBetter(worker, updateSchedulerData);	// save new best solution
-			else
-				// nevertheless store solution after shaking as incumbent of local improvement
-				worker->pop.update(0, worker->tmpSol);
-		}
-	}
-}
-
-void GVNSScheduler::updateDataFromResultsVectors(bool clearResults) {
-	// update best solution in scheduler's population
-	mh_solution* best = workers[0]->pop[0];
-	for(unsigned int i=1; i < workers.size(); i++) {
-		if (workers[i]->pop[0]->isBetter(*best))
-			best = workers[i]->pop[0];
-	}
-	if (best->isBetter(*(pop->at(0)))) {
-		initialSolutionExists = true;
-		update(0, best);
-	}
-	// solution migration: possibly replace threads' incumbents by best global solution
-	if(_schpmig > 0)
-		for(unsigned int i=0; i < workers.size(); i++)
-			workers[i]->checkGlobalBest();
-}
-
-void GVNSScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
-	if (worker->method->idx < constheu->size() + locimpnh[0]->size())
-		Scheduler::updateMethodStatistics(worker, methodTime);
-	else {
-		nIteration++;
-		// skip shaking method statistics update except adding to totNetTime;
-		// all remaining will be done separately when all local improvement neighborhoods have finished
-		int idx=worker->method->idx;
-		totNetTime[idx] += methodTime;
-	}
-}
-
-void GVNSScheduler::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved) {
-	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
-	if (sm != nullptr) {
-		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += ((_wctime ? (mhwctime() - timStart) : mhcputime()) - worker->shakingStartTime);
-		nIter[idx]++;
-		// if the applied method was successful, update the success-counter and the total obj-gain
-		if (improved) {
-			nSuccess[idx]++;
-			sumGain[idx] += abs(worker->pop[0]->obj() - worker->pop[1]->obj());
-		}
-	}
 }
 
 } // end of namespace mh

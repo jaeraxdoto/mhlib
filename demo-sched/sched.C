@@ -26,7 +26,7 @@
 #include "mh_log.h"
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
-#include "mh_scheduler.h"
+#include "mh_gvns.h"
 #include "mh_c11threads.h"
 
 using namespace std;
@@ -295,7 +295,7 @@ using namespace sched;
  * the method, and the arity of the method, which is either 0 in case of a method that
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
-template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
+template <class SolClass> void registerSchedulerMethods(GVNS *alg) {
 	for (int i=1;i<=methsch();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
 			&SolClass::construct,i,0));
@@ -377,8 +377,7 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
-		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
+		GVNS *alg = new GVNS(p,methsch(),methsli(),methssh());
 		switch (prob()) {
 		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
 		case 1: registerSchedulerMethods<onePermSol>(alg); break;

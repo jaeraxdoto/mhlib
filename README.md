@@ -98,6 +98,10 @@ Besides the actual C++ library, mhlib also contains
 
 ## Changelog: major changes over major releases ##
 
+### Version 4.5 ###
+
+- The GVNSScheduler class has been moved to an own module mh_gvns.h/C and renamed to GVNS.
+
 ### Version 4.4 ###
 
 - Class mh_solution was made more abstract, all evolutionary
