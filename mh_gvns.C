@@ -39,23 +39,22 @@ SchedulerMethodSelector *GVNS::createSelector_shakingnh() {
 	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialRep);
 }
 
-GVNS::GVNS(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-		unsigned int nshakingnh, const std::string &pg) :
+GVNS::GVNS(pop_base &p, int nconstheu, int nlocimpnh, int nshakingnh, const std::string &pg) :
 		Scheduler(p, pg) {
 	initialSolutionExists = false;
 	constheu = createSelector_constheu();
-	for (unsigned int t=0; t<_schthreads; t++) {
+	for (int t=0; t<_schthreads; t++) {
 		locimpnh.push_back(createSelector_locimpnh());
 		shakingnh.push_back(createSelector_shakingnh());
 	}
-	unsigned int i = 0;
+	int i = 0;
 	for (; i < nconstheu; i++)
 			constheu->add(i);
 	for (; i < nconstheu + nlocimpnh; i++)
-		for (unsigned int t=0; t<_schthreads; t++)
+		for (int t=0; t<_schthreads; t++)
 			locimpnh[t]->add(i);
 	for (; i < nconstheu + nlocimpnh + nshakingnh; i++)
-		for (unsigned int t=0; t<_schthreads; t++)
+		for (int t=0; t<_schthreads; t++)
 			shakingnh[t]->add(i);
 }
 
@@ -67,7 +66,7 @@ void GVNS::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
 
 void GVNS::getNextMethod(SchedulerWorker *worker) {
 	// must have the correct number of methods added
-	assert(methodPool.size() == constheu->size() + locimpnh[0]->size() + shakingnh[0]->size());
+	assert(int(methodPool.size()) == constheu->size() + locimpnh[0]->size() + shakingnh[0]->size());
 
 	// perform a construction method, either, because there is still a method available that
 	// has not been applied yet, or because the worker has just been created.
@@ -91,7 +90,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 			return;
 		else
 			// all local improvement methods applied to this solution, VND done
-			locimpnh[worker->id]->resetLastMethod();
+			locimpnh[worker->id]->reset();
 	}
 	// perform next shaking method
 	if (!shakingnh[0]->empty()) {
@@ -123,7 +122,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 
 
 void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
-	if (worker->method->idx < constheu->size()) {
+	if (worker->method->idx < int(constheu->size())) {
 		// construction method has been applied
 		if(worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER) {
 			copyBetter(worker, updateSchedulerData);	// save new best solution
@@ -145,7 +144,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 			copyBetter(worker, updateSchedulerData);	// save new best solution within local improvement
 			if (_schlirep) {
 				// restart with first local improvement method
-				locimpnh[worker->id]->resetLastMethod();
+				locimpnh[worker->id]->reset();
 				return;
 			}
 		}
@@ -163,7 +162,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 		if (worker->pop[0]->isBetter(*(worker->pop[1]))) {
 			updateShakingMethodStatistics(worker,true);
 			worker->pop.update(1,worker->pop[0]);
-			shakingnh[worker->id]->resetLastMethod();
+			shakingnh[worker->id]->reset();
 			if(updateSchedulerData)
 				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 			worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
@@ -185,7 +184,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 				worker->pop.update(1,worker->pop[0]);
 				copyBetter(worker, updateSchedulerData);	// save new best solution
 				updateShakingMethodStatistics(worker,true);
-				shakingnh[worker->id]->resetLastMethod();
+				shakingnh[worker->id]->reset();
 			}
 			else {
 				// unsuccessful neighborhood method call
@@ -210,7 +209,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 void GVNS::updateDataFromResultsVectors(bool clearResults) {
 	// update best solution in scheduler's population
 	mh_solution* best = workers[0]->pop[0];
-	for(unsigned int i=1; i < workers.size(); i++) {
+	for (int i=1; i < int(workers.size()); i++) {
 		if (workers[i]->pop[0]->isBetter(*best))
 			best = workers[i]->pop[0];
 	}
@@ -219,8 +218,8 @@ void GVNS::updateDataFromResultsVectors(bool clearResults) {
 		update(0, best);
 	}
 	// solution migration: possibly replace threads' incumbents by best global solution
-	if(_schpmig > 0)
-		for(unsigned int i=0; i < workers.size(); i++)
+	if (_schpmig > 0)
+		for (int i=0; i < int(workers.size()); i++)
 			workers[i]->checkGlobalBest();
 }
 

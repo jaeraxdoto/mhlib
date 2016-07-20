@@ -122,7 +122,7 @@ void SchedulerWorker::run() {
 						// (i.e. considering only the first threads (by id) and terminating the last ones that are too many).
 						if(scheduler->_titer > -1) {
 							int diff = scheduler->_titer - scheduler->nIteration;
-							for(unsigned int i=0; i < scheduler->_schthreads; i++) {
+							for (int i=0; i < scheduler->_schthreads; i++) {
 								scheduler->workers[i]->isWorking = false;
 								if((signed)scheduler->workers[i]->id > diff-1)
 									scheduler->workers[i]->terminate = true;
@@ -222,7 +222,7 @@ void Scheduler::run() {
 	logstr.flush();
 
 	// spawn the worker threads, each with its own random number generator having an own seed
-	for (unsigned int i=0; i < _schthreads; i++) {
+	for (int i=0; i < _schthreads; i++) {
 		mh_randomNumberGenerator* rng = new mh_randomNumberGenerator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
@@ -288,7 +288,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
-	for (unsigned int k=0;k<methodPool.size();k++) {
+	for (int k=0;k<int(methodPool.size());k++) {
 		sumSuccess+=nSuccess[k];
 		sumIter+=nIter[k];
 		sumTime+=totNetTime[k];
@@ -297,7 +297,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
 	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
 	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
-	for (unsigned int k = 0; k < methodPool.size(); k++) {
+	for (int k = 0; k < int(methodPool.size()); k++) {
 		char tmp[250];
 		snprintf(tmp,sizeof(tmp),"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
@@ -393,32 +393,42 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		return nullptr;
 	switch (strategy) {
 	case MSSequentialRep:
-	case MSSequentialOnce:
-		if (unsigned(lastMethod) == methodList.size()-1) {
-			if (strategy == MSSequentialRep)
-				lastMethod = 0;
-			else
-				return nullptr;	// MSSequentialOnce
+		if (activeSeqRep.empty())
+			return nullptr;
+		if (lastSeqRep == activeSeqRep.end())
+			lastSeqRep = activeSeqRep.begin();
+		else {
+			lastSeqRep++;
+			if (lastSeqRep == activeSeqRep.end())
+				lastSeqRep = activeSeqRep.begin();
 		}
+		lastMethod = *lastSeqRep;
+		return scheduler->methodPool[lastMethod];
+		break;
+	case MSSequentialOnce:
+		if (lastMethod == size()-1)
+			return nullptr;
 		else
 			lastMethod++;
 		return scheduler->methodPool[methodList[lastMethod]];
 		break;
-	case MSRandomRep:
-		return scheduler->methodPool[methodList[random_int(methodList.size())]];
 	case MSRandomOnce: {
-		if (unsigned(lastMethod) == methodList.size()-1)
+		if (lastMethod == size()-1)
 			return nullptr;	// no more methods
 		lastMethod++;
 		// Choose randomly a not yet selected method and swap it to position lastMethod
 		int r = random_int(lastMethod, methodList.size()-1);
 		if (r != lastMethod) {
-			unsigned int tmp = methodList[lastMethod];
+			int tmp = methodList[lastMethod];
 			methodList[lastMethod] = methodList[r];
 			methodList[r] = tmp;
 		}
 		return scheduler->methodPool[methodList[lastMethod]];
 	}
+	case MSRandomRep:
+		if (firstActiveMethod == size())
+			return nullptr;
+		return scheduler->methodPool[methodList[random_int(firstActiveMethod,methodList.size()-1)]];
 	case MSSelfadaptive:
 		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
 		break;
@@ -426,6 +436,28 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		mherror("Invalid strategy in SchedulerMethodSelector::select",tostring(strategy));
 	}
 	return nullptr;
+}
+
+void SchedulerMethodSelector::doNotReconsiderLastMethod() {
+	if (lastMethod==-1) return;
+	switch (strategy) {
+	case MSSequentialRep: {
+		set<int>::iterator t=lastSeqRep; t--;
+		activeSeqRep.erase(lastSeqRep);
+		lastSeqRep=t;
+		break;
+	}
+	case MSRandomRep: {
+		int tmp = methodList[lastMethod];
+		methodList[lastMethod]=methodList[firstActiveMethod];
+		methodList[firstActiveMethod]=tmp;
+		lastMethod=firstActiveMethod;
+		firstActiveMethod++;
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 SchedulerMethod *SchedulerMethodSelector::getLastMethod() {

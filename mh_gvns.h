@@ -78,8 +78,7 @@ public:
 	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
 	 * finally nshakingnh shaking or large neighborhood search neighborhoods.
 	 */
-	GVNS(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-			unsigned int nshakingnh, const std::string &pg = "");
+	GVNS(pop_base &p, int nconstheu, int nlocimpnh, int nshakingnh, const std::string &pg = "");
 
 	/** Cloning is not implemented for this class. */
 	virtual GVNS* clone() const {
@@ -90,7 +89,7 @@ public:
 	/** Cleanup: delete SchedulerMethodSelectors. */
 	~GVNS() {
 		delete constheu;
-		for (unsigned int t=0;t<_schthreads;t++) {
+		for (int t=0;t<_schthreads;t++) {
 			delete locimpnh[t];
 			delete shakingnh[t];
 		}

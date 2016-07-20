@@ -24,7 +24,7 @@ class SchedulerMethod {
 public:
 	const std::string name;		///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method, which is currently either 0 or 1.
-	unsigned int idx;			///< Index in methodPool of Scheduler.
+	int idx;				///< Index in methodPool of Scheduler.
 
 	/**
 	 * Status returned by the application of the method. Controls what is done with the solution.

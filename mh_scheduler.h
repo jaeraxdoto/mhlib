@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <set>
 #include "mh_advbase.h"
 #include "mh_pop.h"
 #include "mh_c11threads.h"
@@ -107,7 +108,7 @@ struct SchedulerMethodResult {
 class SchedulerWorker {
 public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
-	unsigned int id;				///< Index of the worker in the scheduler's worker vector.
+	int id;							///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
 	std::array<int,maxStackedMethods> startTime;	///< Time when the last method call has been started.
@@ -137,7 +138,7 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
@@ -187,27 +188,40 @@ public:
 class SchedulerMethodSelector {
 
 public:
-	/** Different strategies for selecting a method from a method pool:
-	 * - MSSequential: choose one after the other in the given order, then restarting again with first
-	 * - MSSequentialOnce: choose one after the other, each just once, and then return nullptr
-	 * - MSRandom: uniform random selection
-	 * - MSRandomOnce: uniform random selection, but each just once; finally return nullptr
-	 * - MSSelfadaptive: random selection with self-adaptive probabilities */
-	enum MethodSelStrat { MSSequentialRep, MSSequentialOnce, MSRandomRep, MSRandomOnce, MSSelfadaptive };
+	/** Strategies for selecting a method from a method pool. */
+	enum MethodSelStrat {
+		/** Choose one method after the other in the given order, then restarting again with all methods
+		 * that have not been disabled by doNotReconsiderLastMethod; return nullptr when no method
+		 * remains. */
+		MSSequentialRep,
+		/** Choose one method after the other, each just once, and then return nullptr. */
+		MSSequentialOnce,
+		/** Uniform random selection. Methods for which doNotReconsiderLastMethod are disabled
+		 * and not reconsidered. When no method remains, nullptr is returned. */
+		MSRandomRep,
+		/** Uniform random selection, but each just once; finally return nullptr. */
+		MSRandomOnce,
+		/** Random selection with self-adaptive probabilities. */
+		MSSelfadaptive
+	};
 
 protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	std::vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
+	std::vector<int> methodList; 	///< List of Indices of the methods in the methodPool.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
+	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
+	std::set<int> activeSeqRep;	///< Active methods indices in case of MSSequentialRep. Not used by other strategies.
+	std::set<int>::iterator lastSeqRep; /// Last method iterator in activeSeqRep. Only used by MSSequtionRep.
 
 public:
 
 	/** Initialize SchedulerMethodSelector for given strategy. */
 	SchedulerMethodSelector(Scheduler *scheduler_, MethodSelStrat strategy_)
-		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1) {
+		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1), firstActiveMethod(0),
+		  lastSeqRep(activeSeqRep.end()) {
 	}
 
 	/** Cleanup. */
@@ -215,12 +229,14 @@ public:
 	}
 
 	/** Adds a the method with the given index to the methodList. */
-	void add(unsigned int idx) {
+	void add(int idx) {
 		methodList.push_back(idx);
+		if (strategy==MSSequentialRep)
+			activeSeqRep.insert(methodList.size()-1);
 	}
 
 	/** Returns the number of methods contained in the methodList. */
-	unsigned int size() {
+	int size() {
 		return methodList.size();
 	}
 
@@ -230,14 +246,24 @@ public:
 	}
 
 	/** Returns the i-th method in the methodList. */
-	unsigned int operator[](unsigned int i) {
+	/*int operator[](int i) {
 		return methodList[i];
+	}*/
+
+	/** Resets selector, lastMethod is set to none (= -1).
+	 * Typically called when a new incumbent solution is obtained to reconsider all methods. */
+	void reset() {
+		lastMethod = -1; firstActiveMethod = 0;
+		if (strategy==MSSequentialRep) {
+			activeSeqRep.clear();
+			for (int i=0; i<size(); i++)
+				activeSeqRep.insert(i);
+			lastSeqRep=activeSeqRep.end();
+		}
 	}
 
-	/** Resets lastMethod to none (= -1). */
-	void resetLastMethod() {
-		lastMethod = -1;
-	}
+	/** Mark the last method to not be reconsidered until reset() is called. */
+	void doNotReconsiderLastMethod();
 
 	/* Returns true if a previously applied method is known. */
 	bool hasLastMethod() {
@@ -250,7 +276,14 @@ public:
 
 	/** Returns true if at least one more method can be returned. */
 	virtual bool hasFurtherMethod() {
-		return lastMethod < int(methodList.size())-1;
+		switch (strategy) {
+		case MSSequentialRep:
+			return !activeSeqRep.empty();
+		case MSRandomRep:
+			return firstActiveMethod < size();
+		default:
+			return lastMethod < size()-1;
+		}
 	}
 
 	/** Returns the last selected method or nullptr if none has been selected yet. */
@@ -322,7 +355,7 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	unsigned int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
+	int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
 	bool _schsync;			///< Mirrored mh parameter #schsync for performance reasons.
 	int _titer;							///< Mirrored mh parameter #titer for performance reasons.
 	double _schpmig; 		///< Mirrored mh parameter #schpmig for performance reasons.
@@ -331,7 +364,7 @@ protected:
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
 	 * Note: Only meaningful if #schsync is set to true.
 	 */
-	unsigned int workersWaiting;
+	int workersWaiting;
 
 	/**
 	 * Mutex used for blocking threads (together with the condition variable cvNotAllWorkersInPrepPhase)
