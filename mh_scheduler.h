@@ -63,21 +63,9 @@ const int maxStackedMethods=4;
  * optimization method in order to have access to the result later.
  */
 struct SchedulerMethodResult {
-	SchedulerMethod* method;	/// The method that has been applied.
+	SchedulerMethod* method;	///< The method that has been applied.
 
-	/**
-	 * Enum for the different outcomes w.r.t. the objective of a solution
-	 * in comparison to the incumbent solution.
-	 */
-	enum ObjChange {
-		OBJ_WORSE = -1,
-		OBJ_SAME = 0,
-		OBJ_BETTER = 1
-	};
-
-	/** The outcome w.r.t. the objective of the solution in comparison to the
-	 * incumbent solution. */
-	ObjChange solObjChange;
+	SchedulerMethod::Result result;	///< The outcome of the application.
 
 	/**
 	 * The absolute difference in the objective values between the incumbent solution and
@@ -88,10 +76,8 @@ struct SchedulerMethodResult {
 	/**
 	 * Constructor initializing data.
 	 */
-	SchedulerMethodResult(SchedulerMethod* _method, ObjChange _solObjChange, double _objDiff) {
-		method = _method;
-		solObjChange = _solObjChange;
-		objDiff = _objDiff;
+	SchedulerMethodResult(SchedulerMethod* method, const SchedulerMethod::Result &result, double objDiff) :
+		method(method), result(result), objDiff(objDiff) {
 	}
 };
 
@@ -129,8 +115,8 @@ public:
 	 */
 	mh_solution *tmpSol;
 
-	/** Indicates the outcome of the last method application w.r.t. tmpSol */
-	SchedulerMethodResult::ObjChange tmpSolObjChange;
+	/** Indicates the outcome of the last method application w.r.t. tmpSol. */
+	SchedulerMethod::Result tmpSolResult;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -144,7 +130,6 @@ public:
 		id=_id,
 		method = nullptr;
 		tmpSol = sol->clone();
-		tmpSolObjChange = SchedulerMethodResult::OBJ_SAME;
 		for (auto &&t : startTime) t = 0;
 		rng = _rng;
 		isWorking = false;
@@ -209,7 +194,8 @@ protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	std::vector<int> methodList; 	///< List of Indices of the methods in the methodPool.
+	std::vector<int> methodList; 		///< List of Indices of the methods in the methodPool.
+	std::vector<int> callCounter;		///< Counter how often the method has been called for the current solution
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
@@ -231,36 +217,25 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(int idx) {
 		methodList.push_back(idx);
+		callCounter.push_back(0);
 		if (strategy==MSSequentialRep)
 			activeSeqRep.insert(methodList.size()-1);
 	}
 
 	/** Returns the number of methods contained in the methodList. */
-	int size() {
+	int size() const {
 		return methodList.size();
 	}
 
 	/** Returns true if the methodList is empty. */
-	bool empty() {
+	bool empty() const {
 		return methodList.empty();
 	}
 
-	/** Returns the i-th method in the methodList. */
-	/*int operator[](int i) {
-		return methodList[i];
-	}*/
-
 	/** Resets selector, lastMethod is set to none (= -1).
+	 * \param hard if true, also disabled methods are enabled and callCounter are reset.
 	 * Typically called when a new incumbent solution is obtained to reconsider all methods. */
-	void reset() {
-		lastMethod = -1; firstActiveMethod = 0;
-		if (strategy==MSSequentialRep) {
-			activeSeqRep.clear();
-			for (int i=0; i<size(); i++)
-				activeSeqRep.insert(i);
-			lastSeqRep=activeSeqRep.end();
-		}
-	}
+	void reset(bool hard);
 
 	/** Mark the last method to not be reconsidered until reset() is called. */
 	void doNotReconsiderLastMethod();
@@ -272,22 +247,20 @@ public:
 
 	/** Selects a method according to the chosen selection strategy from the methodList.
 	 */
-	virtual SchedulerMethod *select();
+	SchedulerMethod *select();
 
 	/** Returns true if at least one more method can be returned. */
-	virtual bool hasFurtherMethod() {
-		switch (strategy) {
-		case MSSequentialRep:
-			return !activeSeqRep.empty();
-		case MSRandomRep:
-			return firstActiveMethod < size();
-		default:
-			return lastMethod < size()-1;
-		}
-	}
+	bool hasFurtherMethod() const;
 
 	/** Returns the last selected method or nullptr if none has been selected yet. */
 	SchedulerMethod *getLastMethod();
+
+	/** Returns the callCounter, i.e., how often this method has already been called for the
+	 * current solution, for the last selected method. */
+	int getCallCounter() const {
+		assert(lastMethod != -1);
+		return callCounter[lastMethod];
+	}
 };
 
 //--------------------------- Scheduler ------------------------------
@@ -471,6 +444,8 @@ public:
 	 * Determines the next method to be applied and sets it in the given worker.
 	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
+	 * Also resets tmpSolResult, initializing it with the number how often the method has
+	 * already been called for this solution.
 	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
 	 * This method has to be always called in an exclusive way,
@@ -489,6 +464,8 @@ public:
 	 * If storeResult is true, a new MethodApplicationResult object storing the result of the last
 	 * method application is appended to the SchedulerWorker's result list.
 	 * This method is called with mutex locked.
+	 * TODO: When worse solutions are actively set to be accepted via result.accept,
+	 * a so far best solution is currently not yet stored and gets lost!
 	 */
 	virtual void updateData(SchedulerWorker* worker, bool updateSchedulerData, bool storeResult) = 0;
 

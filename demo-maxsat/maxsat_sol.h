@@ -27,6 +27,7 @@ namespace maxsat {
   a corresponding transformation is done in the objective function.
  */
 class MAXSATSol : public mh::binStringSol {
+	friend class MAXSATShakingMethod;
 public:
 	const MAXSATInst *probinst;	/// A pointer to the problem instance for which this is a solution
 
@@ -44,19 +45,35 @@ public:
 	mh_solution *clone() const override
 		{ return new MAXSATSol(*this); }
 	/** Dynamically cast an mh::mh_solution reference to a reference of this class. */
-	static const MAXSATSol &cast(const mh::mh_solution &ref) {
-		return (dynamic_cast<const MAXSATSol &>(ref));
+	static MAXSATSol &cast(mh::mh_solution &ref) {
+		return (dynamic_cast<MAXSATSol &>(ref));
 	}
 	/** Determine the objective value of the solution. Here we count the number
 	 * of satisfied clauses. */
 	double objective() override;
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly. */
-	mh::SchedulerMethod::Result construct(int k);
+	void construct(int k, mh::SchedulerMethod::Result &result);
 	/** A best improvement local search in the k-flip neighborhood. */
-	mh::SchedulerMethod::Result localimp(int k);
-	/** A simple shaking method: Flip k randomly chosen positions. */
-	mh::SchedulerMethod::Result shaking(int k);
+	void localimp(int k, mh::SchedulerMethod::Result &result);
+	/** A random sampling of length solutions in the k-flip neighborhood. */
+	void randlocalimp(int k, mh::SchedulerMethod::Result &result);
+};
+
+/** This class demonstrates how a SchedulerMethod may alternatively be implemented
+ * outside of the solution class by an own class. Here, a shaking method based on
+ * a random k-opt move is realized.
+ */
+class MAXSATShakingMethod : public mh::SchedulerMethod {
+	const int par;						///< Integer parameter passed to the method
+public:
+	/** Constructor of MAXSATShakingMethod. */
+	MAXSATShakingMethod(const std::string &name, int par, int arity) :
+		SchedulerMethod(name,arity), par(par) {
+	}
+	/** Apply the method for the given solution, passing par. The method returns true if the solution
+	 * has been changed and false otherwise.*/
+	void run(mh::mh_solution *sol, mh::SchedulerMethod::Result &result) const override;
 };
 
 } // end of namespace maxsat

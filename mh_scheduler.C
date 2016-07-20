@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <cmath>
+#include <algorithm>
 
 #include "mh_scheduler.h"
 #include "mh_random.h"
@@ -100,7 +101,7 @@ void SchedulerWorker::run() {
 					scheduler->mutexNotAllWorkersInPrepPhase.unlock();
 
 					// ... and if this is not the last thread to reach this point, then block it
-					if(scheduler->workersWaiting < scheduler->_schthreads) {
+					if (scheduler->workersWaiting < scheduler->_schthreads) {
 						if(!scheduler->terminate()) {
 							std::unique_lock<std::mutex> lck(scheduler->mutexNotAllWorkersInPrepPhase);
 							scheduler->mutex.unlock();
@@ -144,18 +145,23 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method
 				// scheduler->perfGenBeginCallback();
+				// tmpSolResult has been initialized by getNextMethod
 				startTime[0] = mhcputime();
-				bool tmpSolChanged = method->run(tmpSol);
+				method->run(tmpSol,tmpSolResult);
 				double methodTime = mhcputime() - startTime[0];
 
-				if (tmpSolChanged) {
-					if (tmpSol->isBetter(*pop[0]))
-						tmpSolObjChange = SchedulerMethodResult::OBJ_BETTER;
-					else
-						tmpSolObjChange = SchedulerMethodResult::OBJ_WORSE;
+				// augment missing information in tmpSolResult except tmpSOlResult.reconsider
+				if (tmpSolResult.changed) {
+					if (tmpSolResult.better == -1)
+						tmpSolResult.better = tmpSol->isBetter(*pop[0]);
+					if (tmpSolResult.accept == -1)
+						tmpSolResult.accept = tmpSolResult.better;
 				}
-				else
-					tmpSolObjChange = SchedulerMethodResult::OBJ_SAME;
+				else { // unchanged solution
+					tmpSolResult.better = false;
+					if (tmpSolResult.accept == -1)
+						tmpSolResult.accept = false;
+				}
 
 				// update statistics and scheduler data
 				scheduler->mutex.lock();
@@ -276,8 +282,8 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 	totNetTime[idx] = (totTime[idx] += methodTime);
 	nIter[idx]++;
 	nIteration++;
-	// if the applied method was successful, update the success-counter and the total obj-gain
-	if (worker->tmpSolObjChange == SchedulerMethodResult::OBJ_BETTER) {
+	// if the applied method was successful, i.e., is accepted, update the success-counter and the total obj-gain
+	if (worker->tmpSolResult.accept) {
 		nSuccess[idx]++;
 		sumGain[idx] += abs(worker->pop.at(0)->obj() - worker->tmpSol->obj());
 	}
@@ -403,15 +409,22 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 				lastSeqRep = activeSeqRep.begin();
 		}
 		lastMethod = *lastSeqRep;
-		return scheduler->methodPool[lastMethod];
-		break;
+		callCounter[lastMethod]++;
+		return scheduler->methodPool[methodList[lastMethod]];
 	case MSSequentialOnce:
 		if (lastMethod == size()-1)
 			return nullptr;
 		else
 			lastMethod++;
+		callCounter[lastMethod]++;
 		return scheduler->methodPool[methodList[lastMethod]];
-		break;
+	case MSRandomRep: {
+		if (firstActiveMethod == size())
+			return nullptr;
+		int r = random_int(firstActiveMethod,methodList.size()-1);
+		callCounter[r]++;
+		return scheduler->methodPool[methodList[r]];
+	}
 	case MSRandomOnce: {
 		if (lastMethod == size()-1)
 			return nullptr;	// no more methods
@@ -419,16 +432,12 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		// Choose randomly a not yet selected method and swap it to position lastMethod
 		int r = random_int(lastMethod, methodList.size()-1);
 		if (r != lastMethod) {
-			int tmp = methodList[lastMethod];
-			methodList[lastMethod] = methodList[r];
-			methodList[r] = tmp;
+			swap(methodList[lastMethod],methodList[r]);
+			swap(callCounter[lastMethod],callCounter[r]);
 		}
+		callCounter[lastMethod]++;
 		return scheduler->methodPool[methodList[lastMethod]];
 	}
-	case MSRandomRep:
-		if (firstActiveMethod == size())
-			return nullptr;
-		return scheduler->methodPool[methodList[random_int(firstActiveMethod,methodList.size()-1)]];
 	case MSSelfadaptive:
 		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
 		break;
@@ -436,6 +445,42 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		mherror("Invalid strategy in SchedulerMethodSelector::select",tostring(strategy));
 	}
 	return nullptr;
+}
+
+
+SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
+	if (lastMethod == -1)
+		return nullptr;
+	else
+		return scheduler->methodPool[methodList[lastMethod]];
+}
+
+void SchedulerMethodSelector::reset(bool hard) {
+	lastMethod = -1;
+	if (hard) { // also enable disabled methods
+		firstActiveMethod = 0;
+		callCounter.assign(size(),0);
+		if (strategy==MSSequentialRep) {
+			activeSeqRep.clear();
+			for (int i=0; i<size(); i++)
+				activeSeqRep.insert(i);
+			lastSeqRep=activeSeqRep.end();
+		}
+	} else { // soft reset
+		if (strategy==MSSequentialRep)
+			lastSeqRep=activeSeqRep.end();
+	}
+}
+
+bool SchedulerMethodSelector::hasFurtherMethod() const {
+	switch (strategy) {
+	case MSSequentialRep:
+		return !activeSeqRep.empty();
+	case MSRandomRep:
+		return firstActiveMethod < size();
+	default:
+		return lastMethod < size()-1;
+	}
 }
 
 void SchedulerMethodSelector::doNotReconsiderLastMethod() {
@@ -458,13 +503,6 @@ void SchedulerMethodSelector::doNotReconsiderLastMethod() {
 	default:
 		break;
 	}
-}
-
-SchedulerMethod *SchedulerMethodSelector::getLastMethod() {
-	if (lastMethod == -1)
-		return nullptr;
-	else
-		return scheduler->methodPool[methodList[lastMethod]];
 }
 
 } // end of namespace mh

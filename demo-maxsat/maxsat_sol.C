@@ -28,26 +28,44 @@ double MAXSATSol::objective()
 	return fulfilled;
 }
 
-SchedulerMethod::Result MAXSATSol::construct(int k) {
+void MAXSATSol::construct(int k, SchedulerMethod::Result &result) {
 	initialize(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return SchedulerMethod::RESULT_CHANGED;
+	// result is kept at its default, i.e., is automatically derived
 }
 
-SchedulerMethod::Result MAXSATSol::localimp(int k)
+void MAXSATSol::localimp(int k, SchedulerMethod::Result &result)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	if (k_flip_localsearch(k))
-		return SchedulerMethod::RESULT_CHANGED;
-	else
-		return SchedulerMethod::RESULT_UNCHANGED;
+	if (!k_flip_localsearch(k))
+		result.changed = false; // solution is not changed, hint this to the further processing
+	// Otherwise, result is kept at its default, i.e., is automatically derived
 }
 
-SchedulerMethod::Result MAXSATSol::shaking(int k)
+#include<iostream>
+
+void MAXSATSol::randlocalimp(int k, SchedulerMethod::Result &result)
 {
-	mutate_flip(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	return SchedulerMethod::RESULT_CHANGED;		// solution changed in general
+	MAXSATSol orig = *this;	// copy original
+	// try
+	for (int i=0; i<length; i++) {
+		mutate_flip(k);
+		if (this->isBetter(orig))
+			return;	// better solution found, return with it
+		copy(orig);
+	}
+	// no better solution found in length iterations, but maybe next time:
+	result.changed = 0; // original solution has been restored
+	// Reconsider this neighborhood in the VND 10 times:
+	if (result.callCounter < 10)
+		result.reconsider = 1; // this neighborhood should be reconsidered for this solution
+}
+
+void MAXSATShakingMethod::run(mh_solution *sol, SchedulerMethod::Result &result) const {
+	MAXSATSol::cast(*sol).mutate_flip(par);
+	// sol->invalidate();	// call if you provide your own method and reevaluation needed
+	// result is kept at its default, i.e., is automatically derived
 }
 
 } // maxsat namespace

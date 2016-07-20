@@ -114,17 +114,17 @@ public:
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly.
 	 */
-	SchedulerMethod::Result construct(int k) {
+	void construct(int k, SchedulerMethod::Result &result) {
 		spendTime();
 		initialize(k);
-		return SchedulerMethod::RESULT_CHANGED;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	SchedulerMethod::Result localimp(int k);
+	void localimp(int k, SchedulerMethod::Result &result);
 	/** A simple shaking function: Invert k randomly chosen positions. */
-	SchedulerMethod::Result shaking(int k);
+	void shaking(int k, SchedulerMethod::Result &result);
 };
 
 double oneMaxSol::objective()
@@ -136,19 +136,20 @@ double oneMaxSol::objective()
 	return sum;
 }
 
-SchedulerMethod::Result oneMaxSol::localimp(int k)
+void oneMaxSol::localimp(int k, SchedulerMethod::Result &result)
 {
 	spendTime();
 	if (!data[k])
 	{
 		data[k] = 1;
 		invalidate();
-		return SchedulerMethod::RESULT_CHANGED;
+		// Values in result are kept at default, i.e., are automatically determined
+		return;
 	}
-	return SchedulerMethod::RESULT_UNCHANGED;	// no change
+	result.changed = false; // solution not changed
 }
 
-SchedulerMethod::Result oneMaxSol::shaking(int k)
+void oneMaxSol::shaking(int k, SchedulerMethod::Result &result)
 {
 	spendTime();
 	for (int j=0; j<k; j++) {
@@ -157,7 +158,7 @@ SchedulerMethod::Result oneMaxSol::shaking(int k)
 	}
 	invalidate();
 	// mutate(k);
-	return SchedulerMethod::RESULT_CHANGED;
+	// Values in result are kept at default, i.e., are automatically determined
 }
 
 
@@ -190,30 +191,30 @@ public:
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	SchedulerMethod::Result construct(int k) {
+	void construct(int k, SchedulerMethod::Result &result) {
 		spendTime();
 		initialize(k);
-		return SchedulerMethod::RESULT_CHANGED;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple local improvement function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	SchedulerMethod::Result localimp(int k) {
+	void localimp(int k, SchedulerMethod::Result &result) {
 		// out() << "Obj before localimp = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return SchedulerMethod::RESULT_CHANGED;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple shaking function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	SchedulerMethod::Result shaking(int k) {
+	void shaking(int k, SchedulerMethod::Result &result) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
 		// out() << "Obj before shaking = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return SchedulerMethod::RESULT_CHANGED;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 };
 

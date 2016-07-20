@@ -26,37 +26,22 @@ public:
 	const int arity;			///< Arity, i.e., number of input solutions of the method, which is currently either 0 or 1.
 	int idx;				///< Index in methodPool of Scheduler.
 
-	/**
-	 * Status returned by the application of the method. Controls what is done with the solution.
-	 * In a standard GVNS application, just RESULT_UNCHANGED and RESULT_CHANGED need to be considered.
-	 * The other values are to possibly control what is done with the solution in a more fine-grained
-	 * way.
+	/** Structure indicating the result of the method application and what to do. Default values of -1
+	 * are replaced by the Scheduler by 0 or 1 in a standard way. I.e., the solution is compared to
+	 * the incumbent in order to determine if it is better, and only better solutions are always accepted.
+	 * The reconsider flag, which is only important when the solution is not accepted, is chosen
+	 * according to the metaheuristic strategy (e.g., VND: 0, VNS: 1).
 	 */
-	enum Result {
-		/** The solution has not been changed, do not reconsider this method for this solution. */
-		RESULT_UNCHANGED = 0,
-		/** The solution has been changed, evaluate and use classical GVNS mechanisms to decide acceptance. */
-		RESULT_CHANGED = 1,
-		/** The solution has not been changed, but this method should be reconsidered to be applied
-		 * to the same solution (e.g., because this is a randomized method not sampling a whole neighborhood).
-		 */
-		RESULT_UNCHANGED_RECONSIDER = 2,
-		/** The solution has not been changed, and this method should not be reconsidered to be applied
-		 * to the same solution (even when this is a "shaking" method, e.g., because it is deterministic).
-		 */
-		RESULT_UNCHANGED_NORECONSIDER = 3,
-		/** The solution has changed and should be accepted without further comparing it to the incumbent,
-		 * i.e., even if it is worse.
-		 */
-		RESULT_CHANGED_ACCEPT = 4,
-		/** The solution has changed and should be discarded without further comparing it to the incumbent.
-		 * The method should then be reconsidered to be applied again to the same original solution.
-		 */
-		RESULT_CHANGED_DISCARD_RECONSIDER = 5,
-		/** The solution has changed and should be discarded without further comparing it to the incumbent.
-		 * The method should then not be reconsidered to be applied again to the same original solution.
-		 */
-		RESULT_CHANGED_DISCARD_NORECONSIDER = 6
+	struct Result {
+		int callCounter = 0;			///< Number, how often this method was called already for this solution
+		bool changed = true;	///< Did the solution change?
+		int better = -1;		///< Is this solution better than the incumbent?
+		int accept = -1;		///< Accept or reject the solution?
+		int reconsider = -1; 	///< Should this method be reconsidered when the solution has not changed?
+		/** Resets the structure to its default values and the given called value. */
+		void reset(int _callCounter = 0) {
+			callCounter = _callCounter; changed = true; better = accept = reconsider = -1;
+		}
 	};
 
 	/**
@@ -74,8 +59,12 @@ public:
 		assert(arity>=0 && arity<=1);
 	}
 
-	/** Applies the method to the given solution. The method returns the #Result of the application. */
-	virtual Result run(mh_solution *sol) const = 0;
+	/** Applies the method to the given solution.
+	 * \param sol pointer to the solution.
+	 * \param result pointer to a #Result structure, where information on the outcome and
+	 * 			how to further proceed may be provided; if this is not done, the solution
+	 * 			is handled in a default way. */
+	virtual void run(mh_solution *sol, SchedulerMethod::Result &result) const = 0;
 
 	/**
 	 * Virtual destructor.
@@ -92,7 +81,7 @@ public:
  *  the #Result of the application. */
 template<class SpecSol> class SolMemberSchedulerMethod : public SchedulerMethod {
 public:
-	Result (SpecSol::* pmeth)(int);		///< Member function pointer to a Result(int) function
+	void (SpecSol::* pmeth)(int, SchedulerMethod::Result &result);		///< Member function pointer to a Result(int) function
 	const int par;						///< Integer parameter passed to the method
 
 	/** Constructor initializing data.
@@ -102,15 +91,15 @@ public:
 	 * \param _arity the arity of the function, i.e., 0 if a solution is created from scratch and 1 if
 	 * the operator acts on a current solution.
 	 */
-	SolMemberSchedulerMethod(const std::string &_name, SchedulerMethod::Result (SpecSol::* _pmeth)(int),
+	SolMemberSchedulerMethod(const std::string &_name,  void (SpecSol::* _pmeth)(int, SchedulerMethod::Result &),
 			int _par, int _arity) :
 		SchedulerMethod(_name,_arity), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. The method returns true if the solution
 	 * has been changed and false otherwise.*/
-	SchedulerMethod::Result run(mh_solution *sol) const {
-		return ((static_cast<SpecSol *>(sol))->*pmeth)(par);
+	void run(mh_solution *sol, SchedulerMethod::Result &result) const {
+		((static_cast<SpecSol *>(sol))->*pmeth)(par,result);
 	}
 };
 

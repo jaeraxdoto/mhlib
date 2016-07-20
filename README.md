@@ -100,7 +100,12 @@ Besides the actual C++ library, mhlib also contains
 
 ### Version 4.5 ###
 
-- The GVNSScheduler class has been moved to an own module mh_gvns.h/C and renamed to GVNS.
+- The GVNSScheduler class has been moved to an own module mh_gvns.h/C and 
+  renamed to GVNS.
+- Class SchedulerMethod and the template SolMemberSchedulerMethod have been 
+  extended by a class SchedulerMethod::Results in which a call counter is
+  passed on one side and diverse flags can be passed back by a method
+  for controlling what the algorithm does with a certain result.  
 
 ### Version 4.4 ###
 
