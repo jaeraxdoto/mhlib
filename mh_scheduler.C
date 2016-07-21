@@ -143,11 +143,13 @@ void SchedulerWorker::run() {
 						break;
 				}
 
-				// run the scheduled method
+				// run the scheduled method *******************************************************
 				// scheduler->perfGenBeginCallback();
-				// tmpSolResult has been initialized by getNextMethod
+				// tmpSolContext.callCounter has been initialized by getNextMethod
+				tmpSolContext.incumbentSol = pop[0];
+				tmpSolResult.reset();
 				startTime[0] = mhcputime();
-				method->run(tmpSol,tmpSolResult);
+				method->run(tmpSol, tmpSolContext, tmpSolResult);
 				double methodTime = mhcputime() - startTime[0];
 
 				// augment missing information in tmpSolResult except tmpSOlResult.reconsider

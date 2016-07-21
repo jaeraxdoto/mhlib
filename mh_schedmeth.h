@@ -13,6 +13,35 @@
 
 namespace mh {
 
+
+//--------------------------- SchedulerMethodResult ------------------------------
+
+/** Structure indicating the result of the method application and what to do. Default values of -1
+ * are replaced by the Scheduler by 0 or 1 in a standard way. I.e., the solution is compared to
+ * the incumbent in order to determine if it is better, and only better solutions are always accepted.
+ * The reconsider flag, which is only important when the solution is not accepted, is chosen
+ * according to the metaheuristic strategy (e.g., VND: 0, VNS: 1).
+ */
+struct SchedulerMethodResult {
+	bool changed = true;	///< Did the solution change?
+	int better = -1;		///< Is this solution better than the incumbent?
+	int accept = -1;		///< Accept or reject the solution?
+	int reconsider = -1; 	///< Should this method be reconsidered when the solution has not changed?
+	/** Resets the structure to its default values. */
+	void reset() {
+		changed = true; better = accept = reconsider = -1;
+	}
+};
+
+//--------------------------- SchedulerMethodContext ------------------------------
+
+/** Structure that is passed when a SchedulerMethod is applied. It provides additional information
+ * from the calling context. */
+struct SchedulerMethodContext {
+	int callCounter = 0;		///< Number, how often this method was called already for this solution
+	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
+};
+
 //--------------------------- SchedulerMethod ------------------------------
 
 /**
@@ -25,26 +54,7 @@ public:
 	const std::string name;		///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method, which is currently either 0 or 1.
 	int idx;				///< Index in methodPool of Scheduler.
-
-	/** Structure indicating the result of the method application and what to do. Default values of -1
-	 * are replaced by the Scheduler by 0 or 1 in a standard way. I.e., the solution is compared to
-	 * the incumbent in order to determine if it is better, and only better solutions are always accepted.
-	 * The reconsider flag, which is only important when the solution is not accepted, is chosen
-	 * according to the metaheuristic strategy (e.g., VND: 0, VNS: 1).
-	 */
-	struct Result {
-		int callCounter = 0;			///< Number, how often this method was called already for this solution
-		bool changed = true;	///< Did the solution change?
-		int better = -1;		///< Is this solution better than the incumbent?
-		int accept = -1;		///< Accept or reject the solution?
-		int reconsider = -1; 	///< Should this method be reconsidered when the solution has not changed?
-		/** Resets the structure to its default values and the given called value. */
-		void reset(int _callCounter = 0) {
-			callCounter = _callCounter; changed = true; better = accept = reconsider = -1;
-		}
-	};
-
-	/**
+/**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
 	 * \param _name a string representing the method in an abbreviated form.
@@ -64,7 +74,7 @@ public:
 	 * \param result pointer to a #Result structure, where information on the outcome and
 	 * 			how to further proceed may be provided; if this is not done, the solution
 	 * 			is handled in a default way. */
-	virtual void run(mh_solution *sol, SchedulerMethod::Result &result) const = 0;
+	virtual void run(mh_solution *sol, SchedulerMethodContext &context, SchedulerMethodResult &result) const = 0;
 
 	/**
 	 * Virtual destructor.
@@ -81,7 +91,7 @@ public:
  *  the #Result of the application. */
 template<class SpecSol> class SolMemberSchedulerMethod : public SchedulerMethod {
 public:
-	void (SpecSol::* pmeth)(int, SchedulerMethod::Result &result);		///< Member function pointer to a Result(int) function
+	void (SpecSol::* pmeth)(int, SchedulerMethodContext &, SchedulerMethodResult &);		///< Member function pointer to a Result(int) function
 	const int par;						///< Integer parameter passed to the method
 
 	/** Constructor initializing data.
@@ -91,15 +101,16 @@ public:
 	 * \param _arity the arity of the function, i.e., 0 if a solution is created from scratch and 1 if
 	 * the operator acts on a current solution.
 	 */
-	SolMemberSchedulerMethod(const std::string &_name,  void (SpecSol::* _pmeth)(int, SchedulerMethod::Result &),
+	SolMemberSchedulerMethod(const std::string &_name, void (SpecSol::* _pmeth)(int,
+				SchedulerMethodContext &, SchedulerMethodResult &),
 			int _par, int _arity) :
 		SchedulerMethod(_name,_arity), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. The method returns true if the solution
 	 * has been changed and false otherwise.*/
-	void run(mh_solution *sol, SchedulerMethod::Result &result) const {
-		((static_cast<SpecSol *>(sol))->*pmeth)(par,result);
+	void run(mh_solution *sol, SchedulerMethodContext &context, SchedulerMethodResult &result) const {
+		((static_cast<SpecSol *>(sol))->*pmeth)(par, context, result);
 	}
 };
 

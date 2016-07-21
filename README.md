@@ -102,11 +102,16 @@ Besides the actual C++ library, mhlib also contains
 
 - The GVNSScheduler class has been moved to an own module mh_gvns.h/C and 
   renamed to GVNS.
-- Class SchedulerMethod and the template SolMemberSchedulerMethod have been 
-  extended by a class SchedulerMethod::Results in which a call counter is
-  passed on one side and diverse flags can be passed back by a method
-  for controlling what the algorithm does with a certain result.  
 
+- Class SchedulerMethod and the template SolMemberSchedulerMethod have been 
+  extended: Referenes to the new structures SchedulerMethodContext and
+  SchedulerMethodResults are passed when calling a SchedulerMethod.
+  In SchedulerMethodResult, the method can give back hints on the obtained
+  solution and how to further act with it, while SchedulerMethodContext
+  provides contextual information for the call such as a pointer to
+  the incumbent solution and a counter on how often the method has
+  already been called for this solution.
+ 
 ### Version 4.4 ###
 
 - Class mh_solution was made more abstract, all evolutionary

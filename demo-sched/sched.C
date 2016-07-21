@@ -114,7 +114,7 @@ public:
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly.
 	 */
-	void construct(int k, SchedulerMethod::Result &result) {
+	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		spendTime();
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
@@ -122,9 +122,9 @@ public:
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	void localimp(int k, SchedulerMethod::Result &result);
+	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result);
 	/** A simple shaking function: Invert k randomly chosen positions. */
-	void shaking(int k, SchedulerMethod::Result &result);
+	void shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result);
 };
 
 double oneMaxSol::objective()
@@ -136,7 +136,7 @@ double oneMaxSol::objective()
 	return sum;
 }
 
-void oneMaxSol::localimp(int k, SchedulerMethod::Result &result)
+void oneMaxSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	spendTime();
 	if (!data[k])
@@ -149,7 +149,7 @@ void oneMaxSol::localimp(int k, SchedulerMethod::Result &result)
 	result.changed = false; // solution not changed
 }
 
-void oneMaxSol::shaking(int k, SchedulerMethod::Result &result)
+void oneMaxSol::shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	spendTime();
 	for (int j=0; j<k; j++) {
@@ -191,7 +191,7 @@ public:
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	void construct(int k, SchedulerMethod::Result &result) {
+	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		spendTime();
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
@@ -199,7 +199,7 @@ public:
 	/** A simple local improvement function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	void localimp(int k, SchedulerMethod::Result &result) {
+	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// out() << "Obj before localimp = " << obj() << endl;
 		spendTime();
 		mutate(k);
@@ -208,7 +208,7 @@ public:
 	/** A simple shaking function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	void shaking(int k, SchedulerMethod::Result &result) {
+	void shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
 		// out() << "Obj before shaking = " << obj() << endl;

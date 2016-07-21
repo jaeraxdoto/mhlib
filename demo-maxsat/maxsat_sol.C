@@ -28,13 +28,13 @@ double MAXSATSol::objective()
 	return fulfilled;
 }
 
-void MAXSATSol::construct(int k, SchedulerMethod::Result &result) {
+void MAXSATSol::construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 	initialize(k);
 	// invalidate();	// call if you provide your own method and reevaluation needed
 	// result is kept at its default, i.e., is automatically derived
 }
 
-void MAXSATSol::localimp(int k, SchedulerMethod::Result &result)
+void MAXSATSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
 	if (!k_flip_localsearch(k))
@@ -44,25 +44,25 @@ void MAXSATSol::localimp(int k, SchedulerMethod::Result &result)
 
 #include<iostream>
 
-void MAXSATSol::randlocalimp(int k, SchedulerMethod::Result &result)
+void MAXSATSol::randlocalimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
-	MAXSATSol orig = *this;	// copy original
-	// try
+	MAXSATSol *orig = &MAXSATSol::cast(*context.incumbentSol); // pointer to copy of initial solution
+	// try length times to improve solutions by k-bit flips:
 	for (int i=0; i<length; i++) {
 		mutate_flip(k);
-		if (this->isBetter(orig))
+		if (this->isBetter(*orig))
 			return;	// better solution found, return with it
-		copy(orig);
+		copy(*orig);
 	}
 	// no better solution found in length iterations, but maybe next time:
 	result.changed = 0; // original solution has been restored
 	// Reconsider this neighborhood in the VND 10 times:
-	if (result.callCounter < 10)
+	if (context.callCounter < 10)
 		result.reconsider = 1; // this neighborhood should be reconsidered for this solution
 }
 
-void MAXSATShakingMethod::run(mh_solution *sol, SchedulerMethod::Result &result) const {
+void MAXSATShakingMethod::run(mh_solution *sol, SchedulerMethodContext &context, SchedulerMethodResult &result) const {
 	MAXSATSol::cast(*sol).mutate_flip(par);
 	// sol->invalidate();	// call if you provide your own method and reevaluation needed
 	// result is kept at its default, i.e., is automatically derived

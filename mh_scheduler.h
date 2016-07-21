@@ -62,10 +62,10 @@ const int maxStackedMethods=4;
  * This struct stores all the relevant data of the outcome of a performed
  * optimization method in order to have access to the result later.
  */
-struct SchedulerMethodResult {
+struct SchedulerMethodApplication {
 	SchedulerMethod* method;	///< The method that has been applied.
 
-	SchedulerMethod::Result result;	///< The outcome of the application.
+	SchedulerMethodResult result;	///< The outcome of the application.
 
 	/**
 	 * The absolute difference in the objective values between the incumbent solution and
@@ -76,7 +76,7 @@ struct SchedulerMethodResult {
 	/**
 	 * Constructor initializing data.
 	 */
-	SchedulerMethodResult(SchedulerMethod* method, const SchedulerMethod::Result &result, double objDiff) :
+	SchedulerMethodApplication(SchedulerMethod* method, const SchedulerMethodResult &result, double objDiff) :
 		method(method), result(result), objDiff(objDiff) {
 	}
 };
@@ -115,8 +115,11 @@ public:
 	 */
 	mh_solution *tmpSol;
 
+	/** The context which is passed to the SchedulerMethod when calling it for tmpSol. */
+	SchedulerMethodContext tmpSolContext;
+
 	/** Indicates the outcome of the last method application w.r.t. tmpSol. */
-	SchedulerMethod::Result tmpSolResult;
+	SchedulerMethodResult tmpSolResult;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which

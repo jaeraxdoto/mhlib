@@ -20,7 +20,7 @@ namespace mh {
 
 using namespace std;
 
-int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt",1,0,4);
+int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt",0,0,4);
 
 bool_param schlirep("schlirep","GVNS: perform locimp nhs repeatedly",1);
 
@@ -73,7 +73,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 	if (!constheu->empty() && (worker->method == nullptr || constheu->hasFurtherMethod())) {
 		worker->method = constheu->select();
 		if(worker->method != nullptr) {
-			worker->tmpSolResult.reset(constheu->getCallCounter());
+			worker->tmpSolContext.callCounter=constheu->getCallCounter();
 			return;
 		}
 	}
@@ -89,7 +89,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		// choose next local improvement method
 		worker->method = locimpnh[worker->id]->select();
 		if (worker->method != nullptr) {
-			worker->tmpSolResult.reset(locimpnh[worker->id]->getCallCounter());
+			worker->tmpSolContext.callCounter=locimpnh[worker->id]->getCallCounter();
 			return;
 		}
 		else
@@ -112,7 +112,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != nullptr) {
-			worker->tmpSolResult.reset(shakingnh[worker->id]->getCallCounter());
+			worker->tmpSolContext.callCounter=shakingnh[worker->id]->getCallCounter();
 			worker->startTime[1] = (_wctime ? (mhwctime() - timStart) : mhcputime());
 			return;
 		}

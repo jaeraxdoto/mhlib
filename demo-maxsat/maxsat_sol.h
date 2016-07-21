@@ -53,11 +53,11 @@ public:
 	double objective() override;
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly. */
-	void construct(int k, mh::SchedulerMethod::Result &result);
+	void construct(int k, mh::SchedulerMethodContext &context, mh::SchedulerMethodResult &result);
 	/** A best improvement local search in the k-flip neighborhood. */
-	void localimp(int k, mh::SchedulerMethod::Result &result);
+	void localimp(int k, mh::SchedulerMethodContext &context, mh::SchedulerMethodResult &result);
 	/** A random sampling of length solutions in the k-flip neighborhood. */
-	void randlocalimp(int k, mh::SchedulerMethod::Result &result);
+	void randlocalimp(int k, mh::SchedulerMethodContext &context, mh::SchedulerMethodResult &result);
 };
 
 /** This class demonstrates how a SchedulerMethod may alternatively be implemented
@@ -73,7 +73,7 @@ public:
 	}
 	/** Apply the method for the given solution, passing par. The method returns true if the solution
 	 * has been changed and false otherwise.*/
-	void run(mh::mh_solution *sol, mh::SchedulerMethod::Result &result) const override;
+	void run(mh::mh_solution *sol, mh::SchedulerMethodContext &context, mh::SchedulerMethodResult &result) const override;
 };
 
 } // end of namespace maxsat
