@@ -40,6 +40,7 @@ struct SchedulerMethodResult {
 struct SchedulerMethodContext {
 	int callCounter = 0;		///< Number, how often this method was called already for this solution
 	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
+	int context = 0; ///< Int that can be set by the SchedulerMethod and is preserved between the calls 
 };
 
 //--------------------------- SchedulerMethod ------------------------------
