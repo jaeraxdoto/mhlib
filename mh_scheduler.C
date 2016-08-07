@@ -149,7 +149,7 @@ void SchedulerWorker::run() {
 				methodContext->incumbentSol = pop[0];
 				tmpSolResult.reset();
 				startTime[0] = mhcputime();
-				method->run(tmpSol, methodContext, tmpSolResult);
+				method->run(tmpSol, *methodContext, tmpSolResult);
 				double methodTime = mhcputime() - startTime[0];
 
 				// augment missing information in tmpSolResult except tmpSOlResult.reconsider

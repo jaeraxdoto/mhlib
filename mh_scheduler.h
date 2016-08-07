@@ -260,9 +260,9 @@ public:
 
 	/** Returns the SchedulerMethodContext object
 	 * for the last selected method, to be passed when calling the method. */
-	SchedulerMethodContext *getMethodContext() const {
+	SchedulerMethodContext *getMethodContext() {
 		assert(lastMethod != -1);
-		return methodContextList[lastMethod];
+		return &methodContextList[lastMethod];
 	}
 };
 
