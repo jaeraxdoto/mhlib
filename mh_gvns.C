@@ -73,7 +73,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 	if (!constheu->empty() && (worker->method == nullptr || constheu->hasFurtherMethod())) {
 		worker->method = constheu->select();
 		if(worker->method != nullptr) {
-			worker->tmpSolContext.callCounter=constheu->getCallCounter();
+			worker->methodContext=constheu->getMethodContext();
 			return;
 		}
 	}
@@ -89,7 +89,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		// choose next local improvement method
 		worker->method = locimpnh[worker->id]->select();
 		if (worker->method != nullptr) {
-			worker->tmpSolContext.callCounter=locimpnh[worker->id]->getCallCounter();
+			worker->methodContext=locimpnh[worker->id]->getMethodContext();
 			return;
 		}
 		else
@@ -112,7 +112,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		}
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != nullptr) {
-			worker->tmpSolContext.callCounter=shakingnh[worker->id]->getCallCounter();
+			worker->methodContext=shakingnh[worker->id]->getMethodContext();
 			worker->startTime[1] = (_wctime ? (mhwctime() - timStart) : mhcputime());
 			return;
 		}

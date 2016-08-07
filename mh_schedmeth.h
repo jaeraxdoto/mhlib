@@ -36,11 +36,12 @@ struct SchedulerMethodResult {
 //--------------------------- SchedulerMethodContext ------------------------------
 
 /** Structure that is passed when a SchedulerMethod is applied. It provides additional information
- * from the calling context. */
+ * from the calling context and the possibility to store user-defined information from one call
+ * to the next. */
 struct SchedulerMethodContext {
 	int callCounter = 0;		///< Number, how often this method was called already for this solution
 	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
-	int context = 0; ///< Int that can be set by the SchedulerMethod and is preserved between the calls 
+	int userInt = 0; ///< User-defined int that can be set by the SchedulerMethod and is preserved between successive calls. For method-specific purposes.
 };
 
 //--------------------------- SchedulerMethod ------------------------------

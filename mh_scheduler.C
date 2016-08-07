@@ -145,11 +145,11 @@ void SchedulerWorker::run() {
 
 				// run the scheduled method *******************************************************
 				// scheduler->perfGenBeginCallback();
-				// tmpSolContext.callCounter has been initialized by getNextMethod
-				tmpSolContext.incumbentSol = pop[0];
+				// methodContext.callCounter has been initialized by getNextMethod
+				methodContext->incumbentSol = pop[0];
 				tmpSolResult.reset();
 				startTime[0] = mhcputime();
-				method->run(tmpSol, tmpSolContext, tmpSolResult);
+				method->run(tmpSol, methodContext, tmpSolResult);
 				double methodTime = mhcputime() - startTime[0];
 
 				// augment missing information in tmpSolResult except tmpSOlResult.reconsider
@@ -411,20 +411,20 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 				lastSeqRep = activeSeqRep.begin();
 		}
 		lastMethod = *lastSeqRep;
-		callCounter[lastMethod]++;
+		methodContextList[lastMethod].callCounter++;
 		return scheduler->methodPool[methodList[lastMethod]];
 	case MSSequentialOnce:
 		if (lastMethod == size()-1)
 			return nullptr;
 		else
 			lastMethod++;
-		callCounter[lastMethod]++;
+		methodContextList[lastMethod].callCounter++;
 		return scheduler->methodPool[methodList[lastMethod]];
 	case MSRandomRep: {
 		if (firstActiveMethod == size())
 			return nullptr;
 		int r = random_int(firstActiveMethod,methodList.size()-1);
-		callCounter[r]++;
+		methodContextList[r].callCounter++;
 		return scheduler->methodPool[methodList[r]];
 	}
 	case MSRandomOnce: {
@@ -435,9 +435,9 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		int r = random_int(lastMethod, methodList.size()-1);
 		if (r != lastMethod) {
 			swap(methodList[lastMethod],methodList[r]);
-			swap(callCounter[lastMethod],callCounter[r]);
+			swap(methodContextList[lastMethod],methodContextList[r]);
 		}
-		callCounter[lastMethod]++;
+		methodContextList[lastMethod].callCounter++;
 		return scheduler->methodPool[methodList[lastMethod]];
 	}
 	case MSSelfadaptive:
@@ -461,7 +461,8 @@ void SchedulerMethodSelector::reset(bool hard) {
 	lastMethod = -1;
 	if (hard) { // also enable disabled methods
 		firstActiveMethod = 0;
-		callCounter.assign(size(),0);
+		for (auto &c : methodContextList)
+			c.callCounter = 0;
 		if (strategy==MSSequentialRep) {
 			activeSeqRep.clear();
 			for (int i=0; i<size(); i++)

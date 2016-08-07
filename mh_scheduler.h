@@ -96,6 +96,7 @@ public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
 	int id;							///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
+	SchedulerMethodContext* methodContext;		///< Pointer to the SchedulerMethodContext object associated to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
 	std::array<int,maxStackedMethods> startTime;	///< Time when the last method call has been started.
 	mh_randomNumberGenerator* rng;  ///< The random number generator used in this thread.
@@ -115,9 +116,6 @@ public:
 	 */
 	mh_solution *tmpSol;
 
-	/** The context which is passed to the SchedulerMethod when calling it for tmpSol. */
-	SchedulerMethodContext tmpSolContext;
-
 	/** Indicates the outcome of the last method application w.r.t. tmpSol. */
 	SchedulerMethodResult tmpSolResult;
 
@@ -132,6 +130,7 @@ public:
 		scheduler = _scheduler;
 		id=_id,
 		method = nullptr;
+		methodContext = nullptr;
 		tmpSol = sol->clone();
 		for (auto &&t : startTime) t = 0;
 		rng = _rng;
@@ -198,7 +197,7 @@ protected:
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
 	std::vector<int> methodList; 		///< List of Indices of the methods in the methodPool.
-	std::vector<int> callCounter;		///< Counter how often the method has been called for the current solution
+	std::vector<SchedulerMethodContext> methodContextList;	///< The MethodContext objects associated with the methods for the current thread, to be passed when calling a method.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
@@ -220,7 +219,7 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(int idx) {
 		methodList.push_back(idx);
-		callCounter.push_back(0);
+		methodContextList.push_back(SchedulerMethodContext());
 		if (strategy==MSSequentialRep)
 			activeSeqRep.insert(methodList.size()-1);
 	}
@@ -248,7 +247,8 @@ public:
 		return lastMethod != -1;
 	}
 
-	/** Selects a method according to the chosen selection strategy from the methodList.
+	/** Selects a method according to the chosen selection strategy from
+	 * the methodList.
 	 */
 	SchedulerMethod *select();
 
@@ -258,11 +258,11 @@ public:
 	/** Returns the last selected method or nullptr if none has been selected yet. */
 	SchedulerMethod *getLastMethod();
 
-	/** Returns the callCounter, i.e., how often this method has already been called for the
-	 * current solution, for the last selected method. */
-	int getCallCounter() const {
+	/** Returns the SchedulerMethodContext object
+	 * for the last selected method, to be passed when calling the method. */
+	SchedulerMethodContext *getMethodContext() const {
 		assert(lastMethod != -1);
-		return callCounter[lastMethod];
+		return methodContextList[lastMethod];
 	}
 };
 
