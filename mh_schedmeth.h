@@ -42,6 +42,22 @@ struct SchedulerMethodContext {
 	int callCounter = 0;		///< Number, how often this method was called already for this solution
 	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
 	int userInt = 0; ///< User-defined int that can be set by the SchedulerMethod and is preserved between successive calls. For method-specific purposes.
+	/** Abstract base class for arbitrary user data that can be preserved from one method call
+	    to the next. */
+	class UserData {
+	public:
+		virtual ~UserData() {}
+	};
+	/** Pointer to a class derived from UserData, possibly created and
+	 * maintained by the method to preserve further data besides userInt between
+	 * successive calls. If an object exists, it will finally be deleted by
+	 * the destructor of the SchedulerMethodContext. */
+	UserData *userData = nullptr;
+	/** Destructor deletes userData object if one is left. */
+	~SchedulerMethodContext() {
+			if (userData != nullptr)
+					delete userData;
+	}
 };
 
 //--------------------------- SchedulerMethod ------------------------------
