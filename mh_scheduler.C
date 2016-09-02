@@ -223,7 +223,7 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 void Scheduler::run() {
 	checkPopulation();
 
-	timStart = (_wctime ? mhwctime() : mhcputime());
+	timStart = mhtime(_wctime);
 
 	writeLogHeader();
 	writeLogEntry(false,true,"*");
@@ -272,7 +272,7 @@ bool Scheduler::terminate() {
 		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
 		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
 					getBestSol()->obj()<=tobj(pgroup))) ||
-		(ttime(pgroup)>=0 && ttime(pgroup)<=((_wctime ? mhwctime() : mhcputime()) - timStart))) {
+		(ttime(pgroup)>=0 && ttime(pgroup)<=(mhtime(_wctime) - timStart))) {
 		finish = true;
 		return true;
 	}
@@ -301,7 +301,7 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 		sumIter+=nIter[k];
 		sumTime+=totNetTime[k];
 	}
-	ostr << "total num of iterations:\t" << sumIter << endl;
+	ostr << "total num of completed iterations:\t" << sumIter << endl;
 	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
 	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
 	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
@@ -378,7 +378,7 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
 		if (ltime(pgroup))
-			logstr.write((_wctime ? (mhwctime() - timStart) : mhcputime()));
+			logstr.write(mhtime(_wctime));
 		if (lmethod(pgroup))
 			logstr.write(method);
 		if (finishEntry)

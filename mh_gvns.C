@@ -113,7 +113,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		worker->method = shakingnh[worker->id]->select();
 		if (worker->method != nullptr) {
 			worker->methodContext=shakingnh[worker->id]->getMethodContext();
-			worker->startTime[1] = (_wctime ? (mhwctime() - timStart) : mhcputime());
+			worker->startTime[1] = _wctime ? mhwctime() : mhcputime();
 			return;
 		}
 	}
@@ -248,7 +248,8 @@ void GVNS::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved)
 	SchedulerMethod *sm = shakingnh[worker->id]->getLastMethod();
 	if (sm != nullptr) {
 		int idx=shakingnh[worker->id]->getLastMethod()->idx;
-		totTime[idx] += ((_wctime ? (mhwctime() - timStart) : mhcputime()) - worker->startTime[1]);
+		totTime[idx] += (_wctime ? mhwctime() : mhcputime()) - 
+				worker->startTime[1]; 
 		nIter[idx]++;
 		// if the applied method was successful, update the success-counter and the total obj-gain
 		if (improved) {

@@ -1,4 +1,4 @@
-/*! \file mh_scheduler.h
+/*! \file mh_gvns.h
  \brief A flexible Generalized Variable Neighborhood Search framework based on the general scheduler
  implemented in mh_scheduler.h. This framework is also suitable for realizing GRASP, VLNS, ILS, IG
  approaches.

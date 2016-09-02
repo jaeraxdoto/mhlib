@@ -98,7 +98,7 @@ public:
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
 	SchedulerMethodContext* methodContext;		///< Pointer to the SchedulerMethodContext object associated to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
-	std::array<int,maxStackedMethods> startTime;	///< Time when the last method call has been started.
+	std::array<double,maxStackedMethods> startTime;	///< Time when the last method call has been started.
 	mh_randomNumberGenerator* rng;  ///< The random number generator used in this thread.
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
