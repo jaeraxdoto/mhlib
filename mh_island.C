@@ -58,7 +58,7 @@ void islandModelEA::run()
 	writeLogEntry();
 	logstr.flush();
 	//pop->bestChrom()->write(cout);
-	if (!terminate())
+	if (!terminate()) {
 		for(;;)
 		{
 			performIteration();
@@ -80,6 +80,7 @@ void islandModelEA::run()
 			}
 		}
 		logstr.flush();
+	}
 }
 
 void islandModelEA::performIteration()

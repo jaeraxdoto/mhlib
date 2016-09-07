@@ -47,7 +47,7 @@ void SchedulerWorker::run() {
 		pop.update(1,pop[0]);			// Initialize pop[1] with a copy of pop[0]
 		setRandomNumberGenerator(rng);	// set random number generator pointer to the one of this thread
 
-		if (!scheduler->terminate())
+		if (!scheduler->terminate()) {
 			for(;;) {
 				scheduler->checkPopulation();
 
@@ -198,6 +198,7 @@ void SchedulerWorker::run() {
 				scheduler->cvOrderThreads.notify_all();
 				scheduler->mutexOrderThreads.unlock();
 			}
+		}
 	}
 	catch (...) {
 		// Pass any exceptions to main thread
