@@ -1,0 +1,6 @@
+s3v70c800-1.cnf
+s3v70c800-2.cnf
+s3v70c800-3.cnf
+s3v70c800-4.cnf
+s3v70c800-5.cnf
+s3v70c800-6.cnf

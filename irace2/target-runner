@@ -1,0 +1,69 @@
+#!/bin/bash
+###############################################################################
+# This target runner is to tune our maxsat demo.
+#
+# PARAMETERS:
+# $1 is the instance name  
+# $2 is the candidate number
+# The rest ($* after `shift 2') are parameters to the run of the executable
+#
+# RETURN VALUE:
+# This hook should print a single numerical value (the value to be minimized)
+###############################################################################
+
+# Path to the executable:
+EXE=../../demo-maxsat/maxsat
+
+# What "fixed" parameters should be always passed to the executable?
+FIXED_PARAMS="ttime 3 titer 9999999"
+
+# The instance name and the candidate id are the first parameters
+CANDIDATEID=$1
+INSTANCEID=$2
+SEED=$3
+INSTANCE=$4
+
+# All other parameters are the candidate parameters to be passed to the executable
+shift 4 || exit 1
+CAND_PARAMS=$*
+
+STDOUT="c${CANDIDATEID}-${INSTANCEID}.stdout"
+STDERR="c${CANDIDATENUM}${INSTANCEID}.stderr"
+
+# In case of error, we print the current time:
+error() {
+    echo "`TZ=UTC date`: error: $@" >&2
+    exit 1
+}
+
+if [ ! -x "${EXE}" ]; then
+    error "${EXE}: not found or not executable (pwd: $(pwd))"
+fi
+# Now we can call the executable by building a command line with all parameters for it
+$EXE ${FIXED_PARAMS} ifile $INSTANCE seed $SEED ${CAND_PARAMS} 1> $STDOUT 2> $STDERR
+
+
+# The output of the candidate $CANDIDATEID should be written in the file 
+# c${CANDIDATEID}-${INSTANCEID}.stdout (see hook run for the executable). Does this file exist?
+if [ ! -s "${STDOUT}" ]; then
+    # In this case, the file does not exist. Let's exit with a value 
+    # different from 0. In this case irace will stop with an error.
+    error "${STDOUT}: No such file or directory"
+fi
+
+# Ok, the file exist. It contains the whole output written by the executable.
+# This script should return a single numerical value, the best objective 
+# value found by this run of the executable. The following line is to extract
+# this value from the file containing the executable's output.
+#COST=$(cat ${STDOUT} | grep -o -E 'Best [-+0-9.e]+' | cut -d ' ' -f2)
+COST=$(cat ${STDOUT} | grep -e '^best objective value:[[:space:]]*[+-]\?[0-9]' | cut -f2)
+if ! [[ "$COST" =~ ^[-+0-9.e]+$ ]] ; then
+    error "${STDOUT}: Output is not a number"
+fi
+
+# Print it!
+echo "$COST"
+
+# We are done with our duty. Clean files and exit with 0 (no error).
+rm -f "${STDOUT}" "${STDERR}"
+exit 0

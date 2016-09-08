@@ -1,0 +1,54 @@
+###################################################### -*- mode: r -*- #####
+## Scenario setup for Iterated Race (iRace).
+############################################################################
+
+## File that contains the description of the parameters.
+parameterFile = "./parameters.txt"
+
+## Directory where the programs will be run.
+execDir = "./exec"
+
+## The script called for each configuration that launches the program to be
+## tuned.  See templates/target-runner.tmpl
+targetRunner = "./target-runner"
+
+## Directory where training instances are located, either absolute or relative
+## to current directory.
+trainInstancesDir = "../demo-maxsat/inst/"
+
+## File with a list of instances and (optionally) parameters.
+## If empty or NULL, do not use a file.
+trainInstancesFile = "./training.txt"
+
+## The maximum number of runs (invocations of targetRunner) that will
+## performed. It determines the (maximum) budget of experiments for the tuning.
+maxExperiments = 300
+
+## Indicates the number of decimal places to be considered for the
+## real parameters.
+digits = 2
+
+## A file containing a list of initial configurations.
+## If empty or NULL, do not use a file.
+# configurationsFile = "default.txt"
+
+## File containing a list of logical expressions that cannot be true
+## for any evaluated configuration. If empty or NULL, do not use a file.
+# forbiddenFile = "forbidden.txt"
+
+## Directory where testing instances are located, either absolute or relative
+## to current directory.
+testInstancesDir = "../demo-maxsat/inst/"
+
+## File containing a list of test instances and optionally additional
+## parameters for them.  If empty or NULL, do not use a file.
+## Should actually not be the training set in a real application!
+testInstancesFile = "training.txt"
+
+## Number of elite configurations returned by irace that will be tested
+## if test instances are provided.
+testNbElites = 1
+
+## Enable/disable testing the elite configurations found at each iteration.
+testIterationElites = 1
+
