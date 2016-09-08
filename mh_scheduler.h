@@ -7,8 +7,10 @@
 #define MH_SCHEDULER_H
 
 #include <assert.h>
+#include <array>
 #include <vector>
 #include <string>
+#include <set>
 #include "mh_advbase.h"
 #include "mh_pop.h"
 #include "mh_c11threads.h"
@@ -33,62 +35,40 @@ extern int_param schthreads;
 extern bool_param schsync;
 
 /** \ingroup param
+ * If set then the Scheduler's method name is also appended to each log entry.
+ */
+extern bool_param lmethod;
+
+
+/** \ingroup param
  * Migration probability for a thread in the scheduler to update its incumbent solution after a major
- * shaking iteration by copying the global best solution.
+ * iteration by copying the global best solution.
  * If the best global solution is better than the incumbent solution,
  * it becomes the thread's new incumbent solution.
  */
 extern double_param schpmig;
 
-/** \ingroup param
- * If set then the Scheduler's method name is also appended to each log entry.
+/** The maximum number of possible "embedded" method applications. E.g., in GVNS,
+ * the VND's methods are embedded in the outer VNS shaking methods and
+ * the number of embedded method applications is 2. The individual VND or VNS
+ * methods are scheduled sequentially and therefore do not count as embedded here.
+ * Used for calculating separate timings, storing individual incumbents etc.
  */
-extern bool_param lmethod;
-
-/** \ingroup param
- * GVNS selection strategy for local search neighborhoods.
- * 	 * 0 MSSequentialRep: choose one after the other in the given order, then restarting again with first
-	 * 1 MSSequentialOnce: choose one after the other, each just once, and then return nullptr
-	 * 2 MSRandomRep: uniform random selection with repetitions
-	 * 3 MSRandomOnce: uniform random selection, but each just once; finally return nullptr
-	 * 4 MSSelfadaptive: random selection with self-adaptive probabilities */
-extern int_param schlisel;
-
-/** \ingroup param
- * GVNS: If set, the local improvement methods are repeatedly performed until a locally optimum solution
- * is reached, as in classical VND. Otherwise, each local improvement neighborhood is only
- * performed once for each constructed solution and within each shaking iteration.
- */
-extern bool_param schlirep;
+const int maxStackedMethods=4;
 
 //--------------------------- MethodApplicationResult ------------------------------
 
 /**
- * This struct stores all the relevant data in the context of the application of a specific method
- * in order to have access to the result later.
+ * This struct stores all the relevant data of the outcome of a performed
+ * optimization method in order to have access to the result later.
  */
-struct SchedulerMethodResult {
+struct SchedulerMethodApplication {
+	SchedulerMethod* method;	///< The method that has been applied.
+
+	SchedulerMethodResult result;	///< The outcome of the application.
 
 	/**
-	 * Stores the method that has been applied.
-	 */
-	SchedulerMethod* method;
-
-	/**
-	 * Enum for the different outcomes for the objective of a solution after applying
-	 * a method in comparison to the original objective value.
-	 */
-	enum ObjChange {
-		OBJ_WORSE = -1,
-		OBJ_SAME = 0,
-		OBJ_BETTER = 1
-	};
-
-	/** Indicates the result of the last method call w.r.t. tmpSol */
-	ObjChange solObjChange;
-
-	/**
-	 * Stores the absolute difference in the objective values between the incumbent solution and
+	 * The absolute difference in the objective values between the incumbent solution and
 	 * the one obtained by the application of this method.
 	 */
 	double objDiff;
@@ -96,10 +76,8 @@ struct SchedulerMethodResult {
 	/**
 	 * Constructor initializing data.
 	 */
-	SchedulerMethodResult(SchedulerMethod* _method, ObjChange _solObjChange, double _objDiff) {
-		method = _method;
-		solObjChange = _solObjChange;
-		objDiff = _objDiff;
+	SchedulerMethodApplication(SchedulerMethod* method, const SchedulerMethodResult &result, double objDiff) :
+		method(method), result(result), objDiff(objDiff) {
 	}
 };
 
@@ -109,19 +87,18 @@ struct SchedulerMethodResult {
  * SchedulerWorker that runs as own thread spawned by the scheduler.
  * The class contains in particular pointers to the Scheduler, SchedulerMethod and
  * the workers own population to which the method is to be applied.
- * Furthermore, the class maintains a vector for storing MethodApplicationResult entries.
+ * Furthermore, the class maintains a vector for storing SchedulerMethodResult entries.
  * Currently, this vector is only used in the context of thread synchronization to keep track
  * of all results until the update of the global data structures is performed for all threads.
  */
 class SchedulerWorker {
 public:
 	class Scheduler* scheduler;		///< Pointer to the scheduler this worker belongs to.
-	unsigned int id;				///< Index of the worker in the scheduler's worker vector.
+	int id;							///< Index of the worker in the scheduler's worker vector.
 	SchedulerMethod* method;		///< Pointer to the method currently scheduled for this worker.
+	SchedulerMethodContext* methodContext;		///< Pointer to the SchedulerMethodContext object associated to the method currently scheduled for this worker.
 	std::thread thread;				///< Thread doing the work performing the method.
-	double startTime;				///< Time when the last method call has been started.
-
-	double shakingStartTime;		///< CPUtime when this worker has started the last shaking operation.
+	std::array<double,maxStackedMethods> startTime;	///< Time when the last method call has been started.
 	mh_randomNumberGenerator* rng;  ///< The random number generator used in this thread.
 
 	bool isWorking;				///< Indicates if the thread is currently in the working phase, i.e. a method has been assigned to it (only meaningful, if #schsync is set to true).
@@ -139,8 +116,8 @@ public:
 	 */
 	mh_solution *tmpSol;
 
-	/** Indicates the result of the last method call w.r.t. tmpSol */
-	SchedulerMethodResult::ObjChange tmpSolObjChange;
+	/** Indicates the outcome of the last method application w.r.t. tmpSol. */
+	SchedulerMethodResult tmpSolResult;
 
 	/**
 	 * Constructs a new worker object for the given scheduler, method and solution, which
@@ -148,17 +125,15 @@ public:
 	 * The thread running this worker will use the value of threadSeed as random seed for
 	 * the random number generator.
 	 */
-	SchedulerWorker(class Scheduler* _scheduler, unsigned int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
+	SchedulerWorker(class Scheduler* _scheduler, int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
 		id=_id,
 		method = nullptr;
-		startTime = 0;
+		methodContext = nullptr;
 		tmpSol = sol->clone();
-		tmpSolObjChange = SchedulerMethodResult::OBJ_SAME;
-		shakingStartTime = 0;
+		for (auto &&t : startTime) t = 0;
 		rng = _rng;
-
 		isWorking = false;
 		terminate = false;
 	}
@@ -200,27 +175,41 @@ public:
 class SchedulerMethodSelector {
 
 public:
-	/** Different strategies for selecting a method from a method pool:
-	 * - MSSequential: choose one after the other in the given order, then restarting again with first
-	 * - MSSequentialOnce: choose one after the other, each just once, and then return nullptr
-	 * - MSRandom: uniform random selection
-	 * - MSRandomOnce: uniform random selection, but each just once; finally return nullptr
-	 * - MSSelfadaptive: random selection with self-adaptive probabilities */
-	enum MethodSelStrat { MSSequentialRep, MSSequentialOnce, MSRandomRep, MSRandomOnce, MSSelfadaptive };
+	/** Strategies for selecting a method from a method pool. */
+	enum MethodSelStrat {
+		/** Choose one method after the other in the given order, then restarting again with all methods
+		 * that have not been disabled by doNotReconsiderLastMethod; return nullptr when no method
+		 * remains. */
+		MSSequentialRep,
+		/** Choose one method after the other, each just once, and then return nullptr. */
+		MSSequentialOnce,
+		/** Uniform random selection. Methods for which doNotReconsiderLastMethod are disabled
+		 * and not reconsidered. When no method remains, nullptr is returned. */
+		MSRandomRep,
+		/** Uniform random selection, but each just once; finally return nullptr. */
+		MSRandomOnce,
+		/** Random selection with self-adaptive probabilities. */
+		MSSelfadaptive
+	};
 
 protected:
 
 	Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
-	std::vector<unsigned int> methodList; 	///< List of Indices of the methods in the methodPool.
+	std::vector<int> methodList; 		///< List of Indices of the methods in the methodPool.
+	std::vector<SchedulerMethodContext> methodContextList;	///< The MethodContext objects associated with the methods for the current thread, to be passed when calling a method.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
+	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
+	std::set<int> activeSeqRep;	///< Active methods indices in case of MSSequentialRep. Not used by other strategies.
+	std::set<int>::iterator lastSeqRep; /// Last method iterator in activeSeqRep. Only used by MSSequtionRep.
 
 public:
 
 	/** Initialize SchedulerMethodSelector for given strategy. */
 	SchedulerMethodSelector(Scheduler *scheduler_, MethodSelStrat strategy_)
-		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1) {
+		: scheduler(scheduler_), strategy(strategy_), lastMethod(-1), firstActiveMethod(0),
+		  lastSeqRep(activeSeqRep.end()) {
 	}
 
 	/** Cleanup. */
@@ -228,46 +217,53 @@ public:
 	}
 
 	/** Adds a the method with the given index to the methodList. */
-	void add(unsigned int idx) {
+	void add(int idx) {
 		methodList.push_back(idx);
+		methodContextList.push_back(SchedulerMethodContext());
+		if (strategy==MSSequentialRep)
+			activeSeqRep.insert(methodList.size()-1);
 	}
 
 	/** Returns the number of methods contained in the methodList. */
-	unsigned int size() {
+	int size() const {
 		return methodList.size();
 	}
 
 	/** Returns true if the methodList is empty. */
-	bool empty() {
+	bool empty() const {
 		return methodList.empty();
 	}
 
-	/** Returns the i-th method in the methodList. */
-	unsigned int operator[](unsigned int i) {
-		return methodList[i];
-	}
+	/** Resets selector, lastMethod is set to none (= -1).
+	 * \param hard if true, also disabled methods are enabled and callCounter are reset.
+	 * Typically called when a new incumbent solution is obtained to reconsider all methods. */
+	void reset(bool hard);
 
-	/** Resets lastMethod to none (= -1). */
-	void resetLastMethod() {
-		lastMethod = -1;
-	}
+	/** Mark the last method to not be reconsidered until reset() is called. */
+	void doNotReconsiderLastMethod();
 
 	/* Returns true if a previously applied method is known. */
 	bool hasLastMethod() {
 		return lastMethod != -1;
 	}
 
-	/** Selects a method according to the chosen selection strategy from the methodList.
+	/** Selects a method according to the chosen selection strategy from
+	 * the methodList.
 	 */
-	virtual SchedulerMethod *select();
+	SchedulerMethod *select();
 
 	/** Returns true if at least one more method can be returned. */
-	virtual bool hasFurtherMethod() {
-		return lastMethod < int(methodList.size())-1;
-	}
+	bool hasFurtherMethod() const;
 
 	/** Returns the last selected method or nullptr if none has been selected yet. */
 	SchedulerMethod *getLastMethod();
+
+	/** Returns the SchedulerMethodContext object
+	 * for the last selected method, to be passed when calling the method. */
+	SchedulerMethodContext *getMethodContext() {
+		assert(lastMethod != -1);
+		return &methodContextList[lastMethod];
+	}
 };
 
 //--------------------------- Scheduler ------------------------------
@@ -288,9 +284,9 @@ protected:
 	/* Statistical data on methods */
 	std::vector<int> nIter;			///< Number of iterations of the particular methods.
 	std::vector<double> totTime;	///< Total time spent running the particular methods.
-	std::vector<double> totNetTime;	///< Total netto time spent for the method, excl. VND in case of shaking
-	std::vector<int> nSuccess;			///< Number of successful iterations of the particular methods.
-	std::vector<double> sumGain;			///< Total gain achieved by the particular methods.
+	std::vector<double> totNetTime;	///< Total netto time spent for the method (e.g., excl. VND in case of shaking)
+	std::vector<int> nSuccess;		///< Number of successful iterations of the particular methods.
+	std::vector<double> sumGain;	///< Total gain achieved by the particular methods.
 
 	/**
 	 * Optional function pointer to a callback function passed by the interface.
@@ -335,7 +331,7 @@ protected:
 	 */
 	std::condition_variable cvNoMethodAvailable;
 
-	unsigned int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
+	int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
 	bool _schsync;			///< Mirrored mh parameter #schsync for performance reasons.
 	int _titer;							///< Mirrored mh parameter #titer for performance reasons.
 	double _schpmig; 		///< Mirrored mh parameter #schpmig for performance reasons.
@@ -344,7 +340,7 @@ protected:
 	 * Counts the number of threads that are currently waiting for the working phase to begin.
 	 * Note: Only meaningful if #schsync is set to true.
 	 */
-	unsigned int workersWaiting;
+	int workersWaiting;
 
 	/**
 	 * Mutex used for blocking threads (together with the condition variable cvNotAllWorkersInPrepPhase)
@@ -451,6 +447,8 @@ public:
 	 * Determines the next method to be applied and sets it in the given worker.
 	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
+	 * Also resets tmpSolResult, initializing it with the number how often the method has
+	 * already been called for this solution.
 	 * If currently nothing further can be done, possibly because other threads have to
 	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
 	 * This method has to be always called in an exclusive way,
@@ -469,6 +467,8 @@ public:
 	 * If storeResult is true, a new MethodApplicationResult object storing the result of the last
 	 * method application is appended to the SchedulerWorker's result list.
 	 * This method is called with mutex locked.
+	 * TODO: When worse solutions are actively set to be accepted via result.accept,
+	 * a so far best solution is currently not yet stored and gets lost!
 	 */
 	virtual void updateData(SchedulerWorker* worker, bool updateSchedulerData, bool storeResult) = 0;
 
@@ -526,123 +526,6 @@ public:
 	 * Write the log entry including the given method name if parameter lmethod is set.
 	 */
 	virtual bool writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method);
-};
-
-
-//--------------------------- GVNSScheduler ------------------------------
-
-/**
- * This class implements a general variable neighborhood search (GVNS) with an arbitrary
- * many construction heuristics, local improvement methods, and shaking or large neighborhood
- * search methods. For each of the categories of methods, it can be chosen whether the
- * different methods are applied in a strictly sequential way, uniform random way,
- * or random with with self-adaptive application probabilities.
- * Each worker performs an independent VNS, the overall best solution is adopted to the
- * Scheduler's main population.
- */
-class GVNSScheduler : public Scheduler {
-
-protected:
-	SchedulerMethodSelector *constheu;	///< Selector for construction heuristic methods
-	std::vector<SchedulerMethodSelector *> locimpnh;	///< Selectors for local improvement neighborhood methods for each worker
-	std::vector<SchedulerMethodSelector *> shakingnh;	///< Selectors for shaking/LNS methods for each worker
-
-	/**
-	 * Indicates whether a construction method has already been scheduled and executed before,
-	 * i.e. some solution that can be used as an initial solution for improvement methods already
-	 * exists.
-	 */
-	bool initialSolutionExists;
-
-	int _schlisel=schlisel(pgroup);	///< Mirrored mhlib parameter #schlisel.
-	bool _schlirep=schlirep(pgroup); ///< Mirrored mhlib parameter #schlirep.
-
-	/* Dynamically creates a selector for the construction heuristic methods. */
-	virtual SchedulerMethodSelector *createSelector_constheu();
-	/* Dynamically creates a selector for the local improvement methods. */
-	virtual SchedulerMethodSelector *createSelector_locimpnh();
-	/* Dynamically creates a selector for the shaking/LNS methods.*/
-	virtual SchedulerMethodSelector *createSelector_shakingnh();
-
-	/**
-	 * An improved solution has been obtained by a method and is stored in tmpSol.
-	 * This method updates worker->pop[0] holding the worker's so far best solution and,
-	 * if updateSchedulerData is set to true, possibly the Scheduler's global best solution at pop[0].
-	 */
-	void copyBetter(SchedulerWorker *worker, bool updateSchedulerData);
-
-public:
-	/**
-	 * Constructor: Initializes the VNSScheduler. Construction, improvement and shaking methods
-	 * are then added by addSchedulerMethod, whereas nconstheu>=0 construction heuristics
-	 * must come first, followed nlocimpnh>=0 local improvement heuristics, and
-	 * finally nshakingnh shaking or large neighborhood search neighborhoods.
-	 */
-	GVNSScheduler(pop_base &p, unsigned int nconstheu, unsigned int nlocimpnh,
-			unsigned int nshakingnh, const std::string &pg = "");
-
-	/** Cloning is not implemented for this class. */
-	virtual GVNSScheduler* clone() const {
-		mherror("Cloning not implemented in GVNSScheduler");
-		return nullptr;
-	}
-
-	/** Cleanup: delete SchedulerMethodSelectors. */
-	~GVNSScheduler() {
-		delete constheu;
-		for (unsigned int t=0;t<_schthreads;t++) {
-			delete locimpnh[t];
-			delete shakingnh[t];
-		}
-	}
-
-	/**
-	 * Schedules the next method according to the general VNS scheme, i.e., with the VND embedded
-	 * in the VNS. If multiple construction heuristics exist, it is ensured that first all of them are
-	 * applied in the order they are defined. After each construction heuristic has been executed,
-	 * the selection follows the order of the shaking and local improvement methods defined in the VNS
-	 * and the embedded VND.
-	 * If currently nothing further can be done, possibly because other threads have to
-	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
-	 * This method has to be always called in an exclusive way,
-	 * i.e., mutex.lock() must be done outside.
-     */
-	void getNextMethod(SchedulerWorker *worker) override;
-
-	/**
-	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
-	 * population according to the result of the last method application.
-	 * Furthermore, the worker's incumbent is updated to the global best one with probability
-	 * #schpmig.
-	 * As the exact history of results is irrelevant to the GVNSScheduler, the value of storeResult
-	 * is ignored and no result information is appended to the vector's result list.
-	 * This method is called with mutex locked.
-	 */
-	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) override;
-
-	/**
-	 * Updates the the scheduler's population in case the best incumbent solution among all workers
-	 * is better than the best solution stored in the scheduler's population.
-	 * As the exact history of results is irrelevant to the GVNSScheduler and no results are ever stored,
-	 * the value of clearResults is ignored and the results vectors are not cleared.
-	 */
-	void updateDataFromResultsVectors(bool clearResults);
-
-	/**
-	 * Updates the statistics data after applying a method in worker.
-	 * The special aspect here is that method times and success rates of shaking neighborhoods
-	 * consider the embedded local improvement and they are therefore not done here but in the separate
-	 * method updateShakingMethodStatistics.
-	 * @param worker current worker object
-	 * @param methodTime CPU time used by the method call
-	 */
-	void updateMethodStatistics(SchedulerWorker *worker, double methodTime) override;
-
-	/**
-	 * Separate statistics update for shaking methods, which is called after performing
-	 * a full local improvement.
-	 */
-	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
 };
 
 } // end of namespace mh

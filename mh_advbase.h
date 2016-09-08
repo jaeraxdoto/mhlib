@@ -118,7 +118,7 @@ protected:
 	double bestObj = 0;		///< temporary best objective value
 	double timStart = 0;        ///< CPUtime when run() was called
 
-	bool _wctime;	///< Mirrored mh parameter wall_clock_time for performance reasons.
+	bool _wctime;	///< Mirrored mh parameter wctime determining the time measurement.
 
 public:
 	/** The constructor.

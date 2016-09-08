@@ -169,7 +169,7 @@ public:
 		{ return (unsigned long int)obj(); }
 };
 
-/** Operator << overloaded for writing solutions to an osteram. */
+/** Operator << overloaded for writing solutions to an ostream. */
 inline std::ostream &operator<<(std::ostream &ostr, mh_solution &sol) {
 	sol.write(ostr); return ostr;
 }

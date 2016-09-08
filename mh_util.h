@@ -46,6 +46,11 @@ double mhcputime();
 /** Return the wall clock time in seconds since the process was started. */
 double mhwctime();
 
+/** Return either the CPU time or the wall clock time in seconds since the process was started, depending on parameter wctim. */
+inline double mhtime(bool wctim=false) {
+	return wctim ? mhwctime() : mhcputime();
+}
+
 /** Convert a basic type, e.g., int, into a string. Implemented here as
  * std::to_string is not yet implemented in certain C++ libraries.
  */

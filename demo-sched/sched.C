@@ -26,7 +26,7 @@
 #include "mh_log.h"
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
-#include "mh_scheduler.h"
+#include "mh_gvns.h"
 #include "mh_c11threads.h"
 
 using namespace std;
@@ -114,17 +114,17 @@ public:
 	/** A simple construction heuristic, just calling the base class' initialize
 	 * function, initializing each bit randomly.
 	 */
-	bool construct(int k) {
+	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		spendTime();
 		initialize(k);
-		return true;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	bool localimp(int k);
+	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result);
 	/** A simple shaking function: Invert k randomly chosen positions. */
-	bool shaking(int k);
+	void shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result);
 };
 
 double oneMaxSol::objective()
@@ -136,19 +136,20 @@ double oneMaxSol::objective()
 	return sum;
 }
 
-bool oneMaxSol::localimp(int k)
+void oneMaxSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	spendTime();
 	if (!data[k])
 	{
 		data[k] = 1;
 		invalidate();
-		return true;
+		// Values in result are kept at default, i.e., are automatically determined
+		return;
 	}
-	return false;	// no change
+	result.changed = false; // solution not changed
 }
 
-bool oneMaxSol::shaking(int k)
+void oneMaxSol::shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	spendTime();
 	for (int j=0; j<k; j++) {
@@ -157,7 +158,7 @@ bool oneMaxSol::shaking(int k)
 	}
 	invalidate();
 	// mutate(k);
-	return true;
+	// Values in result are kept at default, i.e., are automatically determined
 }
 
 
@@ -190,30 +191,30 @@ public:
 	/** A simple local improvement function: Locally optimize position k,
 	 * i.e., set it to 1 if 0.
 	 */
-	bool construct(int k) {
+	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		spendTime();
 		initialize(k);
-		return true;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple local improvement function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	bool localimp(int k) {
+	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// out() << "Obj before localimp = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return true;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 	/** A simple shaking function: Here we just call the
 	 * mutate function from the base class.
 	 */
-	bool shaking(int k) {
+	void shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
 		// out() << "Obj before shaking = " << obj() << endl;
 		spendTime();
 		mutate(k);
-		return true;
+		// Values in result are kept at default, i.e., are automatically determined
 	}
 };
 
@@ -295,7 +296,7 @@ using namespace sched;
  * the method, and the arity of the method, which is either 0 in case of a method that
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
-template <class SolClass> void registerSchedulerMethods(GVNSScheduler *alg) {
+template <class SolClass> void registerSchedulerMethods(GVNS *alg) {
 	for (int i=1;i<=methsch();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
 			&SolClass::construct,i,0));
@@ -377,8 +378,7 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
-		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
+		GVNS *alg = new GVNS(p,methsch(),methsli(),methssh());
 		switch (prob()) {
 		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
 		case 1: registerSchedulerMethods<onePermSol>(alg); break;

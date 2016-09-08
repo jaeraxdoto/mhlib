@@ -27,7 +27,7 @@
 #include "mh_pop.h"
 #include "mh_advbase.h"
 #include "mh_log.h"
-#include "mh_scheduler.h"
+#include "mh_gvns.h"
 
 #include "maxsat_inst.h"
 #include "maxsat_sol.h"
@@ -54,8 +54,12 @@ string_param sfile("sfile","name of file to save final solution to","");
 int_param methsch("methsch","number of construction heuristics",1,0,100000);
 
 /** \ingroup param
-	Number of local improvement (VND) methods (neighborhoods). */
+	Number of deterministic local improvement (VND) methods (neighborhoods). */
 int_param methsli("methsli","number of local improvement methods",1,0,1000);
+
+/** \ingroup param
+	Number of randomized local improvement (VND) methods (neighborhoods). */
+int_param methsrli("methsrli","number of randomized local improvement methods",0,0,1000);
 
 /** \ingroup param
 	Number of shaking (VNS) methods (neighborhoods). */
@@ -118,8 +122,7 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// create the the Scheduler and register SchedulableMethods
-		GVNSScheduler *alg;
-		alg=new GVNSScheduler(p,methsch(),methsli(),methssh());
+		GVNS *alg = new GVNS(p,methsch(),methsli()+methsrli(),methssh());
 		/* Add construction heuristic, local improvement and shaking methods to scheduler.
 		 * The following parameters are passed to the constructor of
 		 * SolMemberSchedulerMethod: an abbreviated name of the method as string,
@@ -133,9 +136,11 @@ int main(int argc, char *argv[])
 			for (int i=1;i<=methsli();i++)
 				alg->addSchedulerMethod(new SolMemberSchedulerMethod<MAXSATSol>("locim"+tostring(i),
 					&MAXSATSol::localimp,i,1));
+			for (int i=1;i<=methsrli();i++)
+				alg->addSchedulerMethod(new SolMemberSchedulerMethod<MAXSATSol>("rloim"+tostring(i),
+						&MAXSATSol::randlocalimp,i,1));
 			for (int i=1;i<=methssh();i++)
-				alg->addSchedulerMethod(new SolMemberSchedulerMethod<MAXSATSol>("shake"+tostring(i),
-					&MAXSATSol::shaking,i,1));
+				alg->addSchedulerMethod(new MAXSATShakingMethod("shake"+tostring(i),i,1));
 
 		alg->run();		// run Scheduler until a termination condition is fulfilled
 		

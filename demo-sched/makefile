@@ -1,9 +1,9 @@
 # makefile for building this application
 
 # default location of MHLIB is parent directory
-ifndef MHLIB
+#ifndef MHLIB	# remove comments for applications outside mhlib directory
   MHLIB=..
-endif
+#endif
 
 include $(MHLIB)/makefile.common
 CCFLAGS += -L$(MHLIB) -I$(MHLIB)
