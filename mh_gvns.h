@@ -119,6 +119,27 @@ public:
 	 */
 	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) override;
 
+	/** Procedure that is called from updateData before a solution obtained from a construction method
+	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used
+	 * for postprocessing or cleaning up the solution.
+	 */
+	virtual void preAcceptConstructionSolHook(mh_solution *sol) {
+	}
+
+	/** Procedure that is called from updateData before a solution obtained from a local improvement method
+	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used
+	 * for postprocessing or cleaning up the solution.
+	 */
+	virtual void preAcceptLocImpSolHook(mh_solution *sol) {
+	}
+
+	/** Procedure that is called from updateData before a solution obtained from a shaking method
+	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used
+	 * for postprocessing or cleaning up the solution.
+	 */
+	virtual void preAcceptShakingSolHook(mh_solution *sol) {
+	}
+
 	/**
 	 * Updates the the scheduler's population in case the best incumbent solution among all workers
 	 * is better than the best solution stored in the scheduler's population.
@@ -126,6 +147,14 @@ public:
 	 * the value of clearResults is ignored and the results vectors are not cleared.
 	 */
 	void updateDataFromResultsVectors(bool clearResults);
+
+
+	/** Procedure that is called from updateDataFromResultsVectors before a solution obtained from a shaking method
+	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used
+	 * for postprocessing or cleaning up the solution.
+	 */
+	virtual void preAcceptFromResultsVectorsHook(mh_solution *sol) {
+	}
 
 	/**
 	 * Updates the statistics data after applying a method in worker.

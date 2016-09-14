@@ -72,7 +72,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 	// has not been applied yet, or because the worker has just been created.
 	if (!constheu->empty() && (worker->method == nullptr || constheu->hasFurtherMethod())) {
 		worker->method = constheu->select();
-		if(worker->method != nullptr) {
+		if (worker->method != nullptr) {
 			worker->methodContext=constheu->getMethodContext();
 			return;
 		}
@@ -101,8 +101,8 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		// if the worker's method is nullptr and no local improvement methods are available,
 		// this means that no construction method has been scheduled before for this worker,
 		// then check if globally a solution has already been constructed by some worker.
-		if(worker->method == nullptr && locimpnh[0]->empty()) {
-			if(!initialSolutionExists)
+		if (worker->method == nullptr && locimpnh[0]->empty()) {
+			if (!initialSolutionExists)
 				return;	// no, then there is no need to schedule an improvement method, yet.
 			else {
 				// yes, then we assign the best known solution and schedule a method to be applied to it.
@@ -129,14 +129,15 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
 	if (worker->method->idx < int(constheu->size())) {
 		// construction method has been applied
-		if(worker->tmpSolResult.accept) {
+		if (worker->tmpSolResult.accept) {
+			preAcceptConstructionSolHook(worker->tmpSol);
 			copyBetter(worker, updateSchedulerData);	// save new best solution
 			if (!_schsync)
 				initialSolutionExists = true;
 		}
 		else {
 			// unsuccessful construction method (i.e., no better solution)
-			if(updateSchedulerData)
+			if (updateSchedulerData)
 				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 		}
 		return;
@@ -148,6 +149,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 			locimpnh[worker->id]->doNotReconsiderLastMethod();	// switch off this neighborhood for this solution
 		if (worker->tmpSolResult.accept) {
 			// solution to be accepted: save solution and possibly restart with first local improvement method
+			preAcceptLocImpSolHook(worker->tmpSol);
 			copyBetter(worker, updateSchedulerData);	// save new incumbent solution within local improvement
 			if (_schlirep) {
 				// restart with first local improvement method
@@ -170,7 +172,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 			updateShakingMethodStatistics(worker,true);
 			worker->pop.update(1,worker->pop[0]);
 			shakingnh[worker->id]->reset(true);
-			if(updateSchedulerData)
+			if (updateSchedulerData)
 				worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 			worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 		}
@@ -190,6 +192,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 			// update statistics for that method
 			if (worker->tmpSolResult.accept) {
 				// improvement achieved:
+				preAcceptShakingSolHook(worker->tmpSol);
 				worker->pop.update(1,worker->pop[0]);
 				copyBetter(worker, updateSchedulerData);	// save new incumbent solution
 				updateShakingMethodStatistics(worker,true);
@@ -198,7 +201,7 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 			else {
 				// unsuccessful neighborhood method call
 				updateShakingMethodStatistics(worker,false);
-				if(updateSchedulerData)
+				if (updateSchedulerData)
 					worker->checkGlobalBest(); // possibly update worker's incumbent by global best solution
 				worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 			}
@@ -206,8 +209,10 @@ void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool st
 		else {
 			// do not update statistics for that method (will be done after local improvement)
 			// start available local improvement neighborhoods
-			if (worker->tmpSolResult.accept)
+			if (worker->tmpSolResult.accept) {
+				preAcceptShakingSolHook(worker->tmpSol);
 				copyBetter(worker, updateSchedulerData);	// save new best solution
+			}
 			else
 				// nevertheless store solution after shaking as incumbent of local improvement
 				worker->pop.update(0, worker->tmpSol);
@@ -224,6 +229,7 @@ void GVNS::updateDataFromResultsVectors(bool clearResults) {
 	}
 	if (best->isBetter(*(pop->at(0)))) {
 		initialSolutionExists = true;
+		preAcceptFromResultsVectorsHook(best);
 		update(0, best);
 	}
 	// solution migration: possibly replace threads' incumbents by best global solution
