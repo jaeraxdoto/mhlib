@@ -76,7 +76,10 @@ void param::printHelp(std::ostream &os) const
 
 void param::print(std::ostream &os) const
 { 
-	os << getName() << '\t' << getStringValue() << std::endl;
+	std::string v = getStringValue();
+	if (v.empty())
+			v = "''";
+	os << getName() << '\t' << v << std::endl;
 }
 
 void param::parseArgs(int argc, char *argv[])
