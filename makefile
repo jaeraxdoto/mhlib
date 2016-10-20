@@ -14,7 +14,7 @@ DEPS=$(SRCS:.C=.d)
 
 SUBDIRS=demo-*
 
-.PHONY: all clean doc $(SUBDIRS)
+.PHONY: all clean doc test $(SUBDIRS)
 
 default: $(LIB) $(SUBDIRS)
 
@@ -34,5 +34,8 @@ clean:
 
 doc: $(HEADERS)
 	doxygen doxy.cfg
+
+test:
+	./test-mhlib.sh
 
 sinclude $(DEPS)

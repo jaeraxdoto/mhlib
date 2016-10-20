@@ -10,4 +10,4 @@ pipelines:
               script: # Modify the commands below to build your repository.
                     # - ./configure
                     - make
-                    # - make test
+                    - make test
