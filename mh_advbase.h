@@ -120,6 +120,14 @@ protected:
 
 	bool _wctime;	///< Mirrored mh parameter wctime determining the time measurement.
 
+
+	/**
+	 * This method may be called to reset the scheduler for a new run.
+	 * Statistics data will be aggregated over the runs, but the next run will be entirely
+	 * independent. Only supported by some derived classes, e.g. the Scheduler
+	 */
+	virtual void reset();
+
 public:
 	/** The constructor.
 		An initialized population already containing solutions
@@ -142,6 +150,7 @@ public:
 		fulfilled.
 		Called for a stand-alone algorithm, but never if used as island. */
 	virtual void run();
+
 	/** Performs a single iteration.
 		Is called from run(); is also called if used as island. */
 	virtual void performIteration() = 0;

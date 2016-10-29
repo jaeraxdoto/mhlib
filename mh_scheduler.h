@@ -394,7 +394,7 @@ public:
 	}
 
 	/* Set a callback method, which is then periodically called with the currently best objective value
-	 * during the optimization, whenever a method returs.  If it returns 1 the optimization will stop.
+	 * during the optimization, whenever a method returns.  If it returns 1 the optimization will stop.
 	 * Initially, no callback method is set, i.e., callback=nullptr. */
 	void setCallback(bool (*_callback)(double) = nullptr) {
 		callback = _callback;
@@ -428,7 +428,7 @@ public:
 	 * Statistics data will be aggregated over the runs, but the next run will be entirely
 	 * independent.
 	 */
-	virtual void reset();
+	void reset() override;
 
 	/**
 	 * This method does here nothing and is only implemented since it is required by the underlying

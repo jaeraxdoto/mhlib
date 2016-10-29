@@ -186,7 +186,11 @@ public:
 	 */
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// Call the embedded Scheduler:
-		algOneMax->pop->at(0)->initialize(0);  // create initial solution
+		algOneMax->reset();
+		// create new initial solution
+		mh_solution *s = algOneMax->pop->at(0);
+		s->initialize(0);
+		algOneMax->pop->update(0,s);
 		algOneMax->run();
 		// out() << "Obj before localimp = " << obj() << endl;
 		mutate(k);
@@ -232,15 +236,15 @@ using namespace sched;
  * the method, and the arity of the method, which is either 0 in case of a method that
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
-template <class SolClass> void registerSchedulerMethods(GVNS *alg) {
+template <class SolClass> void registerSchedulerMethods(GVNS *alg, const string &prefix="") {
 	for (int i=1;i<=methsch();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"conh"+tostring(i),
 			&SolClass::construct,i,0));
 	for (int i=1;i<=methsli();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"locim"+tostring(i),
 			&SolClass::localimp,i,1));
 	for (int i=1;i<=methssh();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("shake"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"shake"+tostring(i),
 			&SolClass::shaking,i,1));
 }
 
@@ -302,21 +306,23 @@ int main(int argc, char *argv[])
 
 		// generate template solutions of the problem specific classes
 		std::function<mh_solution *()> createOnePermSol = [](){return new onePermSol();};
-		std::function<mh_solution *()> createOneMaxSol = [](){return new oneMaxSol();};
 
 		// generate populations of uninitialized solutions; do not use hashing
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
 		population pOnePerm(createOnePermSol, popsize(), false, false);
-		population pOneMax(createOneMaxSol, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
 		// generate the Schedulers and add SchedulableMethods
 		GVNS *algOnePerm = new GVNS(pOnePerm,methsch(),methsli(),methssh());
-		algOneMax = new GVNS(pOneMax,methsch(),methsli(),methssh(),ONEMAX_PG);
 		registerSchedulerMethods<onePermSol>(algOnePerm);
-		registerSchedulerMethods<oneMaxSol>(algOneMax);
+
+		// also create a template solution, population and the Scheduler object for Onemax
+		std::function<mh_solution *()> createOneMaxSol = [](){return new oneMaxSol();};
+		population pOneMax(createOneMaxSol, popsize(), false, false);
+		algOneMax = new GVNS(pOneMax,methsch(),methsli(),methssh(),ONEMAX_PG);
+		registerSchedulerMethods<oneMaxSol>(algOneMax,"om-");
 
 		algOnePerm->run();		// run outer Scheduler until a termination condition is fulfilled
 		
