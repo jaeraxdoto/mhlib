@@ -224,6 +224,7 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 void Scheduler::run() {
 	checkPopulation();
 
+	finish = false;
 	timStart = mhtime(_wctime);
 
 	writeLogHeader();
@@ -256,6 +257,10 @@ void Scheduler::run() {
 
 	logstr.emptyEntry();
 	logstr.flush();
+}
+
+void Scheduler::reset() {
+	// TODO
 }
 
 bool Scheduler::terminate() {

@@ -424,6 +424,13 @@ public:
 	void run() override;
 
 	/**
+	 * This method may be called to reset the scheduler for a new run.
+	 * Statistics data will be aggregated over the runs, but the next run will be entirely
+	 * independent.
+	 */
+	virtual void reset();
+
+	/**
 	 * This method does here nothing and is only implemented since it is required by the underlying
 	 * base class mh_advbase.
 	 */
