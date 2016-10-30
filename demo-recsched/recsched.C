@@ -5,6 +5,8 @@
 	In this demo, ONEMAX is solved for every new candidate solution of ONEPERM, which does not
 	really make much sense. However, it shows how subproblems can be solved independently
 	in order to augment, repair, evaluate, or locally improve candidate solutions of an outer Scheduler.
+	Note, however, that it is strongly recommended to stay with a single Scheduler as far as possible 
+	due to the introduced overhead.
 	\include recsched.C */
 
 #include <cstdlib>
