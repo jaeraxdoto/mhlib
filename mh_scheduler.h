@@ -35,9 +35,12 @@ extern int_param schthreads;
 extern bool_param schsync;
 
 /** \ingroup param
- * If set then the Scheduler's method name is also appended to each log entry.
+ * Controls log output of the Scheduler:
+ * - 0: no log
+ * - 1: normal log
+ * - 2: normal log and appended respective method to each log entry.
  */
-extern bool_param lmethod;
+extern int_param lmethod;
 
 
 /** \ingroup param
@@ -530,7 +533,7 @@ public:
 		return writeLogEntry(inAnyCase,finishEntry,"-");
 	}
 	/**
-	 * Write the log entry including the given method name if parameter lmethod is set.
+	 * Write the log entry including the given method name according to lmethod.
 	 */
 	virtual bool writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method);
 };

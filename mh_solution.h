@@ -67,8 +67,6 @@ public:
     /** The virtual method to copy a solution. Should be used instead of the classical
      * assignment operator to avoid problems when referring to solutions via a base class. */
     virtual void copy(const mh_solution &s) {
-    	if (&s==this)
-			return;
     	pgroup = s.pgroup; alg = s.alg; length = s.length;
     	objval = s.objval; objval_valid = s.objval_valid;
     }

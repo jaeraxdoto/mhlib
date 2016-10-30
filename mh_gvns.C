@@ -265,5 +265,15 @@ void GVNS::updateShakingMethodStatistics(SchedulerWorker *worker, bool improved)
 	}
 }
 
+void GVNS::reset() {
+	Scheduler::reset();
+	initialSolutionExists = false;
+	constheu->reset(true);
+	for (int t=0; t<_schthreads; t++) {
+		locimpnh[t]->reset(true);
+		shakingnh[t]->reset(true);
+	}
+}
+
 } // end of namespace mh
 

@@ -187,10 +187,7 @@ public:
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// Call the embedded Scheduler:
 		algOneMax->reset();
-		// create new initial solution
-		mh_solution *s = algOneMax->pop->at(0);
-		s->initialize(0);
-		algOneMax->pop->update(0,s);
+		((population *)(algOneMax->pop))->initialize();
 		algOneMax->run();
 		// out() << "Obj before localimp = " << obj() << endl;
 		mutate(k);
@@ -268,7 +265,8 @@ int main(int argc, char *argv[])
 		schthreads.set(1, ONEMAX_PG);
 		schsync.set(false, ONEMAX_PG);
 		tciter.set(-1, ONEMAX_PG);
-		titer.set(200, ONEMAX_PG);
+		titer.set(20, ONEMAX_PG);
+		lmethod.set(0,ONEMAX_PG);
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
@@ -324,7 +322,18 @@ int main(int argc, char *argv[])
 		algOneMax = new GVNS(pOneMax,methsch(),methsli(),methssh(),ONEMAX_PG);
 		registerSchedulerMethods<oneMaxSol>(algOneMax,"om-");
 
-		algOnePerm->run();		// run outer Scheduler until a termination condition is fulfilled
+		/*
+		// First, test algOneMax here three times on its own:
+		algOneMax->run();
+		algOneMax->reset();
+		pOneMax.initialize();
+		algOneMax->run();
+		algOneMax->reset();
+		pOneMax.initialize();
+		algOneMax->run();
+		*/
+
+		algOnePerm->run();		// run outer Scheduler with embedded innter Scheduler
 		
 		mh_solution *bestSol = pOnePerm.bestSol();	// final solution
 
@@ -333,8 +342,9 @@ int main(int argc, char *argv[])
 			bestSol->save(sfile());
 
 		// write result & statistics
-		algOneMax->printStatistics(out());
 		algOnePerm->printStatistics(out());
+		out() << "Accumulated statistics from inner algOneMax:" << endl;
+		algOneMax->printMethodStatistics(out());
 
 		delete algOnePerm;
 		delete algOneMax;
