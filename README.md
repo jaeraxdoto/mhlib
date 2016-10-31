@@ -93,7 +93,7 @@ Besides the actual C++ library, mhlib also contains
   configurations. Furthermore, this script also contains some exemplary
   functions for drawing graphs.
 
-- **irace**: An exemplare configuration for applying irace
+- **irace and irace2**: An exemplare configuration for applying irace
   (http://iridia.ulb.ac.be/irace/files/README.html) to systematically
   tune parameters. In this example just the number of used VNS
   neighborhoods is tuned for demo-sched. Use this configuration as a
@@ -126,6 +126,8 @@ Besides the actual C++ library, mhlib also contains
   Scheduler as far as possible due to the introduced overhead.
   Parameter lmethod has been extended to be able to switch of the
   logging for e.g. nested Schedulers
+
+- Switched to c++14 standard
  
 ### Version 4.4 ###
 
