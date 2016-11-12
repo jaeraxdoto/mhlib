@@ -305,5 +305,15 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 	}
 }
 
+void mh_advbase::reset() {
+	nIteration = 0;
+	nSubIterations = 0;
+	nDupEliminations = 0;
+	iterBest = 0;
+	timIterBest = 0;
+	bestObj = 0;
+	timStart = 0;
+}
+
 } // end of namespace mh
 

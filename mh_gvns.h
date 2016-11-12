@@ -171,6 +171,14 @@ public:
 	 * a full local improvement.
 	 */
 	void updateShakingMethodStatistics(SchedulerWorker *worker, bool improved);
+
+	/**
+   	 * This method may be called to reset the scheduler for a new run.
+	 * Statistics data will be aggregated over the runs, but the next run will be entirely
+	 * independent.
+	 */
+	void reset() override;
+
 };
 
 } // end of namespace mh

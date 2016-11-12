@@ -27,7 +27,7 @@ bool_param schsync("schsync", "scheduler: synchronize all threads for being more
 
 double_param schpmig("schpmig", "scheduler: probability for migrating global best solutions at each shaking iteration", 0.1, 0, 1);
 
-bool_param lmethod("lmethod","scheduler: append method name to each log entry",true);
+int_param lmethod("lmethod","scheduler: 0:no log, 1:normal log, 2:append method name to each entry",2,0,2);
 
 
 //--------------------------------- SchedulerWorker ---------------------------------------------
@@ -225,6 +225,8 @@ void Scheduler::run() {
 	checkPopulation();
 
 	timStart = mhtime(_wctime);
+	if (timFirstStart == 0)
+		timFirstStart = timStart;
 
 	writeLogHeader();
 	writeLogEntry(false,true,"*");
@@ -250,12 +252,21 @@ void Scheduler::run() {
 
 	for(auto w : workers)
 		delete w;
+	workers.clear();
 
 	// handle possibly transferred exceptions
 	rethrowExceptions();
 
-	logstr.emptyEntry();
-	logstr.flush();
+	if (lmethod(pgroup)) {
+		logstr.emptyEntry();
+		logstr.flush();
+	}
+}
+
+void Scheduler::reset() {
+	mh_advbase::reset();
+	finish = false;
+	workersWaiting = 0;
 }
 
 bool Scheduler::terminate() {
@@ -293,7 +304,7 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
-	double totSchedulerTime = mhcputime() - timStart;
+	double totSchedulerTime = mhcputime() - timFirstStart;
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
@@ -355,10 +366,12 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	//		logstr.finishEntry();
 
 	checkPopulation();
+	if (!lmethod(pgroup))
+		return;
 	logstr.headerEntry();
 	if (ltime(pgroup))
 		logstr.write(_wctime ? "wctime" : "cputime");
-	if (lmethod(pgroup))
+	if (lmethod(pgroup)==2)
 		logstr.write("method");
 	if (finishEntry)
 		logstr.finishEntry();
@@ -376,11 +389,13 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 	//return false;
 
 	checkPopulation();
+	if (!lmethod(pgroup))
+		return false;
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
 		if (ltime(pgroup))
 			logstr.write(mhtime(_wctime));
-		if (lmethod(pgroup))
+		if (lmethod(pgroup)==2)
 			logstr.write(method);
 		if (finishEntry)
 			logstr.finishEntry();
