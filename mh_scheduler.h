@@ -290,6 +290,7 @@ protected:
 	std::vector<double> totNetTime;	///< Total netto time spent for the method (e.g., excl. VND in case of shaking)
 	std::vector<int> nSuccess;		///< Number of successful iterations of the particular methods.
 	std::vector<double> sumGain;	///< Total gain achieved by the particular methods.
+	double timFirstStart = 0;		///< Time of first start (relevant when started multiple times for aggregated statistics).
 
 	/**
 	 * Optional function pointer to a callback function passed by the interface.

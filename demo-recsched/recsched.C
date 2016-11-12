@@ -237,13 +237,13 @@ using namespace sched;
  * solution as initial solution. */
 template <class SolClass> void registerSchedulerMethods(GVNS *alg, const string &prefix="") {
 	for (int i=1;i<=methsch();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"conh"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"con"+tostring(i),
 			&SolClass::construct,i,0));
 	for (int i=1;i<=methsli();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"locim"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"lim"+tostring(i),
 			&SolClass::localimp,i,1));
 	for (int i=1;i<=methssh();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"shake"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"sh"+tostring(i),
 			&SolClass::shaking,i,1));
 }
 

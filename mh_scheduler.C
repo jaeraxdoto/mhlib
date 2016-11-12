@@ -225,6 +225,8 @@ void Scheduler::run() {
 	checkPopulation();
 
 	timStart = mhtime(_wctime);
+	if (timFirstStart == 0)
+		timFirstStart = timStart;
 
 	writeLogHeader();
 	writeLogEntry(false,true,"*");
@@ -302,7 +304,7 @@ void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTim
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {
-	double totSchedulerTime = mhcputime() - timStart;
+	double totSchedulerTime = mhcputime() - timFirstStart;
 	ostr << endl << "Scheduler method statistics:" << endl;
 	int sumSuccess=0,sumIter=0;
 	double sumTime = 0;
