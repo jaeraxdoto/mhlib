@@ -17,7 +17,7 @@ endif
 
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
-DEFS=-std=c++14 -pthread # -static -static-libgcc -static-libstdc++
+DEFS=-std=c++11 -pthread # -static -static-libgcc -static-libstdc++
 
 CCFLAGS=-pipe -Wall -DVERSION=\"$(GIT_VERSION)\" $(DEFS)
 ifndef O4
