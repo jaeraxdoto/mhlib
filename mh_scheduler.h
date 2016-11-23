@@ -337,7 +337,6 @@ protected:
 
 	int _schthreads;		///< Mirrored mh parameter #schthreads for performance reasons.
 	bool _schsync;			///< Mirrored mh parameter #schsync for performance reasons.
-	int _titer;							///< Mirrored mh parameter #titer for performance reasons.
 	double _schpmig; 		///< Mirrored mh parameter #schpmig for performance reasons.
 
 	/**

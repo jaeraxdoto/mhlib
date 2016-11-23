@@ -168,11 +168,11 @@ void SchedulerWorker::run() {
 				// update statistics and scheduler data
 				scheduler->mutex.lock();
 
+				scheduler->updateMethodStatistics(this, methodTime);
+				scheduler->updateData(this, !scheduler->_schsync, scheduler->_schsync);
+
 				bool termnow = scheduler->terminate();	// should we terminate?
 				if (!termnow) {
-					scheduler->updateMethodStatistics(this, methodTime);
-					scheduler->updateData(this, !scheduler->_schsync, scheduler->_schsync);
-
 					// notify threads that are waiting for an available method
 					scheduler->mutexNoMethodAvailable.lock();
 					scheduler->cvNoMethodAvailable.notify_all();
@@ -215,7 +215,6 @@ Scheduler::Scheduler(pop_base &p, const std::string &pg)
 		: mh_advbase(p, pg), callback(nullptr), finish(false) {
 	_schthreads = schthreads(pgroup);
 	_schsync = _schthreads > 1 && schsync(pgroup); // only meaningful for more than one thread
-	_titer = titer(pgroup);
 	_schpmig = schpmig(pgroup);
 
  	workersWaiting = 0;
@@ -280,11 +279,11 @@ bool Scheduler::terminate() {
 	// "standard" termination criteria, modified to allow for termination after a certain
 	// wall clock time, rather than cpu time, if _wctime is set
 	checkPopulation();
-	if((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
-		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
-		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
-					getBestSol()->obj()<=tobj(pgroup))) ||
-		(ttime(pgroup)>=0 && ttime(pgroup)<=(mhtime(_wctime) - timStart))) {
+	if((_titer >=0 && nIteration>=_titer) ||
+		(_tciter>=0 && nIteration-iterBest>=_tciter) ||
+		(_tobj >=0 && (_maxi?getBestSol()->obj()>=_tobj:
+					getBestSol()->obj()<=_tobj)) ||
+		(_ttime>=0 && _ttime<=(mhtime(_wctime) - timStart))) {
 		finish = true;
 		return true;
 	}
@@ -352,7 +351,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	ostr << "best solution:\t";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU time:\t" << cputime << "\twall clock time:\t" << wctime << endl;
+	ostr << "CPU time:\t" << cputime << "\t\twall clock time:\t" << wctime << endl;
 	ostr << "iterations:\t" << nIteration << endl;
 	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);

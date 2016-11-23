@@ -79,9 +79,9 @@ double_param methdel("methdel","delay all methods by this number of sec",0,0,100
 /** Function spending the given number of seconds by active waiting. 
 	Just for testing purposes. */
 void spendTime(double s=methdel()) {
-	double starttime = mhcputime();
+	double starttime = mhwctime();
 	double a;
-	while (starttime + s > mhcputime()) {
+	while (starttime + s > mhwctime()) {
 		// some meaningless calculation
 		a*=sin(a+0.33);
 	}
