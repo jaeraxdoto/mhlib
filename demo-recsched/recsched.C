@@ -33,12 +33,12 @@ namespace sched {
 /** \ingroup param
 	Number of variables in the ONEMAX/ONEPERM problem, i.e., the length of the
 	solution string. May be overriden by an instance file if one is specified
-	by parameter ifile. */
+	by parameter #ifile. */
 int_param vars("vars","number of variables",20,1,100000);
 
 /** \ingroup param
 	Problem instance file name. If a problem instance file is given, it is
-	expected to just contain the values for parameters prob and vars,
+	expected to just contain the values for parameters #prob and #vars,
 	which are overwritten. Obviously, this is just a simple demo for how to
 	deal with instance files. */
 string_param ifile("ifile","problem instance file name","");
@@ -49,9 +49,10 @@ string_param ifile("ifile","problem instance file name","");
 string_param sfile("sfile","name of file to save solution to","");
 
 /** \ingroup param
-	Number of construction heuristics. This parameter is just to demonstrate
+	Number of construction heuristics. If set to the default value of -1, the number of used
+	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
-int_param methsch("methsch","number of construction heuristics",1,0,100000);
+int_param methsch("methsch","number of construction heuristics",-1,-1,100000);
 
 /** \ingroup param
 	Number of local improvement (VND) methods (neighborhoods). */
@@ -60,11 +61,6 @@ int_param methsli("methsli","number of local improvement methods",1,0,1000);
 /** \ingroup param
 	Number of shaking (VNS) methods (neighborhoods). */
 int_param methssh("methssh","number of shaking methods",5,0,10000);
-
-/** \ingroup param
-	A value in seconds by which each method is delayed by active waiting
-	for testing multithreading. */
-double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
 
 
 //-- Embedded problem: ONEMAX ------------------------------------------
@@ -273,6 +269,11 @@ int main(int argc, char *argv[])
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
 		random_seed();
+
+		/* if #methsch, the number of construction heuristics to be used,
+		   is -1, then set it to the number of used threads */
+		if (methsch()==-1)
+			methsch.set(schthreads());
 
 		/* initialize out() stream for standard output and logstr object for logging
 		   according to set parameters. */

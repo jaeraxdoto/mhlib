@@ -19,7 +19,13 @@
 namespace mh {
 
 /** \ingroup param
- * Sets the maximum number of parallel worker threads to be used by a scheduler instance.
+ * The number of parallel worker threads to be used by a scheduler instance.
+ * If set to a larger value than one, multithreading is thus applied. Note that in this case
+ * some more iterations might be performed than specified by #titer and #tciter, as all
+ * threads are kept as busy as possible until a termination condition is fulfilled, and
+ * then all active methods are completed. Especially in combination with #schsync turned on,
+ * the log output might also be misleading since results of the individual methods are applied in
+ * a delayed way in order to achieve a deterministic outcome.
  */
 extern int_param schthreads;
 
@@ -29,7 +35,7 @@ extern int_param schthreads;
  * The actual working phase, where the threads run the currently scheduled methods in parallel,
  * and the synchronization phase, where threads wait until every thread is finished before starting
  * the next working phase.
- * Only if all threads are in the synchronization phase,the scheduler'data is updated.
+ * Only if all threads are in the synchronization phase,the scheduler's data is updated.
  * No (global) updates happen during the working phase.
  */
 extern bool_param schsync;

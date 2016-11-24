@@ -1,5 +1,5 @@
 /*! \file sched.C
-    \brief A demo/template main program for the Scheduler algorithm including a test for multithreading.
+    \brief A testbed/demo main program for the Scheduler algorithm including a test for multithreading.
 
 	A  demo/template main program demonstrating the Scheduler algorithm
 	class, which allows exploiting multithreading and presents a uniform
@@ -8,7 +8,7 @@
 	and ONEPERM problem (find permutation (0,1,2,3,...vars()-1) in
 	very trivial, demonstrative ways.
 	Additionally, it applies a basic test of multithreading if parameter 	
-	threadstest ist set to 1.
+	threadstest is set to 1.
 
 	Use this main program as a basis for writing your own application based
 	on the Scheduler.
@@ -43,12 +43,12 @@ int_param prob("prob","problem to be solved 0:ONEMAX,1:ONEPERM",0,0,1);
 /** \ingroup param
 	Number of variables in the ONEMAX/ONEPERM problem, i.e., the length of the
 	solution string. May be overriden by an instance file if one is specified
-	by parameter ifile. */
+	by parameter #ifile. */
 int_param vars("vars","number of variables",20,1,100000);
 
 /** \ingroup param
 	Problem instance file name. If a problem instance file is given, it is
-	expected to just contain the values for parameters prob and vars,
+	expected to just contain the values for parameters #prob and #vars,
 	which are overwritten. Obviously, this is just a simple demo for how to
 	deal with instance files. */
 string_param ifile("ifile","problem instance file name","");
@@ -59,9 +59,10 @@ string_param ifile("ifile","problem instance file name","");
 string_param sfile("sfile","name of file to save solution to","");
 
 /** \ingroup param
-	Number of construction heuristics. This parameter is just to demonstrate
+	Number of construction heuristics. If set to the default value of -1, the number of used
+	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
-int_param methsch("methsch","number of construction heuristics",1,0,100000);
+int_param methsch("methsch","number of construction heuristics",-1,-1,100000);
 
 /** \ingroup param
 	Number of local improvement (VND) methods (neighborhoods). */
@@ -72,19 +73,36 @@ int_param methsli("methsli","number of local improvement methods",1,0,1000);
 int_param methssh("methssh","number of shaking methods",5,0,10000);
 
 /** \ingroup param
-	A value in seconds by which each method is delayed by active waiting
+	A value in seconds (wall clock time) by which each method is delayed by active waiting
 	for testing multithreading. */
 double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
 
-/** Function spending the given number of seconds by active waiting. 
-	Just for testing purposes. */
-void spendTime(double s=methdel()) {
-	double starttime = mhwctime();
-	double a;
-	while (starttime + s > mhwctime()) {
+
+/* Just spending some time, used by spendTime. */
+static void spend() {
+		volatile double a;
 		// some meaningless calculation
-		a*=sin(a+0.33);
+		for (volatile int i=0;i<10000;i++)
+			a*=sin(a+0.33);
 	}
+
+/** Function spending approximately the given number of CPU seconds by active waiting.
+	Just for testing purposes of the multithreading. The function needs to be called once
+	with a negative parameter value at the beginning for calibrating the delay loop. */
+void spendTime(double s=methdel()) {
+	static int iters=0;	// number of iterations for approximately requiring one second
+	double starttime = mhcputime();
+	if (s<0) {
+		iters = 0;
+		// do calibration of iters
+		while (starttime + 1 > mhcputime()) {
+			spend();
+			iters++;
+		}
+		return;
+	}
+	for (int i=0;i<iters*s;i++)
+		spend();
 }
 
 
@@ -328,6 +346,14 @@ int main(int argc, char *argv[])
 		param::parseArgs(argc,argv);
 		random_seed();
 
+		if (methdel()!=0)
+			spendTime(-1);	// calibrate spendTime function
+
+		/* if #methsch, the number of construction heuristics to be used,
+		   is -1, then set it to the number of used threads */
+		if (methsch()==-1)
+			methsch.set(schthreads());
+
 		/* initialize out() stream for standard output and logstr object for logging
 		   according to set parameters. */
 		initOutAndLogstr();
@@ -351,7 +377,7 @@ int main(int argc, char *argv[])
 
 		if (ifile()!="") {
 			// problem instance file given, read it, overwriting 
-			// parameters prob and vars in this simple example
+			// parameters #prob and #vars in this simple example
 			ifstream is(ifile());
 			if (!is)
 				mherror("Cannot open problem instance file", ifile());

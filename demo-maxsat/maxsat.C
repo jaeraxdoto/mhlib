@@ -49,9 +49,10 @@ string_param ifile("ifile","problem instance file name","s3v70c800-1.cnf");
 string_param sfile("sfile","name of file to save final solution to","");
 
 /** \ingroup param
-	Number of construction heuristics. This parameter is just to demonstrate
+	Number of construction heuristics. If set to the default value of -1, the number of used
+	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
-int_param methsch("methsch","number of construction heuristics",1,0,100000);
+int_param methsch("methsch","number of construction heuristics",-1,-1,100000);
 
 /** \ingroup param
 	Number of deterministic local improvement (VND) methods (neighborhoods). */
@@ -90,6 +91,11 @@ int main(int argc, char *argv[])
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
 		random_seed();
+
+		/* if #methsch, the number of construction heuristics to be used,
+		   is -1, then set it to the number of used threads */
+		if (methsch()==-1)
+			methsch.set(schthreads());
 
 		/* initialize out() stream for standard output and logstr object for logging
 		   according to set parameters. */
