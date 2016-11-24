@@ -139,11 +139,11 @@ void oneMaxSol::shaking(int k, SchedulerMethodContext &context, SchedulerMethodR
 	// Values in result are kept at default, i.e., are automatically determined
 }
 
-/** Pointer to GVNS for solving the embedded problem.
+/** Vector of GVNS for solving the embedded problem, one GVNS per thread of the outer GVNS.
  * Required so that the OnePerm Methods can call it.
  * May be more cleanly embedded somewhere in a real application.
  */
-GVNS *algOneMax = nullptr;
+vector<GVNS *> algOneMax;
 
 
 //-- Outer problem: ONEPERM -----------------------------------------
@@ -184,9 +184,10 @@ public:
 	 */
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// Call the embedded Scheduler:
-		algOneMax->reset();
-		((population *)(algOneMax->pop))->initialize();
-		algOneMax->run();
+		int threadid = context.workerid;
+		algOneMax[threadid]->reset();
+		((population *)(algOneMax[threadid]->pop))->initialize();
+		algOneMax[threadid]->run();
 		// out() << "Obj before localimp = " << obj() << endl;
 		mutate(k);
 		// Values in result are kept at default, i.e., are automatically determined
@@ -308,22 +309,27 @@ int main(int argc, char *argv[])
 		// generate template solutions of the problem specific classes
 		std::function<mh_solution *()> createOnePermSol = [](){return new onePermSol();};
 
-		// generate populations of uninitialized solutions; do not use hashing
+		// generate population for main scheduler (for ONEPERM); do not use hashing
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
 		population pOnePerm(createOnePermSol, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
-		// generate the Schedulers and add SchedulableMethods
+		// generate the main Scheduler and add SchedulableMethods
 		GVNS *algOnePerm = new GVNS(pOnePerm,methsch(),methsli(),methssh());
 		registerSchedulerMethods<onePermSol>(algOnePerm);
 
-		// also create a template solution, population and the Scheduler object for Onemax
+		/* also create a template solution, populations and the Scheduler objects for the embedded
+		   ONEMAX problem. Important: One population + scheduler is needed for each thread in
+		   case of multithreading! */
 		std::function<mh_solution *()> createOneMaxSol = [](){return new oneMaxSol();};
-		population pOneMax(createOneMaxSol, popsize(), false, false);
-		algOneMax = new GVNS(pOneMax,methsch(),methsli(),methssh(),ONEMAX_PG);
-		registerSchedulerMethods<oneMaxSol>(algOneMax,"om-");
+		vector<population *> pOneMax;
+		for (int t=0; t<schthreads(); t++) {
+			pOneMax.push_back(new population(createOneMaxSol, popsize(), false, false));
+			algOneMax.push_back(new GVNS(*pOneMax[t],methsch(),methsli(),methssh(),ONEMAX_PG));
+			registerSchedulerMethods<oneMaxSol>(algOneMax[t],"om-");
+		}
 
 		/*
 		// First, test algOneMax here three times on its own:
@@ -336,21 +342,24 @@ int main(int argc, char *argv[])
 		algOneMax->run();
 		*/
 
-		algOnePerm->run();		// run outer Scheduler with embedded innter Scheduler
+		algOnePerm->run();		// run outer Scheduler with embedded inner Scheduler
 		
 		mh_solution *bestSol = pOnePerm.bestSol();	// final solution
 
 	    // pOnePerm.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if sfile() given
+		if (sfile()!="")	// save best solution in file if #sfile given
 			bestSol->save(sfile());
 
-		// write result & statistics
+		// write result & statistics and delete algorithms and populations
 		algOnePerm->printStatistics(out());
-		out() << "Accumulated statistics from inner algOneMax:" << endl;
-		algOneMax->printMethodStatistics(out());
-
+		for (int t=0; t<schthreads(); t++) {
+			out() << "Accumulated statistics from inner algOneMax, thread #" << t << ":" << endl;
+			algOneMax[t]->printMethodStatistics(out());
+			delete algOneMax[t];
+			delete pOneMax[t];
+		}
 		delete algOnePerm;
-		delete algOneMax;
+		algOneMax.clear();
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;

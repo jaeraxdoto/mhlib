@@ -29,6 +29,7 @@ int_param lbuffer("lbuffer","number of log entries that are buffered",10,1,
 
 string_param nformat("nformat","format for writing double values","%f");
 
+mutex logmutex;
 
 /* standard output object, open "stdout" stream (either cout or a file) and
 	write out a header including all parameters with

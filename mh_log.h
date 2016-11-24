@@ -14,6 +14,7 @@
 #define MH_LOG_H
 
 #include <iostream>
+#include "mh_c11threads.h"
 #include "mh_param.h"
 
 namespace mh {
@@ -65,7 +66,9 @@ extern int_param lbuffer;
 	Number format.
 	Format for printing out double values (e.g. the fitness). */
 extern string_param nformat;
-	
+
+/** Mutex to be used in multithreading applications for ensuring atomic writing of log entries. */
+extern std::mutex logmutex;
 
 /** A class that represents a stream which is either simply cout or a 
 	file. */

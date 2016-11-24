@@ -39,6 +39,7 @@ struct SchedulerMethodResult {
  * from the calling context and the possibility to store user-defined information from one call
  * to the next. */
 struct SchedulerMethodContext {
+	int workerid = 0;	///< Pointer to Scheduler Worker calling the method (read only).
 	int callCounter = 0;		///< Number, how often this method was called already for this solution
 	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
 	int userInt = 0; ///< User-defined int that can be set by the SchedulerMethod and is preserved between successive calls. For method-specific purposes.
@@ -71,7 +72,7 @@ class SchedulerMethod {
 public:
 	const std::string name;		///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method, which is currently either 0 or 1.
-	int idx;				///< Index in methodPool of Scheduler.
+	int idx;					///< Index in methodPool of Scheduler.
 /**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.

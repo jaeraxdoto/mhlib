@@ -146,6 +146,7 @@ void SchedulerWorker::run() {
 				// run the scheduled method *******************************************************
 				// scheduler->perfGenBeginCallback();
 				// methodContext.callCounter has been initialized by getNextMethod
+				methodContext->workerid = this->id;
 				methodContext->incumbentSol = pop[0];
 				tmpSolResult.reset();
 				startTime[0] = mhcputime();
@@ -226,10 +227,11 @@ void Scheduler::run() {
 	timStart = mhtime(_wctime);
 	if (timFirstStart == 0)
 		timFirstStart = timStart;
+	if (lmethod(pgroup)) {
+		writeLogHeader();
+		writeLogEntry(false,true,"*");
 
-	writeLogHeader();
-	writeLogEntry(false,true,"*");
-	logstr.flush();
+	}
 
 	// spawn the worker threads, each with its own random number generator having an own seed
 	for (int i=0; i < _schthreads; i++) {
@@ -257,8 +259,10 @@ void Scheduler::run() {
 	rethrowExceptions();
 
 	if (lmethod(pgroup)) {
+		logmutex.lock();
 		logstr.emptyEntry();
 		logstr.flush();
+		logmutex.unlock();
 	}
 }
 
@@ -367,6 +371,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	checkPopulation();
 	if (!lmethod(pgroup))
 		return;
+	logmutex.lock();
 	logstr.headerEntry();
 	if (ltime(pgroup))
 		logstr.write(_wctime ? "wctime" : "cputime");
@@ -374,6 +379,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 		logstr.write("method");
 	if (finishEntry)
 		logstr.finishEntry();
+	logmutex.unlock();
 }
 
 
@@ -392,12 +398,14 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 		return false;
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
+		logmutex.lock();
 		if (ltime(pgroup))
 			logstr.write(mhtime(_wctime));
 		if (lmethod(pgroup)==2)
 			logstr.write(method);
 		if (finishEntry)
 			logstr.finishEntry();
+		logmutex.unlock();
 		return true;
 	}
 	return false;

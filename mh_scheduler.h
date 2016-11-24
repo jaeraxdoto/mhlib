@@ -228,7 +228,7 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(int idx) {
 		methodList.push_back(idx);
-		methodContextList.push_back(SchedulerMethodContext());
+		methodContextList.emplace_back(SchedulerMethodContext());
 		if (strategy==MSSequentialRep)
 			activeSeqRep.insert(methodList.size()-1);
 	}
@@ -326,7 +326,7 @@ protected:
 	std::mutex mutex;
 
 	/**
-	 * Mutex used for blocking threads (together with the condition variable cvNoMethodAvailable)
+	 * Mutex used for blocking threads (together with the condition variable #cvNoMethodAvailable)
 	 * if there is currently no method available that can be assigned to the thread.
 	 * If this is the case, the thread will wait until another thread
 	 * finishes its current method and sends a notification.
@@ -334,7 +334,7 @@ protected:
 	std::mutex mutexNoMethodAvailable;
 
 	/**
-	 * Condition variable for blocking threads (together with the mutex mutexNoMethodAvailable)
+	 * Condition variable for blocking threads (together with the mutex #mutexNoMethodAvailable)
 	 * if there is currently no method available that can be assigned to the thread.
 	 * If this is the case, the thread will wait until another thread
 	 * finishes its current method and sends a notification.
