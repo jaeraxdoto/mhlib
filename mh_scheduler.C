@@ -416,6 +416,17 @@ void Scheduler::rethrowExceptions() {
 		std::rethrow_exception(ep);
 }
 
+void Scheduler::addStatistics(const Scheduler &s) {
+	assert(methodPool.size() == s.methodPool.size());
+	for (int k = 0; k < int(methodPool.size()); k++) {
+		nIter[k] += s.nIter[k];
+		totTime[k] += s.totTime[k];
+		nSuccess[k] += s.nSuccess[k];
+		sumGain[k] += s.sumGain[k];
+	}
+	timFirstStart = min(timFirstStart,s.timFirstStart);
+}
+
 
 //--------------------------------- SchedulerMethodSelector ---------------------------------------------
 

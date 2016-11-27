@@ -61,7 +61,7 @@ extern double_param schpmig;
  * the VND's methods are embedded in the outer VNS shaking methods and
  * the number of embedded method applications is 2. The individual VND or VNS
  * methods are scheduled sequentially and therefore do not count as embedded here.
- * Used for calculating separate timings, storing individual incumbents etc.
+ * Used for calculating separate timings, storing individual incumbent solutions etc.
  */
 const int maxStackedMethods=4;
 
@@ -279,7 +279,7 @@ public:
 
 /**
  * The scheduler base class for flexibly realizing GRASP, VNS, VLNS etc. approaches in sequential as well as
- * multi-threaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
+ * multithreaded ways. It maintains a methodPool consisting of SchedulerMethods that are iteratively
  * called. The scheduler is in particular responsible for deciding at which point in the optimization which
  * specific method is applied.
  */
@@ -531,6 +531,7 @@ public:
 	 * Writing the log header.
 	 */
 	virtual void writeLogHeader(bool finishEntry=true) override;
+
 	/**
 	 * Standard method for writing the log entry.
 	 * It calls the new extended method with "-" as method name.
@@ -538,10 +539,17 @@ public:
 	virtual bool writeLogEntry(bool inAnyCase=false, bool finishEntry=true) override {
 		return writeLogEntry(inAnyCase,finishEntry,"-");
 	}
+
 	/**
 	 * Write the log entry including the given method name according to lmethod.
 	 */
 	virtual bool writeLogEntry(bool inAnyCase, bool finishEntry, const std::string &method);
+
+	/** Add the statistical data collected for the methods in another Scheduler object
+	 * with the same methods to the current one. Used when running multiple Scheduler objects in parallel
+	 * threads.
+	 */
+	void addStatistics(const Scheduler &s);
 };
 
 } // end of namespace mh

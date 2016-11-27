@@ -352,14 +352,17 @@ int main(int argc, char *argv[])
 
 		// write result & statistics and delete algorithms and populations
 		algOnePerm->printStatistics(out());
-		for (int t=0; t<schthreads(); t++) {
-			out() << "Accumulated statistics from inner algOneMax, thread #" << t << ":" << endl;
-			algOneMax[t]->printMethodStatistics(out());
+		for (int t=1; t<schthreads(); t++) {
+			algOneMax[0]->addStatistics(*algOneMax[t]);	// accumulate results of all ONEMAX GVNS
+
 			delete algOneMax[t];
 			delete pOneMax[t];
 		}
-		delete algOnePerm;
+		algOneMax[0]->printMethodStatistics(out());
+		delete algOneMax[0];
+		delete pOneMax[0];
 		algOneMax.clear();
+		delete algOnePerm;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;
