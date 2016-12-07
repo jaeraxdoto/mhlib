@@ -29,7 +29,7 @@ namespace maxsat {
 class MAXSATSol : public mh::binStringSol {
 	friend class MAXSATShakingMethod;
 public:
-	const MAXSATInst *probinst;	/// A pointer to the problem instance for which this is a solution
+	const MAXSATInst *probinst;	///< A pointer to the problem instance for which this is a solution
 
 	/** The default constructor. It stores the pointer to the problem instance
 	    and passes the number of variables to the binStringSol constructor. */
