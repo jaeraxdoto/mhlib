@@ -143,16 +143,12 @@ inline int random_int(int high) {
 
 /** returns an int random number in [low,high] */
 inline int random_int(int low, int high) {
-	float val=high-low+1;
-	val*=randomNumberGenerator()->random_double();
-	return int(val)+low;
+	return int(randomNumberGenerator()->random_double()*(high-low+1))+low;
 }
 
 /** returns a double random number uniformly distributed in (low,high) */
 inline double random_double(double low, double high) {
-	double val=high-low;
-	val*=randomNumberGenerator()->random_double();
-	return val+low;
+	return randomNumberGenerator()->random_double()*(high-low)+low;
 }
 
 /** returns a double random normally distributed with stdandard deviation 1 */

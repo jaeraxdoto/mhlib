@@ -18,7 +18,7 @@
 
 ## Directory where tuning instances are located, either absolute path or
 ## relative to current directory.
-instanceDir = "inst"
+instanceDir = "../demo-maxsat/inst"
 
 ## File with a list of instances and (optionally) parameters.
 ## If empty or NULL, do not use a file.

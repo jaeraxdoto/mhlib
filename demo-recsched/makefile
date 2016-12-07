@@ -8,11 +8,11 @@
 include $(MHLIB)/makefile.common
 CCFLAGS += -L$(MHLIB) -I$(MHLIB)
 
-EXE=onemax
+EXE=recsched
 
 HEADERS=
 
-SRCS=onemax.C
+SRCS=recsched.C
 
 OBJS=$(SRCS:.C=.o)
 

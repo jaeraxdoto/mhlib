@@ -25,8 +25,7 @@ double_param ttime("ttime","time limit for termination (in seconds)" ,-1.0, -1.0
 
 int_param tselk("tselk","group size for tournament selection",2,1,10000);
 
-int_param repl("repl","replacement scheme 0:random, 1:worst, -k:TS",
-	1,-1000,1);
+int_param repl("repl","replacement scheme 0:random, 1:worst, -k:TS",1,-1000,1);
 
 bool_param ldups("ldups","log number of eliminated dupslicates",false);
 
@@ -46,11 +45,23 @@ mh_advbase::mh_advbase(pop_base &p, const string &pg) : mh_base(pg)
 	// (replace worst)
 	if (repl(pgroup)!=1)
 		wheap.set(false,pgroup);
+	// Locally mirror parameters for more efficient access:
+	_maxi = maxi(pgroup);
+	_titer = titer(pgroup);
+	_tciter = tciter(pgroup);
+	_ttime = ttime(pgroup);
+	_tobj = tobj(pgroup);
 	_wctime = wctime(pgroup);
 }
 
 mh_advbase::mh_advbase(const string &pg) : mh_base(pg)
 {
+	// Locally mirror parameters for more efficient access:
+	_maxi = maxi(pgroup);
+	_titer = titer(pgroup);
+	_tciter = tciter(pgroup);
+	_ttime = ttime(pgroup);
+	_tobj = tobj(pgroup);
 	_wctime = wctime(pgroup);
 }
 
@@ -116,30 +127,11 @@ int mh_advbase::tournamentSelection()
 bool mh_advbase::terminate()
 {
 	checkPopulation();
-
-	return ((titer(pgroup) >=0 && nIteration>=titer(pgroup)) ||
-		(tciter(pgroup)>=0 && nIteration-iterBest>=tciter(pgroup)) ||
-		(tobj(pgroup) >=0 && (maxi(pgroup)?getBestSol()->obj()>=tobj(pgroup):
-				    getBestSol()->obj()<=tobj(pgroup))) ||
-				    (ttime(pgroup)>=0 && ttime(pgroup)<=((_wctime ? mhwctime() : mhcputime()) - timStart)));
-	/*
-	switch(tcond(pgroup))
-	{
-		case -1: // new auto scheme, which does not use tcond
-		// DEPRECATED:
-
-		case 0: // terminate after titer (not tciter!) iterations
-			return nIteration>=titer(pgroup);
-		case 1: // terminate after convergence 
-			return nIteration-iterBest>=titer(pgroup);
-		case 2:	// terminate when obj. value tobj() reached
-			return maxi(pgroup)? getBestSol()->obj()>=tobj(pgroup) :
-				getBestSol()->obj()<=tobj(pgroup);
-		default:
-			mherror("Invalid tcond",tcond.getStringValue(pgroup).c_str());
-			return true;
-	}
-	*/
+	return ((_titer >=0 && nIteration>=_titer) ||
+		(_tciter>=0 && nIteration-iterBest>=_tciter) ||
+		(_tobj >=0 && (_maxi?getBestSol()->obj()>=_tobj:
+				    getBestSol()->obj()<=_tobj)) ||
+				    (_ttime>=0 && _ttime<=((_wctime ? mhwctime() : mhcputime()) - timStart)));
 }
 
 int mh_advbase::replaceIndex()
@@ -288,7 +280,7 @@ void mh_advbase::saveBest()
 void mh_advbase::checkBest()
 {
 	double nb=pop->bestObj();
-	if (maxi(pgroup)?nb>bestObj:nb<bestObj)
+	if (_maxi?nb>bestObj:nb<bestObj)
 	{
 		iterBest=nIteration;
 		timIterBest = (_wctime ? (mhwctime() - timStart) : mhcputime());
@@ -303,6 +295,16 @@ void mh_advbase::addStatistics(const mh_advbase *a)
 		nSelections        += a->nSelections;
 		nDupEliminations   += a->nDupEliminations;
 	}
+}
+
+void mh_advbase::reset() {
+	nIteration = 0;
+	nSubIterations = 0;
+	nDupEliminations = 0;
+	iterBest = 0;
+	timIterBest = 0;
+	bestObj = 0;
+	timStart = 0;
 }
 
 } // end of namespace mh

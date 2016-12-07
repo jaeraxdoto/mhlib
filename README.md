@@ -69,6 +69,13 @@ Besides the actual C++ library, mhlib also contains
   means of variable neighborhood search (VNS).  This program also
   includes some specific functions for testing multithreading.
 
+- **demo-recsched**: This program demonstrates the recursive use of 
+  Scheduler objects, i.e., one Scheduler is used within another for 
+  augmenting, repairing, locally improving, or evaluating candidate solutions.
+  More specifically, ONEMAX is solved for every new candidate solution
+  of ONEPERM, which does not really make much sense. However, it shows
+  how subproblems can be solved independently in a nested fashion.
+
 - **demo-onemax** and **demo-qap**: These are demonstration programs in
   particular for the classes realizing evolutionary algorithms, but also
   simulated annealing and tabu search. The also demonstrated mh_vns and mh_vnd
@@ -86,7 +93,7 @@ Besides the actual C++ library, mhlib also contains
   configurations. Furthermore, this script also contains some exemplary
   functions for drawing graphs.
 
-- **irace**: An exemplare configuration for applying irace
+- **irace** and **irace2**: Exemplary configurations for applying irace
   (http://iridia.ulb.ac.be/irace/files/README.html) to systematically
   tune parameters. In this example just the number of used VNS
   neighborhoods is tuned for demo-sched. Use this configuration as a
@@ -98,6 +105,28 @@ Besides the actual C++ library, mhlib also contains
 
 ## Changelog: major changes over major releases ##
 
+### Version 4.5 ###
+
+- The GVNSScheduler class has been moved to an own module mh_gvns.h/C and 
+  renamed to GVNS.
+
+- Class SchedulerMethod and the template SolMemberSchedulerMethod have been 
+  extended: Referenes to the new structures SchedulerMethodContext and
+  SchedulerMethodResults are passed when calling a SchedulerMethod.
+  In SchedulerMethodResult, the method can give back hints on the obtained
+  solution and how to further act with it, while SchedulerMethodContext
+  provides contextual information for the call such as a pointer to
+  the incumbent solution and a counter on how often the method has
+  already been called for this solution.
+
+- Support/demo for irace 2.0 has been added.
+
+- demo-recsched showing the nested use of Schedulers has been added. 
+  Note, however, that it is strongly recommended to stay with a single
+  Scheduler as far as possible due to the introduced overhead.
+  Parameter lmethod has been extended to be able to switch of the
+  logging for e.g. nested Schedulers
+ 
 ### Version 4.4 ###
 
 - Class mh_solution was made more abstract, all evolutionary

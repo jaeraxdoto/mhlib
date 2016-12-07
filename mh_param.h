@@ -17,7 +17,7 @@
 	explanation. In the argument list parameter names may optionally be prefixed
 	by "-" or "--". By parameter "@ <filename>" parameter settings are read from
 	the specified file, in which, again, parameter names may be optionally prefixed
-	by "-" or "--".
+	by "-" or "--". When reading in a parameter, "''" is replaced by an empty string.
 
 	To allow fine grained control it is possible to define parameter-groups
 	for which each parameter can have an individual value. The name of a
@@ -89,7 +89,7 @@ public:
 		An optional validator can be provided. */
 	param(const std::string &nam,const std::string &descr,
 		const paramValidator *val=0);
-	/// Write parameter with its value to an ostream.
+	/// Write parameter with its value to an ostream. An empty string is printed as ''
 	virtual void print(std::ostream &os) const;
 	/// Write list of all parameters with their values to an ostream.
 	static void printAll(std::ostream &os);
@@ -104,7 +104,7 @@ public:
 	virtual std::string getStringDefValue() const =0;
 	/// Checks value with optionally provided validator.
 	void validate( const std::string pgroup = "" ) const;
-	/** Writes out a helping message for the parameter
+	/** Writes out a one-line help message for the parameter
 		(with description, default value,...). */
 	void printHelp(std::ostream &os) const;
 	/** Writes out a help message for all registered parameters
@@ -251,7 +251,7 @@ public:
 		\param def Default value.
 		*/ 
 	gen_param(const std::string &nam,const std::string &descr,const T &def) :
-		param(nam,descr), value(def), defval(def) 
+			param(nam,descr), value(def), defval(def) 
 		{ validate(); }
 	/** Register a parameter with a valid range;
 		A range check validator is automatically created. 
@@ -263,9 +263,9 @@ public:
 		\param check The kind of bounds, i.e., inclusive or exclusive.
 		*/
 	gen_param(const std::string &nam,const std::string &descr,const T &def,
-		const T low,const T high,const rangecheck check=INCLUSIVE) :
-		param(nam,descr,new rangeValidator<T>(low,high,check)), 
-		value(def), defval(def)
+			const T low,const T high,const rangecheck check=INCLUSIVE) :
+			param(nam,descr,new rangeValidator<T>(low,high,check)), 
+			value(def), defval(def)
 		{ validate(); }
 	/** Register a parameter with an unary check;
 		An unary check validator is automatically created. 
@@ -276,9 +276,9 @@ public:
 		\param check Kind of bound specified by value.
 		*/
 	gen_param(const std::string &nam,const std::string &descr,const T &def,
-		const T value,const unarycheck check) :
-		param(nam,descr,new unaryValidator<T>(value,check)),
-		value(def), defval(def)
+			const T value,const unarycheck check) :
+			param(nam,descr,new unaryValidator<T>(value,check)),
+			value(def), defval(def)
 		{ validate(); }
 	/** Register a parameter with a paramValidator
 		\param nam Short name of parameter, corresponding to variable name.
@@ -289,9 +289,9 @@ public:
 		who will therefore take care of it's deletion.)
 		*/
 	gen_param(const std::string &nam,const std::string &descr,const T &def,
-		const paramValidator* validator) :
-		param(nam,descr,validator),
-		value(def), defval(def)
+			const paramValidator* validator) :
+			param(nam,descr,validator),
+			value(def), defval(def)
 		{ validate(); }
 	/** Access of a parameter's value without a specified parameter-group.
 		Parameter values should be accessed by using this
@@ -301,13 +301,13 @@ public:
 	/** Access of a parameters value with specified parameter group.
 		Parameter values should be accessed by using this 
 		operator, therefore by the function call notation. */
-	const T operator()( const std::string pgroup) const
-		{
-			auto it = qvals.find(pgroup);
-			if (it == qvals.end())
-				return value;
-			else
-				return it->second; }
+	const T operator()( const std::string pgroup) const {
+		auto it = qvals.find(pgroup);
+		if (it == qvals.end())
+			return value;
+		else
+			return it->second; 
+	}
 	/// Set a new value and default value for a parameter.
 	void setDefault(const T &newval)
 		{ defval=value=newval; validate(); }
@@ -326,27 +326,32 @@ public:
 	/// Determine string representation for default value.
 	std::string getStringDefValue() const
 		{ return getStringValue_impl(defval); }
-	/// Read value from ostream.
-	void read(std::istream &is, const std::string pgroup = "")
-		{ if ( pgroup.empty() ) {
-			is >> value; validate(); }
-		else {
-			is >> qvals[pgroup]; validate( pgroup ); } }
-	void print(std::ostream &os) const
-		{
-			std::string i;
-
-			param::print(os);
-
-			auto it = qvals.begin();
-
-			while (it != qvals.end())
-			{
-				os << (*it).first << "." << getName() << '\t' << getStringValue((*it).first);
-				os << std::endl;
-				it++;
-			}
+	/// Read value from ostream. Replace '' by an empty string value
+	void read(std::istream &is, const std::string pgroup = "") { 
+		std::string sval;
+		is >> sval;
+		// change '' into empty string
+		if (sval == "''")
+				sval = "";
+		std::stringstream sis(sval);
+		if ( pgroup.empty() ) {
+			sis >> value; validate(); 
 		}
+		else {
+			sis >> qvals[pgroup]; validate( pgroup ); 
+		} 
+	}
+	/// Print value to ostream.
+	void print(std::ostream &os) const {
+		param::print(os);
+
+		for (auto &it : qvals) {
+			std::string v = getStringValue(it.first);
+			if (v.empty())
+				v = "''";
+			os << it.first << "." << getName() << '\t' << v << std::endl;
+		}
+	}
 	
 private:
 	// the actual parameter value
@@ -354,11 +359,10 @@ private:
 	// the default value
 	T defval;
 	// the additional qualified parameter values
-	std::unordered_map<std::string,T>  qvals;
+	std::unordered_map<std::string,T> qvals;
 	std::string getStringValue_impl(const T &val) const;
 };
 
-//template<class T> T twice(T t);
 
 // typedefs for using int, double, bool and string parameters in an easy way:
 

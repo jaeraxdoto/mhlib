@@ -20,24 +20,6 @@ namespace mh {
 
 /** \defgroup param Global parameters */
 
-/* \ingroup param
-	The termination condition (DEPRECATED).
-	Decides the strategy used as termination criterion:
-	- -1: terminate when #titer>0 && #titer iterations are
-	  reached or when #tciter>0 && #tciter iterations without
-	  improvement or when #tobj>0 && best solution reaches #tobj
-	  or when #ttime>0 && effective runtime reaches #ttime.
-
-	Deprecated values:
-	- 0: terminate after #titer iterations.
-	- 1: terminate after convergence, which is defined as:
-		the objective value of the best solution in the population
-		did not change within the last titer (not #tciter!)
-		iterations.
-	- 2: terminate when the given objective value limit (tobj()) is 
-		reached. */
-//extern int_param tcond;
-
 /** \ingroup param
 	The number of iterations until termination. Active if >=0. */
 extern int_param titer;
@@ -53,6 +35,17 @@ extern double_param tobj;
 /** \ingroup param
 	The time limit for termination. Active if >=0. */
 extern double_param ttime;
+
+/** \ingroup param
+ * Measure runtime by wall clock time.
+ * If set to true, the runtime measured for the statistics of the metaheuristic is measured in wall clock time.
+ * Otherwise, they refer to the CPU time. This does, however, not affect the runtimes measured
+ * for specific neighborhoods in e.g. a VNS. This setting might be particularly useful in the context
+ * of multithreading in the scheduler.
+ * Note that if this parameter is set to true, a termination specified by the #ttime parameter
+ * will also be interpreted as wall clock time.
+ */
+extern bool_param wctime;
 
 /** \ingroup param
 	Group size for tournament selection. */
@@ -78,17 +71,6 @@ extern bool_param ldups;
 /** \ingroup param
 	If set, the elapsed time is printed as last entry in each log entry. */
 extern bool_param ltime;
-
-/** \ingroup param
- * Measure runtime by wall clock time.
- * If set to true, the runtime measured for the statistics of the metaheuristic is measured in wall clock time.
- * Otherwise, they refer to the CPU time. This does, however, not affect the runtimes measured
- * for specific neighborhoods in e.g. a VNS. This setting might be particularly useful in the context
- * of multithreading in the scheduler.
- * Note that if this parameter is set to true, a termination specified by the ttime parameter
- * will also be interpreted as wall clock time.
- */
-extern bool_param wctime;
 
 /** An advanced abstract base class for metaheuristics.
 	This advanced abstract base classe for metaheuristics extends mh_base
@@ -118,7 +100,20 @@ protected:
 	double bestObj = 0;		///< temporary best objective value
 	double timStart = 0;        ///< CPUtime when run() was called
 
-	bool _wctime;	///< Mirrored mh parameter wall_clock_time for performance reasons.
+	// Mirror mhlib parameter for faster access, especially in case an individual parameter group is used:
+	bool _maxi;		///< Mirrored mhlib parameter #maxi.
+	int _titer;	///< Mirrored mhlib parameter #titer.
+	int _tciter;	///< Mirrored mhlib parameter #tciter.
+	double _tobj;		///< Mirrored mhlib parameter #tobj.
+	double _ttime;	///< Mirrored mhlib parameter #ttime.
+	bool _wctime;	///< Mirrored mhlib parameter #wctime.
+
+	/**
+	 * This method may be called to reset the scheduler for a new run.
+	 * Statistics data will be aggregated over the runs, but the next run will be entirely
+	 * independent. Only supported by some derived classes, e.g. the Scheduler
+	 */
+	virtual void reset();
 
 public:
 	/** The constructor.
@@ -142,6 +137,7 @@ public:
 		fulfilled.
 		Called for a stand-alone algorithm, but never if used as island. */
 	virtual void run();
+
 	/** Performs a single iteration.
 		Is called from run(); is also called if used as island. */
 	virtual void performIteration() = 0;

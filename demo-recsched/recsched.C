@@ -1,18 +1,13 @@
-/*! \file sched.C
-    \brief A testbed/demo main program for the Scheduler algorithm including a test for multithreading.
+/*! \file recsched.C
+	\brief This program demonstrates the recursive use of Scheduler objects, i.e., one Scheduler
+	is used within another for augmenting, repairing, locally improving, or evaluating candidate solutions.
 
-	A  demo/template main program demonstrating the Scheduler algorithm
-	class, which allows exploiting multithreading and presents a uniform
-	framework for implementing GRASP, VNS, VLNS and similar metaheuristics.
-	This exemplary program solves the simple ONEMAX problem (find binary string (1,1,...,1)
-	and ONEPERM problem (find permutation (0,1,2,3,...vars()-1) in
-	very trivial, demonstrative ways.
-	Additionally, it applies a basic test of multithreading if parameter 	
-	threadstest is set to 1.
-
-	Use this main program as a basis for writing your own application based
-	on the Scheduler.
-	\include sched.C */
+	In this demo, ONEMAX is solved for every new candidate solution of ONEPERM, which does not
+	really make much sense. However, it shows how subproblems can be solved independently
+	in order to augment, repair, evaluate, or locally improve candidate solutions of an outer Scheduler.
+	Note, however, that it is strongly recommended to stay with a single Scheduler as far as possible 
+	due to the introduced overhead.
+	\include recsched.C */
 
 #include <cstdlib>
 #include <iostream>
@@ -34,11 +29,6 @@ using namespace mh;
 
 /// Namespace for sched, the demo program for using the scheduler classes.
 namespace sched {
-
-/** \ingroup param
-	The problem to be solved, which is either the ONEMAX problem or
-	the ONEPERM problem. */
-int_param prob("prob","problem to be solved 0:ONEMAX,1:ONEPERM",0,0,1);
 
 /** \ingroup param
 	Number of variables in the ONEMAX/ONEPERM problem, i.e., the length of the
@@ -72,41 +62,11 @@ int_param methsli("methsli","number of local improvement methods",1,0,1000);
 	Number of shaking (VNS) methods (neighborhoods). */
 int_param methssh("methssh","number of shaking methods",5,0,10000);
 
-/** \ingroup param
-	A value in seconds (wall clock time) by which each method is delayed by active waiting
-	for testing multithreading. */
-double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
 
+//-- Embedded problem: ONEMAX ------------------------------------------
 
-/* Just spending some time, used by spendTime. */
-static void spend() {
-		volatile double a;
-		// some meaningless calculation
-		for (volatile int i=0;i<10000;i++)
-			a*=sin(a+0.33);
-	}
-
-/** Function spending approximately the given number of CPU seconds by active waiting.
-	Just for testing purposes of the multithreading. The function needs to be called once
-	with a negative parameter value at the beginning for calibrating the delay loop. */
-void spendTime(double s=methdel()) {
-	static int iters=0;	// number of iterations for approximately requiring one second
-	double starttime = mhcputime();
-	if (s<0) {
-		iters = 0;
-		// do calibration of iters
-		while (starttime + 1 > mhcputime()) {
-			spend();
-			iters++;
-		}
-		return;
-	}
-	for (int i=0;i<iters*s;i++)
-		spend();
-}
-
-
-//-- 1. Example problem: ONEMAX ------------------------------------------
+/** parameter group for the embedded scheduler solving OneMax. */
+const string ONEMAX_PG="onemax";
 
 /** This is the solution class for the ONEMAX problem (finding binary string
     (1,...,1)).	In real applications, it should be implemented in a separate
@@ -114,10 +74,10 @@ void spendTime(double s=methdel()) {
 class oneMaxSol : public binStringSol
 {
 public:
-	/** The default constructor. Here it passes the string length vars() to
+	/** The default constructor. Here it passes the string length vars(ONEMAX_PG) to
 	 * the parent class constructor.
 	 */
-	oneMaxSol() : binStringSol(vars())
+	oneMaxSol() : binStringSol(vars(ONEMAX_PG))
 		{}
 	/** Create a new uninitialized instance of this class. */
 	virtual mh_solution *createUninitialized() const override
@@ -133,7 +93,6 @@ public:
 	 * function, initializing each bit randomly.
 	 */
 	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
-		spendTime();
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
@@ -156,7 +115,9 @@ double oneMaxSol::objective()
 
 void oneMaxSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
-	spendTime();
+	// call embedded scheduler:
+
+
 	if (!data[k])
 	{
 		data[k] = 1;
@@ -169,7 +130,6 @@ void oneMaxSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethod
 
 void oneMaxSol::shaking(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
-	spendTime();
 	for (int j=0; j<k; j++) {
 		int i=random_int(length);
 		data[i]=!data[i];
@@ -179,8 +139,14 @@ void oneMaxSol::shaking(int k, SchedulerMethodContext &context, SchedulerMethodR
 	// Values in result are kept at default, i.e., are automatically determined
 }
 
+/** Vector of GVNS for solving the embedded problem, one GVNS per thread of the outer GVNS.
+ * Required so that the OnePerm Methods can call it.
+ * May be more cleanly embedded somewhere in a real application.
+ */
+vector<GVNS *> algOneMax;
 
-//-- 2. example problem: ONEPERM -----------------------------------------
+
+//-- Outer problem: ONEPERM -----------------------------------------
 
 /** This is the solution class for the ONEPERM problem (find the
  * permutation (0,1,2,3,...,vars()-1).
@@ -210,7 +176,6 @@ public:
 	 * i.e., set it to 1 if 0.
 	 */
 	void construct(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
-		spendTime();
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
@@ -218,8 +183,12 @@ public:
 	 * mutate function from the base class.
 	 */
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
+		// Call the embedded Scheduler:
+		int threadid = context.workerid;
+		algOneMax[threadid]->reset();
+		((population *)(algOneMax[threadid]->pop))->initialize();
+		algOneMax[threadid]->run();
 		// out() << "Obj before localimp = " << obj() << endl;
-		spendTime();
 		mutate(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
@@ -230,7 +199,6 @@ public:
 		/** A simple shaking function: Here we just call the
 		 * mutate function from the base class. */
 		// out() << "Obj before shaking = " << obj() << endl;
-		spendTime();
 		mutate(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
@@ -244,60 +212,10 @@ double onePermSol::objective()
 		return -1;
 	// count the number of correctly placed values
 	int sum=0;
-	for (int i=0;i<length;i++) 
-		if (int(data[i])==i) 
+	for (int i=0;i<length;i++)
+		if (int(data[i])==i)
 			sum++;
 	return sum;
-}
-
-//--------- Test for multithreading ---------------------------------
-
-/** Problem specific parameters (the number of variables). */
-int_param threadstest("threadstest","test mutlithreading before starting actual application",false);
-
-std::mutex mymutex;
-
-/** A test thread doing some meaningless work and writing out the given parameter t. */
-static void mythread(int t)
-{
-	for (int i=1;i<20;i++)
-	{
-		double a = 1;
-		for (int j=1;j<3879999;j++)
-			a*=sin(a+0.33);
-    	//mymutex.lock();
-		cout << t; cout.flush();
-		//mymutex.unlock();
-	}
-}
-
-/** A simple test for multithreading, doing some meaningless work in sequential and
- * then parallel fashion and writing out the needed CPU-times. */
-static void testmultithreading()
-{
-		cerr << "Time: " << mhcputime() << endl;
-		cout << "Test multithreading, available hardware threads: " << 
-			thread::hardware_concurrency() << " " << endl;
-
-		cerr << "Time: " << mhcputime() << endl;
-		cout << "Sequential execution:" << endl;
-		mythread(1);
-		mythread(2);
-		mythread(3);
-		mythread(4);
-		cout << endl << "Sequential execution finished" << endl;
-		cerr << "Time: " << mhcputime() << endl;
-		cout << "Parallel execution:" << endl;
-		std::thread t1(mythread,1);
-		std::thread t2(mythread,2);
-		std::thread t3(mythread,3);
-		std::thread t4(mythread,4);
-		t1.join();
-		t2.join();
-		t3.join();
-		t4.join();
-		cout << endl << "All threads finished" << endl << endl;
-		cerr << "Time: " << mhcputime() << endl;
 }
 
 } // sched namespace
@@ -314,15 +232,15 @@ using namespace sched;
  * the method, and the arity of the method, which is either 0 in case of a method that
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
-template <class SolClass> void registerSchedulerMethods(GVNS *alg) {
+template <class SolClass> void registerSchedulerMethods(GVNS *alg, const string &prefix="") {
 	for (int i=1;i<=methsch();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"con"+tostring(i),
 			&SolClass::construct,i,0));
 	for (int i=1;i<=methsli();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("locim"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"lim"+tostring(i),
 			&SolClass::localimp,i,1));
 	for (int i=1;i<=methssh();i++)
-		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("shake"+tostring(i),
+		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>(prefix+"sh"+tostring(i),
 			&SolClass::shaking,i,1));
 }
 
@@ -338,16 +256,20 @@ int main(int argc, char *argv[])
 	try 
 	{
 		// Probably set some parameters to new default values
+		// main algorithm for OnePerm:
 		maxi.setDefault(1);
 		popsize.setDefault(1);
 		titer.setDefault(1000);
+		// embedded algorithm for OneMax:
+		schthreads.set(1, ONEMAX_PG);
+		schsync.set(false, ONEMAX_PG);
+		tciter.set(-1, ONEMAX_PG);
+		titer.set(20, ONEMAX_PG);
+		lmethod.set(0,ONEMAX_PG);
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);
 		random_seed();
-
-		if (methdel()!=0)
-			spendTime(-1);	// calibrate spendTime function
 
 		/* if #methsch, the number of construction heuristics to be used,
 		   is -1, then set it to the number of used threads */
@@ -371,57 +293,76 @@ int main(int argc, char *argv[])
 		param::printAll(out());
 		out() << endl;
 
-		// possible testing of the multithreading
-		if (threadstest())
-			testmultithreading();
-
 		if (ifile()!="") {
-			// problem instance file given, read it, overwriting 
-			// parameters #prob and #vars in this simple example
+			// problem instance file given, read it, overwriting
+			// parameters vars in this simple example
 			ifstream is(ifile());
 			if (!is)
 				mherror("Cannot open problem instance file", ifile());
-			int p=0,v=0;
-			is >> p >> v;
+			int v=0;
+			is >> v;
 			if (!is)
 				mherror("Invalid problem instance file", ifile());
-			prob.set(p);
 			vars.set(v);
 		}
 
-		// generate a template solution of the problem specific class
-		std::function<mh_solution *()> createsol;
-		switch (prob()) {
-		case 0: createsol = [](){return new oneMaxSol();}; break;
-		case 1: createsol = [](){return new onePermSol();}; break;
-		default: mherror("Invalid problem", tostring(prob()));
-		}
-		// generate a population of uninitialized solutions; do not use hashing
+		// generate template solutions of the problem specific classes
+		std::function<mh_solution *()> createOnePermSol = [](){return new onePermSol();};
+
+		// generate population for main scheduler (for ONEPERM); do not use hashing
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
-		population p(createsol, popsize(), false, false);
+		population pOnePerm(createOnePermSol, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
-		// generate the Scheduler and add SchedulableMethods
-		GVNS *alg = new GVNS(p,methsch(),methsli(),methssh());
-		switch (prob()) {
-		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
-		case 1: registerSchedulerMethods<onePermSol>(alg); break;
-		default: mherror("Invalid problem", tostring(prob()));
+		// generate the main Scheduler and add SchedulableMethods
+		GVNS *algOnePerm = new GVNS(pOnePerm,methsch(),methsli(),methssh());
+		registerSchedulerMethods<onePermSol>(algOnePerm);
+
+		/* also create a template solution, populations and the Scheduler objects for the embedded
+		   ONEMAX problem. Important: One population + scheduler is needed for each thread in
+		   case of multithreading! */
+		std::function<mh_solution *()> createOneMaxSol = [](){return new oneMaxSol();};
+		vector<population *> pOneMax;
+		for (int t=0; t<schthreads(); t++) {
+			pOneMax.push_back(new population(createOneMaxSol, popsize(), false, false));
+			algOneMax.push_back(new GVNS(*pOneMax[t],methsch(),methsli(),methssh(),ONEMAX_PG));
+			registerSchedulerMethods<oneMaxSol>(algOneMax[t],"om-");
 		}
 
-		alg->run();		// run Scheduler until a termination condition is fulfilled
-		
-		mh_solution *bestSol = p.bestSol();	// final solution
+		/*
+		// First, test algOneMax here three times on its own:
+		algOneMax->run();
+		algOneMax->reset();
+		pOneMax.initialize();
+		algOneMax->run();
+		algOneMax->reset();
+		pOneMax.initialize();
+		algOneMax->run();
+		*/
 
-	    // p.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if sfile() given
+		algOnePerm->run();		// run outer Scheduler with embedded inner Scheduler
+		
+		mh_solution *bestSol = pOnePerm.bestSol();	// final solution
+
+	    // pOnePerm.write(out(),1);	// write out final population in detailed form
+		if (sfile()!="")	// save best solution in file if #sfile given
 			bestSol->save(sfile());
 
-		alg->printStatistics(out());	// write result & statistics
+		// write result & statistics and delete algorithms and populations
+		algOnePerm->printStatistics(out());
+		for (int t=1; t<schthreads(); t++) {
+			algOneMax[0]->addStatistics(*algOneMax[t]);	// accumulate results of all ONEMAX GVNS
 
-		delete alg;
+			delete algOneMax[t];
+			delete pOneMax[t];
+		}
+		algOneMax[0]->printMethodStatistics(out());
+		delete algOneMax[0];
+		delete pOneMax[0];
+		algOneMax.clear();
+		delete algOnePerm;
 
 		// eventually perform fitness-distance correlation analysis
 		// FitnessDistanceCorrelation fdc;
