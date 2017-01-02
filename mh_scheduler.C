@@ -280,7 +280,26 @@ bool Scheduler::terminate() {
 	return false;
 }
 
-void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
+bool Scheduler::terminateMethod() {
+	if (finish)
+		return true;
+	if (callback != nullptr) {
+		mutex.lock();
+		double bobj = pop->bestObj();
+		mutex.unlock();
+		if (callback != nullptr && callback(bobj)) {
+			finish = true;
+			return true;
+		}
+	}
+	if (ttime(pgroup)>=0 && ttime(pgroup)<=(mhtime(_wctime) - timStart)) {
+		finish = true;
+		return true;
+	}
+	return false;
+}
+
+	void Scheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	int idx=worker->method->idx;
 	totNetTime[idx] = (totTime[idx] += methodTime);
 	nIter[idx]++;

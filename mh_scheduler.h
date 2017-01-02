@@ -444,6 +444,15 @@ public:
 	bool terminate() override;
 
 	/**
+	 * Returns true, if the external application has requested the optimization to terminate,
+	 * if the scheduler's terminate flag has been set to true,
+	 * or if the ttime termination criterion applies.
+	 * Can be called within time expensive Scheduler methods to stop when termination
+	 * was requested or the time is up. Call is thread-safe.
+	 */
+	bool terminateMethod();
+
+	/**
 	 * Determines the next method to be applied and sets it in the given worker.
 	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
