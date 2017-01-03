@@ -179,8 +179,9 @@ public:
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
-	/** A simple local improvement function: Here we just call the
-	 * mutate function from the base class.
+	/** The local improvement function: Here we call the embedded scheduler
+	 *  solving the ONEMAX problem just for demo purposes and then the mutate
+	 *  function from the base class for the current solution.
 	 */
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// Call the embedded Scheduler:
