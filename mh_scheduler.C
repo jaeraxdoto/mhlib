@@ -306,7 +306,7 @@ bool Scheduler::terminateMethod() {
 			return true;
 		}
 	}
-	if (ttime(pgroup)>=0 && ttime(pgroup)<=(mhtime(_wctime) - timStart)) {
+	if (_ttime>=0 && _ttime<=(mhtime(_wctime) - timStart)) {
 		finish = true;
 		return true;
 	}
