@@ -543,9 +543,9 @@ void SchedulerMethodSelector::doNotReconsiderLastMethod() {
 	if (lastMethod==-1) return;
 	switch (strategy) {
 	case MSSequentialRep: {
-		set<int>::iterator t=lastSeqRep; t--;
-		activeSeqRep.erase(lastSeqRep);
-		lastSeqRep=t;
+		lastSeqRep = activeSeqRep.erase(lastSeqRep);
+		if (lastSeqRep != activeSeqRep.begin())
+			--lastSeqRep;
 		break;
 	}
 	case MSRandomRep: {
