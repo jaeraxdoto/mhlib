@@ -20,7 +20,9 @@ namespace mh {
 
 using namespace std;
 
-int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt",0,0,4);
+int_param schlisel("schlisel","GVNS: locimp selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt,5:timeapt",0,0,5);
+
+int_param schshasel("schshasel","GVNS: shaking selection 0:seqrep,1:seqonce,2:randomrep,3:rndonce,4:adapt,5:timeapt",0,0,5);
 
 bool_param schlirep("schlirep","GVNS: perform locimp nhs repeatedly",1);
 
@@ -36,7 +38,7 @@ SchedulerMethodSelector *GVNS::createSelector_locimpnh() {
 }
 
 SchedulerMethodSelector *GVNS::createSelector_shakingnh() {
-	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialRep);
+	return new SchedulerMethodSelector(this,SchedulerMethodSelector::MethodSelStrat(_schshasel));
 }
 
 GVNS::GVNS(pop_base &p, int nconstheu, int nlocimpnh, int nshakingnh, const std::string &pg) :

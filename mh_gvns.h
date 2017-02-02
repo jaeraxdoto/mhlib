@@ -17,8 +17,20 @@ namespace mh {
 	 * 1 MSSequentialOnce: choose one after the other, each just once, and then return nullptr
 	 * 2 MSRandomRep: uniform random selection with repetitions
 	 * 3 MSRandomOnce: uniform random selection, but each just once; finally return nullptr
-	 * 4 MSSelfadaptive: random selection with self-adaptive probabilities */
+	 * 4 MSSelfadaptive: random selection with self-adaptive probabilities
+	 * 5 MSTimeAdaptive: random selection with time-adaptive probabilities (probabilities indirect proportional to used time)*/
 extern int_param schlisel;
+
+
+/** \ingroup param
+ * GVNS selection strategy for shaking neighborhoods.
+	 * 0 MSSequentialRep: choose one after the other in the given order, then restarting again with first
+	 * 1 MSSequentialOnce: choose one after the other, each just once, and then return nullptr
+	 * 2 MSRandomRep: uniform random selection with repetitions
+	 * 3 MSRandomOnce: uniform random selection, but each just once; finally return nullptr
+	 * 4 MSSelfadaptive: random selection with self-adaptive probabilities
+	 * 5 MSTimeAdaptive: random selection with time-adaptive probabilities (probabilities indirect proportional to used time)*/
+extern int_param schshasel;
 
 /** \ingroup param
  * GVNS: If set, the local improvement methods are repeatedly performed until a locally optimum solution
@@ -56,6 +68,7 @@ protected:
 
 	int _schlisel=schlisel(pgroup);	///< Mirrored mhlib parameter #schlisel.
 	bool _schlirep=schlirep(pgroup); ///< Mirrored mhlib parameter #schlirep.
+	int _schshasel=schshasel(pgroup);	///< Mirrored mhlib parameter #schshasel.
 
 	/* Dynamically creates a selector for the construction heuristic methods. */
 	virtual SchedulerMethodSelector *createSelector_constheu();

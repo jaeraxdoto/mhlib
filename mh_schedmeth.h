@@ -73,6 +73,7 @@ public:
 	const std::string name;		///< The method's (unique) name (possibly including method_par).
 	const int arity;			///< Arity, i.e., number of input solutions of the method, which is currently either 0 or 1.
 	int idx;					///< Index in methodPool of Scheduler.
+	bool adaptive; 						///< Specifies if adaptive selection mechanisms should be used for this method if they are turned on.
 /**
 	 * Constructs a new SchedulerMethod from a MethodType function object using the
 	 * given arguments, assigning a default weight of 1 and a score of 0.
@@ -81,8 +82,8 @@ public:
 	 * the operator acts on a current solution.
 	 *
 	 */
-	SchedulerMethod(const std::string &_name, int _arity) :
-				name(_name), arity(_arity) {
+	SchedulerMethod(const std::string &_name, int _arity, bool adaptive = true) :
+				name(_name), arity(_arity), adaptive(adaptive) {
 		idx = -1;
 		// so far only construction and simple improvement methods are considered
 		assert(arity>=0 && arity<=1);
@@ -122,8 +123,8 @@ public:
 	 */
 	SolMemberSchedulerMethod(const std::string &_name, void (SpecSol::* _pmeth)(int,
 				SchedulerMethodContext &, SchedulerMethodResult &),
-			int _par, int _arity) :
-		SchedulerMethod(_name,_arity), pmeth(_pmeth), par(_par) {
+			int _par, int _arity, bool adaptive = true) :
+		SchedulerMethod(_name,_arity, adaptive), pmeth(_pmeth), par(_par) {
 	}
 
 	/** Apply the method for the given solution, passing par. The method returns true if the solution

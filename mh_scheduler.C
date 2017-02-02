@@ -478,7 +478,8 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 			return nullptr;
 		int r = random_int(firstActiveMethod,methodList.size()-1);
 		methodContextList[r].callCounter++;
-		return scheduler->methodPool[methodList[r]];
+		lastMethod = r;
+		return scheduler->methodPool[methodList[lastMethod]];
 	}
 	case MSRandomOnce: {
 		if (lastMethod == size()-1)
@@ -492,6 +493,49 @@ SchedulerMethod *SchedulerMethodSelector::select() {
 		}
 		methodContextList[lastMethod].callCounter++;
 		return scheduler->methodPool[methodList[lastMethod]];
+	}
+	case MSTimeAdaptive: {
+		if (firstActiveMethod == size())
+			return nullptr;
+		//first specify weights for adaptive methods
+		double sum = 0;
+		int countAdaptive = 0;
+		for (int i = firstActiveMethod; i < size(); i++) {
+			if (scheduler->methodPool[methodList[i]]->adaptive) {
+				double weight = 1000000;
+				if (scheduler->nIter[methodList[i]] > 0) {
+					double timeFactor = (scheduler->totNetTime[methodList[i]] + 0.01) * (scheduler->totNetTime[methodList[i]] + 0.01);
+					weight = scheduler->nIter[methodList[i]] / timeFactor;
+				}
+				probabilityWeights[i] = weight;
+				sum += weight;
+				countAdaptive++;
+			}
+		}
+
+		//specify weights for non-adaptive methods
+		double average = 1;
+		if (countAdaptive > 0) {
+			average = sum / countAdaptive;
+		}
+		for (int i = firstActiveMethod; i < size(); i++) {
+			if (!scheduler->methodPool[methodList[i]]->adaptive) {
+				probabilityWeights[i] = average;
+				sum += average;
+			}
+		}
+
+		double r = random_double(0, sum);
+		sum = 0;
+		for (int i = firstActiveMethod; i < size(); i++) {
+			sum += probabilityWeights[i];
+			if (r <= sum || i == size() - 1) { //i == size() - 1 for numeric issues
+				lastMethod = i;
+				methodContextList[lastMethod].callCounter++;
+				return scheduler->methodPool[methodList[lastMethod]];
+			}
+		}
+		break;
 	}
 	case MSSelfadaptive:
 		mherror("Selfadaptive strategy in SchedulerMethodSelector::select not yet implemented");
@@ -534,6 +578,8 @@ bool SchedulerMethodSelector::hasFurtherMethod() const {
 		return !activeSeqRep.empty();
 	case MSRandomRep:
 		return firstActiveMethod < size();
+	case MSTimeAdaptive:
+		return firstActiveMethod < size();
 	default:
 		return lastMethod < size()-1;
 	}
@@ -542,6 +588,7 @@ bool SchedulerMethodSelector::hasFurtherMethod() const {
 void SchedulerMethodSelector::doNotReconsiderLastMethod() {
 	if (lastMethod==-1) return;
 	switch (strategy) {
+	case MSTimeAdaptive:
 	case MSSequentialRep: {
 		lastSeqRep = activeSeqRep.erase(lastSeqRep);
 		if (lastSeqRep != activeSeqRep.begin())

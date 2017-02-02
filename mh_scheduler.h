@@ -198,7 +198,9 @@ public:
 		/** Uniform random selection, but each just once; finally return nullptr. */
 		MSRandomOnce,
 		/** Random selection with self-adaptive probabilities. */
-		MSSelfadaptive
+		MSSelfadaptive,
+		/** Random selection, where the probability is indirect proportional to the time used until now for this method. */
+		MSTimeAdaptive
 	};
 
 protected:
@@ -212,6 +214,7 @@ protected:
 	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
 	std::set<int> activeSeqRep;	///< Active methods indices in case of MSSequentialRep. Not used by other strategies.
 	std::set<int>::iterator lastSeqRep; /// Last method iterator in activeSeqRep. Only used by MSSequtionRep.
+	std::vector<double> probabilityWeights; ///< Probability intervals for the methods, only used for adaptive methods
 
 public:
 
@@ -228,6 +231,7 @@ public:
 	/** Adds a the method with the given index to the methodList. */
 	void add(int idx) {
 		methodList.push_back(idx);
+		probabilityWeights.push_back(0);
 		methodContextList.emplace_back(SchedulerMethodContext());
 		if (strategy==MSSequentialRep)
 			activeSeqRep.insert(methodList.size()-1);
