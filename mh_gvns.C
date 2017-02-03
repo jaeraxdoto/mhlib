@@ -102,7 +102,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		// this means that no construction method has been scheduled before for this worker,
 		// then check if globally a solution has already been constructed by some worker.
 		if (worker->method == nullptr && locimpnh[0]->empty()) {
-			if (!initialSolutionExists)
+			if (!initialSolutionExists && (pop->size()==0 || !constheu->empty()))
 				return;	// no, then there is no need to schedule an improvement method, yet.
 			else {
 				// yes, then we assign the best known solution and schedule a method to be applied to it.
