@@ -276,13 +276,6 @@ public:
 	 * Otherwise, the results remain in the vector.
 	 */
 	virtual void updateDataFromResultsVectors(bool clearResults) = 0;
-
-	/**
-	 * Updates the statistics data after applying a method in worker.
-	 * @param worker current worker object
-	 * @param methodTime CPU time used by the method call
-	 */
-	virtual void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
 };
 
 } // end of namespace mh

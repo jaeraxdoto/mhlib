@@ -177,7 +177,7 @@ public:
 	 * @param worker current worker object
 	 * @param methodTime CPU time used by the method call
 	 */
-	void updateMethodStatistics(SchedulerWorker *worker, double methodTime) override;
+	void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
 
 	/**
 	 * Separate statistics update for shaking methods, which is called after performing

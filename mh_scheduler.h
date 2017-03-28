@@ -245,6 +245,13 @@ public:
 	}
 
 	/**
+	 * Initiates the scheduling and runs the optimization.
+	 * A certain number of SchedulerWorker objects, defined by the threads() parameter, is created and
+	 * started in individual threads, each running its own loop .
+	 */
+	void run() override;
+
+	/**
 	 * This method may be called to reset the scheduler for a new run.
 	 * Statistics data will be aggregated over the runs, but the next run will be entirely
 	 * independent.
@@ -279,6 +286,10 @@ public:
 	 * was requested or the time is up. Call is thread-safe.
 	 */
 	bool terminateMethod();
+
+	/** Updates the statistics data after applying a method. */
+	void updateMethodStatistics(mh_solution *origsol, mh_solution *tmpsol, int methodIdx,
+			double methodTime, SchedulerMethodResult &tmpSolResult);
 
 	/**
 	 * Prints more detailed statistics on the methods used by the scheduler.

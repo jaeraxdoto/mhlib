@@ -24,6 +24,28 @@ int_param lmethod("lmethod","scheduler: 0:no log, 1:normal log, 2:append method 
 
 //--------------------------------- Scheduler ---------------------------------------------
 
+void Scheduler::run() {
+	checkPopulation();
+
+	timStart = mhtime(_wctime);
+	if (timFirstStart == 0)
+		timFirstStart = timStart;
+	if (lmethod(pgroup)) {
+		writeLogHeader();
+		writeLogEntry(false,true,"*");
+
+	}
+
+	// TODO Actually perform scheduler
+
+	if (lmethod(pgroup)) {
+		logmutex.lock();
+		logstr.emptyEntry();
+		logstr.flush();
+		logmutex.unlock();
+	}
+}
+
 void Scheduler::reset() {
 	mh_advbase::reset();
 	finish = false;
@@ -66,6 +88,18 @@ bool Scheduler::terminateMethod() {
 		return true;
 	}
 	return false;
+}
+
+void Scheduler::updateMethodStatistics(mh_solution *origsol, mh_solution *tmpsol, int methodIdx,
+		double methodTime, SchedulerMethodResult &tmpSolResult) {
+	totNetTime[methodIdx] = (totTime[methodIdx] += methodTime);
+	nIter[methodIdx]++;
+	nIteration++;
+	// if the applied method was successful, i.e., is accepted, update the success-counter and the total obj-gain
+	if (tmpSolResult.accept) {
+		nSuccess[methodIdx]++;
+		sumGain[methodIdx] += abs(origsol->obj() - tmpsol->obj());
+	}
 }
 
 void Scheduler::printMethodStatistics(ostream &ostr) {

@@ -242,7 +242,8 @@ void GVNS::updateDataFromResultsVectors(bool clearResults) {
 
 void GVNS::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	if (worker->method->idx < constheu->size() + locimpnh[0]->size())
-		ParScheduler::updateMethodStatistics(worker, methodTime);
+		Scheduler::updateMethodStatistics(worker->pop.at(0), worker->tmpSol,worker->method->idx,
+				methodTime,worker->tmpSolResult);
 	else {
 		nIteration++;
 		// skip shaking method statistics update except adding to totNetTime;

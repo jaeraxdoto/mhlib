@@ -167,7 +167,8 @@ void SchedulerWorker::run() {
 				// update statistics and scheduler data
 				scheduler->mutex.lock();
 
-				scheduler->updateMethodStatistics(this, methodTime);
+				scheduler->updateMethodStatistics(pop.at(0),tmpSol,method->idx,
+						methodTime,tmpSolResult);
 				scheduler->updateData(this, !scheduler->_schsync, scheduler->_schsync);
 
 				bool termnow = scheduler->terminate();	// should we terminate?
@@ -286,18 +287,6 @@ bool ParScheduler::terminateMethod() {
 		return true;
 	}
 	return false;
-}
-
-	void ParScheduler::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
-	int idx=worker->method->idx;
-	totNetTime[idx] = (totTime[idx] += methodTime);
-	nIter[idx]++;
-	nIteration++;
-	// if the applied method was successful, i.e., is accepted, update the success-counter and the total obj-gain
-	if (worker->tmpSolResult.accept) {
-		nSuccess[idx]++;
-		sumGain[idx] += abs(worker->pop.at(0)->obj() - worker->tmpSol->obj());
-	}
 }
 
 void ParScheduler::rethrowExceptions() {

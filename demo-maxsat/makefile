@@ -1,4 +1,4 @@
-# makefile for building thid application
+# makefile for building this application
 
 # default location of MHLIB is parent directory
 #ifndef MHLIB	# remove comments for applications outside mhlib directory
