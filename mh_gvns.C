@@ -42,7 +42,7 @@ SchedulerMethodSelector *GVNS::createSelector_shakingnh() {
 }
 
 GVNS::GVNS(pop_base &p, int nconstheu, int nlocimpnh, int nshakingnh, const std::string &pg) :
-		Scheduler(p, pg) {
+		ParScheduler(p, pg) {
 	initialSolutionExists = false;
 	constheu = createSelector_constheu();
 	for (int t=0; t<_schthreads; t++) {
@@ -242,7 +242,7 @@ void GVNS::updateDataFromResultsVectors(bool clearResults) {
 
 void GVNS::updateMethodStatistics(SchedulerWorker *worker, double methodTime) {
 	if (worker->method->idx < constheu->size() + locimpnh[0]->size())
-		Scheduler::updateMethodStatistics(worker, methodTime);
+		ParScheduler::updateMethodStatistics(worker, methodTime);
 	else {
 		nIteration++;
 		// skip shaking method statistics update except adding to totNetTime;

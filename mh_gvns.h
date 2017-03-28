@@ -1,13 +1,13 @@
 /*! \file mh_gvns.h
- \brief A flexible Generalized Variable Neighborhood Search framework based on the general scheduler
- implemented in mh_scheduler.h. This framework is also suitable for realizing GRASP, VLNS, ILS, IG
+ \brief A flexible Generalized Variable Neighborhood Search framework based on the parallel general scheduler
+ implemented in mh_parscheduler.h. This framework is also suitable for realizing GRASP, VLNS, ILS, IG
  approaches.
  */
 
 #ifndef MH_GVNS_H
 #define MH_GVNS_H
 
-#include "mh_scheduler.h"
+#include "mh_parscheduler.h"
 
 namespace mh {
 
@@ -52,7 +52,7 @@ extern bool_param schlirep;
  * Each worker thread performs an independent VNS, migration is performed at major iterations,
  * the overall best solution is adopted in the main population.
  */
-class GVNS : public Scheduler {
+class GVNS : public ParScheduler {
 
 protected:
 	SchedulerMethodSelector *constheu;	///< Selector for construction heuristic methods
