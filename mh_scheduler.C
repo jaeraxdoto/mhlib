@@ -77,7 +77,9 @@ bool Scheduler::terminateMethod() {
 	if (finish)
 		return true;
 	if (callback != nullptr) {
+		mutexLock();
 		double bobj = pop->bestObj();
+		mutexUnlock();
 		if (callback != nullptr && callback(bobj)) {
 			finish = true;
 			return true;

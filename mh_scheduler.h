@@ -278,14 +278,22 @@ public:
 	 */
 	bool terminate() override;
 
+	/** Function that can be overriden for achieving mutual exclusion in the next block. */
+	virtual void mutexLock() {
+	}
+
+	/** Function that can be overriden for ending mutual exclusive block. */
+	virtual void mutexUnlock() {
+	}
+
 	/**
 	 * Returns true, if the external application has requested the optimization to terminate,
 	 * if the scheduler's terminate flag has been set to true,
 	 * or if the ttime termination criterion applies.
 	 * Can be called within time expensive Scheduler methods to stop when termination
-	 * was requested or the time is up. Call is thread-safe.
+	 * was requested or the time is up. The method is thread-safe
 	 */
-	bool terminateMethod();
+	virtual bool terminateMethod();
 
 	/** Updates the statistics data after applying a method. */
 	void updateMethodStatistics(mh_solution *origsol, mh_solution *tmpsol, int methodIdx,

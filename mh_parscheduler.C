@@ -270,25 +270,6 @@ void ParScheduler::reset() {
 	workersWaiting = 0;
 }
 
-bool ParScheduler::terminateMethod() {
-	if (finish)
-		return true;
-	if (callback != nullptr) {
-		mutex.lock();
-		double bobj = pop->bestObj();
-		mutex.unlock();
-		if (callback != nullptr && callback(bobj)) {
-			finish = true;
-			return true;
-		}
-	}
-	if (_ttime>=0 && _ttime<=(mhtime(_wctime) - timStart)) {
-		finish = true;
-		return true;
-	}
-	return false;
-}
-
 void ParScheduler::rethrowExceptions() {
 	for (const exception_ptr &ep : worker_exceptions)
 		std::rethrow_exception(ep);
