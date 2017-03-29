@@ -33,31 +33,6 @@ extern int_param lmethod;
  */
 const int maxStackedMethods=4;
 
-//--------------------------- MethodApplicationResult ------------------------------
-
-/**
- * This struct stores all the relevant data of the outcome of a performed
- * optimization method in order to have access to the result later.
- */
-struct SchedulerMethodApplication {
-	SchedulerMethod* method;	///< The method that has been applied.
-
-	SchedulerMethodResult result;	///< The outcome of the application.
-
-	/**
-	 * The absolute difference in the objective values between the incumbent solution and
-	 * the one obtained by the application of this method.
-	 */
-	double objDiff;
-
-	/**
-	 * Constructor initializing data.
-	 */
-	SchedulerMethodApplication(SchedulerMethod* method, const SchedulerMethodResult &result, double objDiff) :
-		method(method), result(result), objDiff(objDiff) {
-	}
-};
-
 
 //--------------------------- SchedulerMethodSelector ------------------------------
 
@@ -179,7 +154,7 @@ class Scheduler : public mh_advbase {
 
 protected:
 	/** The method pool from which the scheduler chooses the methods to be used. */
-	std::vector<SchedulerMethod*> methodPool;
+	std::vector<SchedulerMethod *> methodPool;
 
 	/* Statistical data on methods */
 	std::vector<int> nIter;			///< Number of iterations of the particular methods.
@@ -343,6 +318,20 @@ public:
 	 * threads.
 	 */
 	void addStatistics(const Scheduler &s);
+
+	/**
+	 * Determines the next method to be applied. Parameter idx is specific to the implementations
+	 * in derived classes.
+	 * The implementation in this class always just returns the first method in the methodPool.
+	 */
+	virtual SchedulerMethod *getNextMethod(int idx);
+
+	/**
+	 * Updates the schedulers internal data (e.g., population) in accordance to the last method application.
+	 * The parameters are specific to the implementations in derived classes.
+	 */
+	virtual void updateData(SchedulerMethodResult &tmpSolResult, int idx,
+			bool updateSchedulerData, bool storeResult);
 };
 
 } // end of namespace mh

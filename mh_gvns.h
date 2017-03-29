@@ -119,7 +119,7 @@ public:
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
      */
-	void getNextMethod(SchedulerWorker *worker) override;
+	SchedulerMethod *getNextMethod(int idx) override;
 
 	/**
 	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
@@ -130,7 +130,7 @@ public:
 	 * is ignored and no result information is appended to the vector's result list.
 	 * This method is called with mutex locked.
 	 */
-	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) override;
+	void updateData(int idx, bool updateSchedulerData, bool storeResult) override;
 
 	/** Procedure that is called from updateData before a solution obtained from a construction method
 	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used

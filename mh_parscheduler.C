@@ -68,7 +68,7 @@ void SchedulerWorker::run() {
 					}
 
 					scheduler->mutex.lock(); // Begin of atomic operation
-					scheduler->getNextMethod(this);	// try to find an available method for scheduling
+					scheduler->getNextMethod(this->id);	// try to find an available method for scheduling
 					// if thread synchronization is active and this thread has not started, yet,
 					// set the isWorking flag to true and notify possibly waiting threads
 					if (scheduler->_schsync && !isWorking) {
@@ -169,7 +169,7 @@ void SchedulerWorker::run() {
 
 				scheduler->updateMethodStatistics(pop.at(0),tmpSol,method->idx,
 						methodTime,tmpSolResult);
-				scheduler->updateData(this, !scheduler->_schsync, scheduler->_schsync);
+				scheduler->updateData(this->id, !scheduler->_schsync, scheduler->_schsync);
 
 				bool termnow = scheduler->terminate();	// should we terminate?
 				if (!termnow) {

@@ -66,7 +66,9 @@ void GVNS::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
 		update(0, worker->pop[0]);
 }
 
-void GVNS::getNextMethod(SchedulerWorker *worker) {
+SchedulerMethod *GVNS::getNextMethod(int idx) {
+	SchedulerWorker *worker = workers[idx];
+
 	// must have the correct number of methods added
 	assert(int(methodPool.size()) == constheu->size() + locimpnh[0]->size() + shakingnh[0]->size());
 
@@ -76,7 +78,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		worker->method = constheu->select();
 		if (worker->method != nullptr) {
 			worker->methodContext=constheu->getMethodContext();
-			return;
+			return worker->method;
 		}
 	}
 	// When proceeding from the construction methods to local improvement or shaking,
@@ -92,7 +94,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		worker->method = locimpnh[worker->id]->select();
 		if (worker->method != nullptr) {
 			worker->methodContext=locimpnh[worker->id]->getMethodContext();
-			return;
+			return worker->method;
 		}
 		else
 			// all local improvement methods applied to this solution, VND done
@@ -105,7 +107,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		// then check if globally a solution has already been constructed by some worker.
 		if (worker->method == nullptr && locimpnh[0]->empty()) {
 			if (!initialSolutionExists && (pop->size()==0 || !constheu->empty()))
-				return;	// no, then there is no need to schedule an improvement method, yet.
+				return nullptr;	// no, then there is no need to schedule an improvement method, yet.
 			else {
 				// yes, then we assign the best known solution and schedule a method to be applied to it.
 				worker->pop.update(0, pop->at(0));
@@ -116,7 +118,7 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 		if (worker->method != nullptr) {
 			worker->methodContext=shakingnh[worker->id]->getMethodContext();
 			worker->startTime[1] = _wctime ? mhwctime() : mhcputime();
-			return;
+			return worker->method;
 		}
 	}
 
@@ -124,11 +126,11 @@ void GVNS::getNextMethod(SchedulerWorker *worker) {
 	// -> initiate termination
 	finish = true;
 	worker->method = nullptr;
-	return;
+	return nullptr;
 }
 
-
-void GVNS::updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) {
+void GVNS::updateData(int idx, bool updateSchedulerData, bool storeResult) {
+	SchedulerWorker *worker = workers[idx];
 	if (worker->method->idx < int(constheu->size())) {
 		// construction method has been applied
 		if (worker->tmpSolResult.accept) {

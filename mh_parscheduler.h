@@ -239,7 +239,7 @@ public:
 	}
 
 	/**
-	 * Determines the next method to be applied and sets it in the given worker.
+	 * Determines the next method to be applied and sets it in the worker given by idx.
 	 * The solution to be modified is tmpSol and the method may depend on
 	 * the worker's population.
 	 * Also resets tmpSolResult, initializing it with the number how often the method has
@@ -249,10 +249,10 @@ public:
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
 	 */
-	virtual void getNextMethod(SchedulerWorker *worker) = 0;
+	virtual SchedulerMethod *getNextMethod(int idx) = 0;
 
 	/**
-	 * Updates the worker->tmpSol, worker->pop and the scheduler's population.
+	 * Updates the worker->tmpSol, worker->pop, where the worker is given by idx, and the scheduler's population.
 	 * If the flag updateSchedulerData is set to true, global data, such as the scheduler's
 	 * population, is possibly updated as well, according to the result of the last method application.
 	 * Furthermore, the worker's incumbent is updated to the global best one with probability
@@ -265,7 +265,7 @@ public:
 	 * TODO: When worse solutions are actively set to be accepted via result.accept,
 	 * a so far best solution is currently not yet stored and gets lost!
 	 */
-	virtual void updateData(SchedulerWorker* worker, bool updateSchedulerData, bool storeResult) = 0;
+	virtual void updateData(int idx, bool updateSchedulerData, bool storeResult) = 0;
 
 	/**
 	 * Updates the global data based on the entries in the results vectors of the workers.

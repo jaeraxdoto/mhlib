@@ -36,7 +36,52 @@ void Scheduler::run() {
 
 	}
 
-	// TODO Actually perform scheduler
+	tmpSol->copy(*pop->at(0));
+
+	if (!terminate()) {
+		for(;;) {
+			checkPopulation();
+
+			SchedulerMethodContext methodContext;
+			SchedulerMethodResult tmpSolResult;
+
+			SchedulerMethod *method = getNextMethod(0);
+
+			if (method == nullptr || finish) // if in the meanwhile, termination has been started, terminate this thread as well
+				break;
+
+			// run the scheduled method
+			// methodContext.callCounter has been initialized by getNextMethod
+			double startTime=mhcputime();
+			method->run(tmpSol, methodContext, tmpSolResult);
+			double methodTime = mhcputime() - startTime;
+
+			// augment missing information in tmpSolResult except tmpSOlResult.reconsider
+			if (tmpSolResult.changed) {
+				if (tmpSolResult.better == -1)
+					tmpSolResult.better = tmpSol->isBetter(*pop->at(0));
+				if (tmpSolResult.accept == -1)
+					tmpSolResult.accept = tmpSolResult.better;
+			}
+			else { // unchanged solution
+				tmpSolResult.better = false;
+				if (tmpSolResult.accept == -1)
+					tmpSolResult.accept = false;
+			}
+
+			// update statistics and scheduler data
+			updateMethodStatistics(pop->at(0),tmpSol,0,methodTime,tmpSolResult);
+			updateData(tmpSolResult, 0, true, false);
+
+			bool termnow = terminate();	// should we terminate?
+
+			if (!termnow || nIteration>logstr.lastIter())
+				writeLogEntry(termnow, true, method->name);
+
+			if (terminate())
+				break;
+		}
+	}
 
 	if (lmethod(pgroup)) {
 		logmutex.lock();
@@ -218,6 +263,28 @@ void Scheduler::addStatistics(const Scheduler &s) {
 		sumGain[k] += s.sumGain[k];
 	}
 	timFirstStart = min(timFirstStart,s.timFirstStart);
+}
+
+SchedulerMethod *Scheduler::getNextMethod(int idx) {
+	assert(methodPool.size()>0);
+	return methodPool[0];
+}
+
+void Scheduler::updateData(SchedulerMethodResult &tmpSolResult, int idx, bool updateSchedulerData, bool storeResult) {
+	// first method has been applied
+	if (tmpSolResult.reconsider==0 || (!tmpSolResult.changed && tmpSolResult.reconsider==-1))
+		finish = true;
+	if (tmpSolResult.accept) {
+		// solution to be accepted
+		pop->update(0, tmpSol);
+	}
+	else {
+		// unsuccessful call
+		// continue with with incumbent VND solution
+		if (tmpSolResult.changed)
+			tmpSol->copy(*pop->at(0)); // restore worker's incumbent
+		return;
+	}
 }
 
 
