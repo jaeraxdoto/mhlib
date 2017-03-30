@@ -42,18 +42,21 @@ void Scheduler::run() {
 		for(;;) {
 			checkPopulation();
 
-			SchedulerMethodContext methodContext;
 			SchedulerMethodResult tmpSolResult;
 
-			SchedulerMethod *method = getNextMethod(0);
+			SchedulerMethodAndContext mc = getNextMethod(0);
+			SchedulerMethod *method = mc.first;
+			SchedulerMethodContext *methodContext = mc.second;
+			if (methodContext == nullptr)
+				methodContext = new SchedulerMethodContext;
 
-			if (method == nullptr || finish) // if in the meanwhile, termination has been started, terminate this thread as well
+			if (mc.first == nullptr || finish) // if in the meanwhile, termination has been started, terminate this thread as well
 				break;
 
 			// run the scheduled method
 			// methodContext.callCounter has been initialized by getNextMethod
 			double startTime=mhcputime();
-			method->run(tmpSol, methodContext, tmpSolResult);
+			method->run(tmpSol, *methodContext, tmpSolResult);
 			double methodTime = mhcputime() - startTime;
 
 			// augment missing information in tmpSolResult except tmpSOlResult.reconsider
@@ -72,6 +75,9 @@ void Scheduler::run() {
 			// update statistics and scheduler data
 			updateMethodStatistics(pop->at(0),tmpSol,0,methodTime,tmpSolResult);
 			updateData(tmpSolResult, 0, true, false);
+
+			if (mc.second == nullptr)
+				delete methodContext;
 
 			bool termnow = terminate();	// should we terminate?
 
@@ -265,9 +271,9 @@ void Scheduler::addStatistics(const Scheduler &s) {
 	timFirstStart = min(timFirstStart,s.timFirstStart);
 }
 
-SchedulerMethod *Scheduler::getNextMethod(int idx) {
+SchedulerMethodAndContext Scheduler::getNextMethod(int idx) {
 	assert(methodPool.size()>0);
-	return methodPool[0];
+	return SchedulerMethodAndContext(methodPool[0], nullptr);
 }
 
 void Scheduler::updateData(SchedulerMethodResult &tmpSolResult, int idx, bool updateSchedulerData, bool storeResult) {

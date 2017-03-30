@@ -8,12 +8,26 @@ using namespace std;
 
 //--------------------------------- PBIG ---------------------------------------------
 
-PBIG::PBIG(pop_base &p, const std::string &pg)
+PBIG::PBIG(pop_base &p, int destRecMethods, const std::string &pg)
 		: Scheduler(p, pg) {
+	constheu = new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialRep);
+	constheu->add(0);
+	for (int s=0; s<pop->size(); s++) {
+		destrec.push_back(new SchedulerMethodSelector(this,SchedulerMethodSelector::MSSequentialRep));
+		destrec.back()->add(0);
+		for (int i=1; i < destRecMethods; i++)
+			destrec.back()->add(i);
+	}
 }
 
-SchedulerMethod *PBIG::getNextMethod(int idx) {
-	return Scheduler::getNextMethod(idx);
+std::pair<SchedulerMethod *,SchedulerMethodContext *> PBIG::getNextMethod(int idx) {
+	assert(int(methodPool.size())==constheu->size() + destrec[0]->size());
+	int s = nIteration % pop->size();	// Index of solution to be considered
+	SchedulerMethodSelector *sel = (nIteration < pop->size() ? constheu : destrec[s]);
+	SchedulerMethod *method = sel->select();
+	assert(method!=nullptr);
+	SchedulerMethodContext *context = sel->getMethodContext();
+	return SchedulerMethodAndContext(method, context);
 }
 
 void PBIG::updateData(SchedulerMethodResult &tmpSolResult, int idx,

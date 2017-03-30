@@ -39,7 +39,7 @@ struct SchedulerMethodResult {
  * from the calling context and the possibility to store user-defined information from one call
  * to the next. */
 struct SchedulerMethodContext {
-	int workerid = 0;	///< Pointer to Scheduler Worker calling the method (read only).
+	int workerid = 0;	///< Pointer to Scheduler Worker calling the method  in ParScheduler (read only).
 	int callCounter = 0;		///< Number, how often this method was called already for this solution
 	mh_solution *incumbentSol = nullptr;	///< Pointer to incumbent solution (= copy of initially provided solution).
 	int userInt = 0; ///< User-defined int that can be set by the SchedulerMethod and is preserved between successive calls. For method-specific purposes.

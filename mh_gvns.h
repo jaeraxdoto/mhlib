@@ -109,7 +109,7 @@ public:
 	}
 
 	/**
-	 * Schedules the next method according to the general VNS scheme, i.e., with the VND embedded
+	 * Schedules the next method according to the GVNS scheme, i.e., with the VND embedded
 	 * in the VNS. If multiple construction heuristics exist, it is ensured that first all of them are
 	 * applied in the order they are defined. After each construction heuristic has been executed,
 	 * the selection follows the order of the shaking and local improvement methods defined in the VNS
@@ -119,7 +119,7 @@ public:
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
      */
-	SchedulerMethod *getNextMethod(int idx) override;
+	SchedulerMethodAndContext getNextMethod(int idx) override;
 
 	/**
 	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's

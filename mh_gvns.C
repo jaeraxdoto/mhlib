@@ -66,7 +66,7 @@ void GVNS::copyBetter(SchedulerWorker *worker, bool updateSchedulerData) {
 		update(0, worker->pop[0]);
 }
 
-SchedulerMethod *GVNS::getNextMethod(int idx) {
+SchedulerMethodAndContext GVNS::getNextMethod(int idx) {
 	SchedulerWorker *worker = workers[idx];
 
 	// must have the correct number of methods added
@@ -78,7 +78,7 @@ SchedulerMethod *GVNS::getNextMethod(int idx) {
 		worker->method = constheu->select();
 		if (worker->method != nullptr) {
 			worker->methodContext=constheu->getMethodContext();
-			return worker->method;
+			return SchedulerMethodAndContext(worker->method,worker->methodContext);
 		}
 	}
 	// When proceeding from the construction methods to local improvement or shaking,
@@ -94,7 +94,7 @@ SchedulerMethod *GVNS::getNextMethod(int idx) {
 		worker->method = locimpnh[worker->id]->select();
 		if (worker->method != nullptr) {
 			worker->methodContext=locimpnh[worker->id]->getMethodContext();
-			return worker->method;
+			return SchedulerMethodAndContext(worker->method,worker->methodContext);
 		}
 		else
 			// all local improvement methods applied to this solution, VND done
@@ -107,7 +107,7 @@ SchedulerMethod *GVNS::getNextMethod(int idx) {
 		// then check if globally a solution has already been constructed by some worker.
 		if (worker->method == nullptr && locimpnh[0]->empty()) {
 			if (!initialSolutionExists && (pop->size()==0 || !constheu->empty()))
-				return nullptr;	// no, then there is no need to schedule an improvement method, yet.
+				return SchedulerMethodAndContext(nullptr,nullptr);	// no, then there is no need to schedule an improvement method, yet.
 			else {
 				// yes, then we assign the best known solution and schedule a method to be applied to it.
 				worker->pop.update(0, pop->at(0));
@@ -118,7 +118,7 @@ SchedulerMethod *GVNS::getNextMethod(int idx) {
 		if (worker->method != nullptr) {
 			worker->methodContext=shakingnh[worker->id]->getMethodContext();
 			worker->startTime[1] = _wctime ? mhwctime() : mhcputime();
-			return worker->method;
+			return SchedulerMethodAndContext(worker->method,worker->methodContext);
 		}
 	}
 
@@ -126,7 +126,7 @@ SchedulerMethod *GVNS::getNextMethod(int idx) {
 	// -> initiate termination
 	finish = true;
 	worker->method = nullptr;
-	return nullptr;
+	return SchedulerMethodAndContext(nullptr,nullptr);
 }
 
 void GVNS::updateData(int idx, bool updateSchedulerData, bool storeResult) {

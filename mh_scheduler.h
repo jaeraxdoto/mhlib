@@ -70,7 +70,7 @@ protected:
 	class Scheduler *scheduler;				///< Associated Scheduler
 	MethodSelStrat strategy;			///< The selection strategy to be used.
 	std::vector<int> methodList; 		///< List of Indices of the methods in the methodPool.
-	std::vector<SchedulerMethodContext> methodContextList;	///< The MethodContext objects associated with the methods for the current thread, to be passed when calling a method.
+	std::vector<SchedulerMethodContext> methodContextList;	///< The MethodContext objects associated with the methods, to be passed when calling a method.
 
 	int lastMethod;			///< Index of last applied method in methodList or -1 if none.
 	int firstActiveMethod;	///< Index of first active, i.e., to be considered, methods. If equal to methodList.size(), no further method remains.
@@ -140,6 +140,9 @@ public:
 		return &methodContextList[lastMethod];
 	}
 };
+
+/** Pair combining a SchedulerMethod and associated SchedulerMethodContext for performing the method. */
+typedef std::pair<SchedulerMethod *,SchedulerMethodContext *> SchedulerMethodAndContext;
 
 //--------------------------- Scheduler ------------------------------
 
@@ -320,11 +323,12 @@ public:
 	void addStatistics(const Scheduler &s);
 
 	/**
-	 * Determines the next method to be applied. Parameter idx is specific to the implementations
-	 * in derived classes.
+	 * Determines the next method to be applied together with its associated SchedulerMethodContext.
+	 * nullptr might be returned as SchedulerMethodContext if not a specific one shall be used.
+	 * Parameter idx is specific to the implementations in derived classes.
 	 * The implementation in this class always just returns the first method in the methodPool.
 	 */
-	virtual SchedulerMethod *getNextMethod(int idx);
+	virtual SchedulerMethodAndContext getNextMethod(int idx);
 
 	/**
 	 * Updates the schedulers internal data (e.g., population) in accordance to the last method application.

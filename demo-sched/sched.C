@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
 		switch (schedalg()) {
 		case 0: alg = new Scheduler(p); break;
 		case 1: alg = new GVNS(p,methsch(),methsli(),methssh()); break;
-		case 2: alg = new PBIG(p); break;
+		case 2: alg = new PBIG(p,methsch()+methsli()+methssh()-1); break;
 		default: mherror("Invalid scheduler algorithm selected",tostring(schedalg()));
 		}
 		switch (prob()) {

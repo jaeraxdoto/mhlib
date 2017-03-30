@@ -239,19 +239,6 @@ public:
 	}
 
 	/**
-	 * Determines the next method to be applied and sets it in the worker given by idx.
-	 * The solution to be modified is tmpSol and the method may depend on
-	 * the worker's population.
-	 * Also resets tmpSolResult, initializing it with the number how often the method has
-	 * already been called for this solution.
-	 * If currently nothing further can be done, possibly because other threads have to
-	 * finish first, the method pointer in worker is set to nullptr and nothing further is changed.
-	 * This method has to be always called in an exclusive way,
-	 * i.e., mutex.lock() must be done outside.
-	 */
-	virtual SchedulerMethod *getNextMethod(int idx) = 0;
-
-	/**
 	 * Updates the worker->tmpSol, worker->pop, where the worker is given by idx, and the scheduler's population.
 	 * If the flag updateSchedulerData is set to true, global data, such as the scheduler's
 	 * population, is possibly updated as well, according to the result of the last method application.

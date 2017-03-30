@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 		switch (schedalg()) {
 		case 0: alg = new Scheduler(p); break;
 		case 1: alg = new GVNS(p,methsch(),methsli()+methsrli(),methssh()); break;
-		case 2: alg = new PBIG(p); break;
+		case 2: alg = new PBIG(p,methsch()+methsli()+methsrli()+methssh()-1); break;
 		default: mherror("Invalid scheduler algorithm selected",tostring(schedalg()));
 		}
 		/* Add construction heuristic, local improvement and shaking methods to scheduler.
