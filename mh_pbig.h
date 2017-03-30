@@ -26,6 +26,8 @@ protected:
 	/** A SchedulerMethodSelector for the D&R methods for each solution in the population. */
 	std::vector<SchedulerMethodSelector *> destrec;
 
+	std::vector<mh_solution *> pop2;	///< The newly derived population.
+
 public:
 	/**
 	 * Constructor: Initializes the scheduler.
@@ -34,12 +36,20 @@ public:
 	 */
 	PBIG(pop_base &p, int destRecMethods, const std::string &pg = "");
 
+	/** Destructor for deleting dynamically allocated objects. */
+	~PBIG();
+
 	/**
 	 * Determines the next method to be applied. Parameter idx is specific to the implementations
 	 * in derived classes.
 	 * The implementation in this class always just returns the first method in the methodPool.
 	 */
 	std::pair<SchedulerMethod *,SchedulerMethodContext *> getNextMethod(int idx) override;
+
+	/**
+	 * Actually performs the PBIG.
+	 */
+	void run() override;
 
 	/**
 	 * Updates the schedulers internal data (e.g., population) in accordance to the last method application.

@@ -223,9 +223,8 @@ public:
 	}
 
 	/**
-	 * Initiates the scheduling and runs the optimization.
-	 * A certain number of SchedulerWorker objects, defined by the threads() parameter, is created and
-	 * started in individual threads, each running its own loop .
+	 * Initiates the scheduling and runs the optimization. Here, only a very simple local
+	 * search with the first method is performed.
 	 */
 	void run() override;
 
