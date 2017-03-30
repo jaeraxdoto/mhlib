@@ -37,11 +37,11 @@ private:
 	        Initializes the statistics fields and hashtable, if used.
 	        If nohashing is set, no hashtable and worst heap will be used.
 	        Otherwise, this depends on the dupelim parameter etc. */
-	void init(int psize, bool nohashing=false);
+	void init(bool nohashing=false);
 
 protected:
 	/// size of the solutions array
-	int nSolutions;
+	const int nSolutions;
 	/** index to best solution of population.
 		Is always kept up to date. */
 	int indexBest;
@@ -62,24 +62,26 @@ protected:
 	/** a hash-table containing all population members.
 		Important for faster access when the population is large. 
 		This object is only created when dupelim() is true;
-		otherwise phash==0. */
-	pophashtable *phash;
+		otherwise phash==nullptr. */
+	pophashtable *phash = nullptr;
 
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 	
 public:
 	/** The Constructor.
-	        Calls the Init-Method with default population size according to parameter popsize. */
-	pop_base(int psize, const std::string &pg="") : pgroup(pg) { init( psize ); }
+	    Calls the init-Method with a specific population size. */
+
+	pop_base(int psize, const std::string &pg="") : nSolutions(psize), pgroup(pg) { init(); }
 
 	/** The Constructor.
-  	        Calls the Init-Method with a specific population size. */
-	pop_base(const std::string &pg="" ) : pgroup(pg) { init( popsize(pgroup) ); }
+  	    Calls the init-Method with default population size according to parameter #popsize. */
+	pop_base(const std::string &pg="") : nSolutions(popsize(pgroup)), pgroup(pg) { init(); }
 
 	/** The Constructor.
-	        Calls the Init-Method with the population size and nohashing parameter. */
-	pop_base(int psize, bool nohashing = false, const std::string &pg="") : pgroup(pg) { init( psize ); }
+	        Calls the init-Method with the population size and nohashing parameter. */
+	pop_base(int psize, bool nohashing = false, const std::string &pg="") : nSolutions(psize),
+			pgroup(pg) { init(nohashing); }
 
 	/** Destructor. */
 	virtual ~pop_base();
@@ -120,7 +122,7 @@ public:
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
 	virtual int findDuplicate(mh_solution *p) = 0;
-	/** Write out population on ostream.
+	/** Write out population on ostr.
 		Usually used for debugging purposes. */
 	virtual void write(std::ostream &ostr) = 0;
 	/** Determines mean objective value of population. */
@@ -141,6 +143,8 @@ public:
 		of the population, to let the solutions know what algorithm
 		is using them. */
 	virtual void setAlgorithm(mh_base *alg) = 0;
+	/** Clears and re-creates the supporting hastable and worstheap data structures. */
+	void recreateHashtable();
 };
 
 } // end of namespace mh

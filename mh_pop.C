@@ -36,7 +36,7 @@ int population::determineWorst() const
 }
 
 population::population(std::function<mh_solution *()> createsol, int psize, bool binit,
-		bool nohashing, const std::string &pg)
+		bool nohashing, const std::string &pg) : pop_base(psize,nohashing,pg)
 {
 	chroms=new mh_solution *[nSolutions];
 	for (int i=0;i<nSolutions;i++)
@@ -47,7 +47,7 @@ population::population(std::function<mh_solution *()> createsol, int psize, bool
 }
 
 population::population(const mh_solution &c_template, int psize, bool binit, bool nohashing, const std::string &pg)
-	: pop_base(psize,pg)
+	: pop_base(psize,nohashing,pg)
 {
 	chroms=new mh_solution *[nSolutions];
 	for (int i=0;i<nSolutions;i++)

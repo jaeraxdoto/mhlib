@@ -129,8 +129,7 @@ int main(int argc, char *argv[])
 		// be aware that the third parameter indicates that the initial solution is
 		// not initialized here, i.e., it is the solution (0,0,...,0), which even
 		// is invalid in case of ONEPERM; we consider this in objective().
-		// TODO true for init should not be needed
-		population p([&probinst](){return new MAXSATSol(&probinst);}, popsize(), true, false);
+		population p([&probinst](){return new MAXSATSol(&probinst);}, popsize(), false, false);
 		// p.write(out()); 	// write out initial population
 
 		// create the the Scheduler and register SchedulableMethods

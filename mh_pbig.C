@@ -41,8 +41,6 @@ pair<SchedulerMethod *,SchedulerMethodContext *> PBIG::getNextMethod(int idx) {
 
 void PBIG::run() {
 	checkPopulation();
-	// pop->initialize(); // TODO init hash
-
 	int psize = pop->size();
 
 	timStart = mhtime(_wctime);
@@ -91,15 +89,20 @@ void PBIG::run() {
 
 			// update statistics and scheduler data
 			updateMethodStatistics(pop->at(s),pop2[s],method->idx,methodTime,tmpSolResult);
-			updateData(tmpSolResult, 0, true, false);
+			// updateData(tmpSolResult, 0, true, false);
 			bool termnow = terminate();	// should we terminate?
 
 			if (!termnow || nIteration>logstr.lastIter())
 				writeLogEntry(termnow, true, method->name);
 
-			if (nIteration > 0 && nIteration % psize == 0) {
-				pop->write(out());
-				// new population completed, merge into main population
+			if (nIteration == psize) {
+				// just copy first generation of constructed solutions
+				for (int i=0;i<psize;i++)
+					pop2[i] = pop->replace(i,pop2[i]);
+				pop->recreateHashtable();
+			}
+			else if (nIteration > psize && nIteration % psize == 0) {
+				// new population completed with D&R, merge into main population
 				for (int i=0;i<psize;i++) {
 					int r = pop->worstIndex();	// index of solution to be replaced
 					if (pop->at(r)->isWorse(*pop2[i])) {
@@ -110,8 +113,7 @@ void PBIG::run() {
 						destrec[r]->reset(false);
 					}
 				}
-				out() << "Updated pop:" << endl;
-				pop->write(out());
+				// out() << "Updated pop:" << endl;	pop->write(out());
 			}
 
 			if (terminate())
@@ -127,11 +129,8 @@ void PBIG::run() {
 	}
 }
 
-
-
 void PBIG::updateData(SchedulerMethodResult &tmpSolResult, int idx,
 		bool updateSchedulerData, bool storeResult) {
-	Scheduler::updateData(tmpSolResult,idx,updateSchedulerData,storeResult);
 }
 
 } // end of namespace mh
