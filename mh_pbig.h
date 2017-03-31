@@ -14,9 +14,17 @@ namespace mh {
 
 /** Class implementing a Population-Based Iterated Greedy Algorithm on the basis of the
  * Scheduler class. The first method to be added must be a randomized construction
- * heuristic used for initializing the whole population. All further methods
- * are supposed to be destroy-and-recreate methods ordered according to an increasing
- * rate of destruction. At least one destroy-and-recreate method must be added.
+ * heuristic used for initializing each solution in the population. All further methods
+ * are supposed to be destroy-and-recreate (D&R) methods ordered according to an increasing
+ * rate of destruction. At least one D&R method must be added.
+ * After initialization, PBIG performs generation-wise: D&R is applied to each solution, deriving a
+ * new temporary population. The best solutions of the original population and the new temporary
+ * population are then adopted as new current population. 
+ * Concerning the different D&R methods, a method selector is maintained for each solution, i.e.,
+ * each newly created solution starts with the first D&R method, and over the successive generations
+ * the further D&R methods are applied until, possibly, the solution is not adopted into the next 
+ * generation anymore. After the last D&R method, the method selection always restarts with the
+ * first D&R method.
  */
 class PBIG : public Scheduler {
 
