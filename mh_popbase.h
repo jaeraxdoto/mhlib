@@ -75,10 +75,6 @@ public:
 	pop_base(int psize, const std::string &pg="") : nSolutions(psize), pgroup(pg) { init(); }
 
 	/** The Constructor.
-  	    Calls the init-Method with default population size according to parameter #popsize. */
-	pop_base(const std::string &pg="") : nSolutions(popsize(pgroup)), pgroup(pg) { init(); }
-
-	/** The Constructor.
 	        Calls the init-Method with the population size and nohashing parameter. */
 	pop_base(int psize, bool nohashing = false, const std::string &pg="") : nSolutions(psize),
 			pgroup(pg) { init(nohashing); }

@@ -202,7 +202,7 @@ void Scheduler::printStatistics(ostream &ostr) {
 	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best solution:\t";
-	best->write(ostr,0);
+	best->write(ostr,1);
 	ostr << endl;
 	ostr << "CPU time:\t" << cputime << "\t\twall clock time:\t" << wctime << endl;
 	ostr << "iterations:\t" << nIteration << endl;

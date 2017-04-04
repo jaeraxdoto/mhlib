@@ -60,17 +60,6 @@ population::population(const mh_solution &c_template, int psize, bool binit, boo
 	determineBest();
 }
 
-population::population(const mh_solution &c_template, const std::string &pg)
-	: pop_base(pg)
-{
-	chroms=new mh_solution *[nSolutions];
-	for (int i=0;i<nSolutions;i++) {
-		chroms[i]=c_template.createUninitialized();
-	}
-	initialize();
-	determineBest();
-}
-
 population::~population()
 {
         for (int i=0;i<nSolutions;i++)

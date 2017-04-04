@@ -90,10 +90,6 @@ void PBIG::run() {
 			// update statistics and scheduler data
 			updateMethodStatistics(pop->at(s),pop2[s],method->idx,methodTime,tmpSolResult);
 			// updateData(tmpSolResult, 0, true, false);
-			bool termnow = terminate();	// should we terminate?
-
-			if (!termnow || nIteration>logstr.lastIter())
-				writeLogEntry(termnow, true, method->name);
 
 			if (nIteration == psize) {
 				// just copy first generation of constructed solutions
@@ -115,9 +111,12 @@ void PBIG::run() {
 				}
 				// out() << "Updated pop:" << endl;	pop->write(out());
 			}
+			bool termnow = terminate();	// should we terminate?
 
-			if (terminate())
+			if (!termnow || nIteration>logstr.lastIter()) {
+				writeLogEntry(termnow, true, method->name);
 				break;
+			}
 		}
 	}
 
