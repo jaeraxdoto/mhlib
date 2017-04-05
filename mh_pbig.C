@@ -113,10 +113,10 @@ void PBIG::run() {
 			}
 			bool termnow = terminate();	// should we terminate?
 
-			if (!termnow || nIteration>logstr.lastIter()) {
-				writeLogEntry(termnow, true, method->name);
+			//if (!termnow || nIteration>logstr.lastIter()) {
+			writeLogEntry(termnow, true, method->name);
+			if (termnow)
 				break;
-			}
 		}
 	}
 
