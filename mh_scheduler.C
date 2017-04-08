@@ -55,7 +55,12 @@ void SchedulerWorker::run() {
 				// having a lower id are running, yet, then wait
 				if(scheduler->_schsync && id > 0) {
 					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
-					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
+					auto worker = scheduler->workers[id-1];
+					while (worker == 0) {
+						worker = scheduler->workers[id-1];
+					}
+
+					while(!worker->isWorking && !scheduler->terminate())
 						scheduler->cvOrderThreads.wait(lck);
 				}
 
