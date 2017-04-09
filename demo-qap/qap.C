@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 		
 		// p.write(out());	// write out final population
 		if (sfile()!="")
-			p.bestSol()->save(sfile());
+			p.bestSol()->save((odir()!=""?odir()+"/":"")+sfile());
 		alg->printStatistics(out());	// write result & statistics
 
 		// eventually perform fitness-distance correlation analysis

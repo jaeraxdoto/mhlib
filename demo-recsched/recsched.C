@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
 
 	    // pOnePerm.write(out(),1);	// write out final population in detailed form
 		if (sfile()!="")	// save best solution in file if #sfile given
-			bestSol->save(sfile());
+			bestSol->save((odir()!=""?odir()+"/":"")+sfile());
 
 		// write result & statistics and delete algorithms and populations
 		algOnePerm->printStatistics(out());
