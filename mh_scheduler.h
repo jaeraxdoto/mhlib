@@ -137,7 +137,7 @@ public:
 	SchedulerWorker(class Scheduler* _scheduler, int _id, const mh_solution *sol, mh_randomNumberGenerator* _rng, int _popsize=2) :
 		pop(*sol, _popsize, false, false) {
 		scheduler = _scheduler;
-		id=_id,
+		id = _id,
 		method = nullptr;
 		methodContext = nullptr;
 		tmpSol = sol->clone();
