@@ -80,7 +80,7 @@ public:
 	 * \param _name a string representing the method in an abbreviated form.
 	 * \param _arity the arity of the function, i.e., 0 if a solution is created from scratch and 1 if
 	 * the operator acts on a current solution.
-	 *
+	 * \param adaptive true if adaptive selection to be used.
 	 */
 	SchedulerMethod(const std::string &_name, int _arity, bool adaptive = true) :
 				name(_name), arity(_arity), adaptive(adaptive) {
@@ -91,7 +91,8 @@ public:
 
 	/** Applies the method to the given solution.
 	 * \param sol pointer to the solution.
-	 * \param result pointer to a #Result structure, where information on the outcome and
+	 * \param context contextual information #SchedulerMethodContext describing the situation from where the method is called.
+	 * \param result pointer to a #SchedulerMethodResult structure, where information on the outcome and
 	 * 			how to further proceed may be provided; if this is not done, the solution
 	 * 			is handled in a default way. */
 	virtual void run(mh_solution *sol, SchedulerMethodContext &context, SchedulerMethodResult &result) const = 0;
@@ -108,7 +109,7 @@ public:
  *  An integer parameter is maintained that is passed when calling the method for
  *  a specific solution. This integer can be used to control the methods functionality, e.g.
  *  for the neighborhood size, randomization factor etc. The return value must indicate
- *  the #Result of the application. */
+ *  the #SchedulerMethodResult of the application. */
 template<class SpecSol> class SolMemberSchedulerMethod : public SchedulerMethod {
 public:
 	void (SpecSol::* pmeth)(int, SchedulerMethodContext &, SchedulerMethodResult &);		///< Member function pointer to a Result(int) function
@@ -120,6 +121,7 @@ public:
 	 * \param _par an int user parameter that is stored and passed when calling the method.
 	 * \param _arity the arity of the function, i.e., 0 if a solution is created from scratch and 1 if
 	 * the operator acts on a current solution.
+	 * \param adaptive set if adaptive selection is used.
 	 */
 	SolMemberSchedulerMethod(const std::string &_name, void (SpecSol::* _pmeth)(int,
 				SchedulerMethodContext &, SchedulerMethodResult &),

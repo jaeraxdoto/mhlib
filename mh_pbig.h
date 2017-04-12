@@ -41,6 +41,7 @@ public:
 	 * Constructor: Initializes the scheduler.
 	 * @param p The population to use.
 	 * @param destRecMethods The number of D&R methods to be added and used.
+	 * @param pg Parameter group.
 	 */
 	PBIG(pop_base &p, int destRecMethods, const std::string &pg = "");
 
