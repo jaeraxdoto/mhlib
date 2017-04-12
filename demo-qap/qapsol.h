@@ -115,7 +115,7 @@ public:
 	*/
 	void write(std::ostream &ostr,int detailed=0) override;
 	
-	/** Saves a solution to a file.
+	/** Saves a solution to a file if fname!="NULL".
 		The values of the permutation are incremented by
 		one for better human readability.
 	

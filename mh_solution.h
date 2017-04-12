@@ -134,7 +134,8 @@ public:
 	virtual void write(std::ostream &ostr,int detailed=0) {
 		mherror("mh_solution::write: not implemented");
 	}
-	/** Saves a solution to a file. (Not necessarily needed.) */
+	/** Saves a solution to a file. Should do nothing if fname==NULL.
+	    (Not necessarily needed.) */
 	virtual void save(const std::string &fname) { 
 		mherror("mh_solution::save: not implemented"); }
 	/** Loads a solution from a file. (Not necessarily needed.) */

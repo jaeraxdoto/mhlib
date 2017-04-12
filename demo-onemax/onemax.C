@@ -36,9 +36,6 @@ namespace onemax {
 /** Problem specific parameters (the number of variables). */
 int_param vars("vars","number of variables",20,1,10000);
 
-/** Name of file to save best solution. */
-string_param sfile("sfile","name of file to save solution to","");
-
 //-- 1. Example problem: ONEMAX ------------------------------------------
 
 /** This is the solution class for the OneMax problem.
@@ -168,8 +165,8 @@ int main(int argc, char *argv[])
 		alg->run();		// run EA until termination cond.
 		
 		// p.write(out());	// write out final population
-		if (sfile()!="")
-			p.bestSol()->save((odir()!=""?odir()+"/":"")+sfile());
+		// save solution when oname!="@" given
+		p.bestSol()->save(outStream::getFileName(".sol","NULL"));
 		alg->printStatistics(out());	// write result & statistics
 
 		// eventually perform fitness-distance correlation analysis

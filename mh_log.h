@@ -70,34 +70,38 @@ extern string_param nformat;
 /** Mutex to be used in multithreading applications for ensuring atomic writing of log entries. */
 extern std::mutex logmutex;
 
-/** A class that represents a stream which is either simply cout or a 
-	file. */
+/** A class that represents an output stream which is either cout or a
+	file, whose name is compiled from the parameters #odir, #oname and
+	a given extension. */
 class outStream
 {
 private:
-	/** Init-Method.
-	    Does the actual initialization work. Is called by constructor. */
-	void init(const std::string &fext, const std::string &fname, const std::string &fdir);
+	/** Actual initialization of the stream object. Is called by the constructor. */
+	void init(const std::string &fname);
+	/** Initializes the special global out and log outStream objects to correspond
+	    to the default output and log steams. */
 	friend void initOutAndLogstr();
 	
 public:
+	/** Compiles a complete file name for an output stream to be opened from the
+	    given directory, base-name and extension, which are typically given by parameters
+	    like #odir and #oname. A name is equal to '@' indicates that
+	    a reference to cout should be used. This, however, can be overridden by
+		parameter atname: If atname is not empty, this default name is used
+		instead of name if name is "@". Name "NULL" indicates that
+		the null stream should be used. */
+	static std::string getFileName(const std::string &ext, const std::string &atname = "",
+			const std::string &name = oname(), const std::string &dir = odir());
 	/** Generates a stream according to the given directory, name and
-		extension. If the name is equal to '@', a reference to
-		cout is simply generated. */
-	outStream()
-		{ init(logext(),oname(),odir()); }
-	
-	outStream(const std::string &fext)
-		{ init( fext, oname(), odir() ); }
-	
-	outStream(const std::string &fext, const std::string &fname)
-		{ init( fext, fname, odir() ); }
-	
-	outStream(const std::string &fext, const std::string &fname,
-		  const std::string &fdir)
-		{ init( fext, fname, fdir ); }
+		extension. If the name is equal to '@' a reference to
+		cout is generated. This behavior, however, can be overridden by
+		parameter atname: If atname is not empty, this default name is used
+		instead of name if name is "@". If the name is "NULL" a reference to the
+		null stream is generated.  */
+	outStream(const std::string &fname)
+		{ init(fname); }
 	/** Destructor.
-		Closes stream (if not cout). */
+		Closes stream if not cout. */
 	virtual ~outStream();
 	/** Access operator for using the stream. */
 	std::ostream &operator()()
@@ -129,21 +133,11 @@ private:
 	
 public:
 	/** Constructor.
-		The default file name is build from the parameters
-		odir, oname, and oext. Also the log frequency is given as
+		The default file name is built from the parameters
+		odir, oname, and logext. Also the log frequency is given as
 		a parameter. */
-	logging()
-		: st(logext(),oname(),odir()), curStream("")
-		{ init(); }
-	logging(const std::string &fext)
-		: st(fext,oname(),odir()), curStream("")
-		{ init(); }
-	logging(const std::string &fext, const std::string &fname)
-		: st(fext,fname,odir()), curStream("")
-		{ init(); }
-	logging(const std::string &fext, const std::string &fname,
-		const std::string &fdir)
-		: st(fext,fname,fdir), curStream("")
+	logging(const std::string &fname = outStream::getFileName(logext(), "", oname(), odir()))
+		: st(fname), curStream("")
 		{ init(); }
 
 	/** Destructor. */

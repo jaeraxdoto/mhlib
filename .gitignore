@@ -4,9 +4,14 @@
 **/*.exe
 **/*.a
 **/*.dll
+**/*.sol
+**/*.sum
+**/*.par
 demo-onemax/onemax
 demo-qap/qap
 demo-sched/sched
 demo-maxsat/maxsat
 demo-recsched/recsched
 .Rproj.user
+.Rhistory
+irace2/exec/

@@ -54,11 +54,6 @@ int_param vars("vars","number of variables",20,1,100000);
 string_param ifile("ifile","problem instance file name","");
 
 /** \ingroup param
-	Name of file to save best solution. If empty, the final solution will
-	not be saved. */
-string_param sfile("sfile","name of file to save solution to","");
-
-/** \ingroup param
 	Number of construction heuristics. If set to the default value of -1, the number of used
 	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
@@ -426,8 +421,8 @@ int main(int argc, char *argv[])
 		mh_solution *bestSol = p.bestSol();	// final solution
 
 	    // p.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if sfile() given
-			bestSol->save((odir()!=""?odir()+"/":"")+sfile());
+		// save best solution in file if oname()!="@"
+		bestSol->save(outStream::getFileName(".sol","NULL"));
 
 		alg->printStatistics(out());	// write result & statistics
 

@@ -29,15 +29,6 @@
 
 using namespace std;
 using namespace mh;
-
-/// Namespace for demo-qap, the demo program for solving the QAP.
-namespace qap {
-
-/// Name of file to save best solution.
-string_param sfile("sfile","name of file to save solution to","");
-
-} // qap namespace
-
 using namespace qap;
 
 /** The example main function.
@@ -88,14 +79,14 @@ int main(int argc, char *argv[])
 		alg->run();		// run algorithm until termination cond.
 		
 		// p.write(out());	// write out final population
-		if (sfile()!="")
-			p.bestSol()->save((odir()!=""?odir()+"/":"")+sfile());
+
+		p.bestSol()->save(outStream::getFileName(".sol","NULL"));
 		alg->printStatistics(out());	// write result & statistics
 
 		// eventually perform fitness-distance correlation analysis
-		FitnessDistanceCorrelation fdc;
-		fdc.perform(p.bestSol(),"");
-		fdc.write(out,"fdc.tsv");
+		// FitnessDistanceCorrelation fdc;
+		// fdc.perform(p.bestSol(),"");
+		// fdc.write(out,"fdc.tsv");
 
 		delete alg;
 	}
