@@ -79,7 +79,7 @@ private:
 	/** Actual initialization of the stream object. Is called by the constructor. */
 	void init(const std::string &fname);
 	/** Initializes the special global out and log outStream objects to correspond
-	    to the default output and log steams. */
+	    to the default output and log streams. */
 	friend void initOutAndLogstr();
 	
 public:
@@ -128,18 +128,31 @@ private:
 	    Does the actual initialization work. Is called by constructor. */
 	void init();
 	friend void initOutAndLogstr();
-	bool previous=false; double prevobj; // for shouldWrite()
-	int lastflush=0; // for finishEntry()
-	
+	bool previous=false; double prevobj; ///< for shouldWrite().
+	int lastflush=0; ///< for finishEntry().
+protected:
+	/// A  single-linked list struct for buffering the entries.
+	struct log_entry
+	{
+		std::string s;		///< Actual text of log entry.
+		log_entry *next;	///< Pointer to next entry.
+	};
+	/// Pointer to the first and last log entry (buffer)
+	log_entry *buffer_first,*buffer_last;
+	/// The iteration number of the current entry.
+	int curIter;
+	/// The string stream for the current log entry.
+	std::ostringstream curStream;
 public:
+	/// The actual output stream. Should only be used directly if none of the buffered operations is used.
+	outStream st;
 	/** Constructor.
 		The default file name is built from the parameters
 		odir, oname, and logext. Also the log frequency is given as
 		a parameter. */
 	logging(const std::string &fname = outStream::getFileName(logext(), "", oname(), odir()))
-		: st(fname), curStream("")
+		: curStream(""), st(fname)
 		{ init(); }
-
 	/** Destructor. */
 	virtual ~logging();	
 	/** This function is supposed to be called to start the log-entry for a 
@@ -191,21 +204,6 @@ public:
 	int lastIter() {
 		return curIter;
 	}
-protected:
-	/// The actual output stream.
-	outStream st;
-	/// A  single-linked list struct for buffering the entries
-	struct log_entry
-	{
-		std::string s;
-		log_entry *next;
-	};
-	/// Pointer to the first and last log entry (buffer)
-	log_entry *buffer_first,*buffer_last;
-	/// the iteration number of the current entry
-	int curIter;
-	/// the string stream for the current log entry
-	std::ostringstream curStream;
 };
 
 /* Global standard output object, initialized to standard output. It is supposed
