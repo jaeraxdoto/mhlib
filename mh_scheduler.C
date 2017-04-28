@@ -288,7 +288,7 @@ void Scheduler::updateData(SchedulerMethodResult &tmpSolResult, int idx, bool up
 		// unsuccessful call
 		// continue with with incumbent VND solution
 		if (tmpSolResult.changed)
-			tmpSol->copy(*pop->at(0)); // restore worker's incumbent
+			tmpSol->copy(*pop->at(0)); // restore incumbent
 		return;
 	}
 }

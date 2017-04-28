@@ -46,14 +46,15 @@ void SchedulerWorker::run() {
 		setRandomNumberGenerator(rng);	// set random number generator pointer to the one of this thread
 
 		if (!scheduler->terminate()) {
-			for(;;) {
+			for (;;) {
 				scheduler->checkPopulation();
 
 				// if thread synchronization is active and not all threads
 				// having a lower id are running, yet, then wait
-				if(scheduler->_schsync && id > 0) {
+				if (scheduler->_schsync && id > 0) {
 					std::unique_lock<std::mutex> lck(scheduler->mutexOrderThreads);
-					while(!scheduler->workers[id-1]->isWorking && !scheduler->terminate())
+					SchedulerWorker *worker = scheduler->workers[id-1];
+					while(!worker->isWorking && !scheduler->terminate())
 						scheduler->cvOrderThreads.wait(lck);
 				}
 
@@ -63,7 +64,7 @@ void SchedulerWorker::run() {
 					if(wait) { // need to wait for other threads, block until notified
 						std::unique_lock<std::mutex> lck(scheduler->mutexNoMethodAvailable);
 						scheduler->cvNoMethodAvailable.wait(lck);
-						if(scheduler->terminate())	// if termination is in progress, terminate also this thread!
+						if (scheduler->terminate())	// if termination is in progress, terminate also this thread!
 							break;
 					}
 
@@ -123,7 +124,7 @@ void SchedulerWorker::run() {
 							int diff = scheduler->_titer - scheduler->nIteration;
 							for (int i=0; i < scheduler->_schthreads; i++) {
 								scheduler->workers[i]->isWorking = false;
-								if((signed)scheduler->workers[i]->id > diff-1)
+								if ((signed)scheduler->workers[i]->id > diff-1)
 									scheduler->workers[i]->terminate = true;
 							}
 						}
@@ -135,9 +136,9 @@ void SchedulerWorker::run() {
 						scheduler->mutex.unlock();
 					}
 
-					if(method == nullptr)
+					if (method == nullptr)
 						continue;
-					if(terminate)
+					if (terminate)
 						break;
 				}
 
@@ -218,6 +219,7 @@ ParScheduler::ParScheduler(pop_base &p, const std::string &pg)
 	_schpmig = schpmig(pgroup);
 
  	workersWaiting = 0;
+	workers.resize(_schthreads,nullptr);
 }
 
 void ParScheduler::run() {
@@ -233,24 +235,23 @@ void ParScheduler::run() {
 	}
 
 	// spawn the worker threads, each with its own random number generator having an own seed
-	for (int i=0; i < _schthreads; i++) {
+	for (int i=0; i<_schthreads; i++) {
 		mh_randomNumberGenerator* rng = new mh_randomNumberGenerator();
 		rng->random_seed(random_int(INT32_MAX));
 		mutex.lock(); // Begin of atomic operation
-		SchedulerWorker *w = new SchedulerWorker(this, i, pop->at(0), rng);
+		SchedulerWorker *w = workers[i] = new SchedulerWorker(this, i, pop->at(0), rng);
 		mutex.unlock(); // End of atomic operation
-		workers.push_back(w);
 		w->thread = std::thread(&SchedulerWorker::run, w);
 	}
 
 	// wait for the threads to finish and delete them
-	for(auto w : workers)
+	for (auto w : workers)
 		w->thread.join();
 	// if thread synchronization is active, perform final update of the scheduler's population
-	if(_schsync)
+	if (_schsync)
 		updateDataFromResultsVectors(true);
 
-	for(auto w : workers)
+	for (auto w : workers)
 		delete w;
 	workers.clear();
 
