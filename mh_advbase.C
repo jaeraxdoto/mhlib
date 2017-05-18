@@ -27,7 +27,7 @@ int_param tselk("tselk","group size for tournament selection",2,1,10000);
 
 int_param repl("repl","replacement scheme 0:random, 1:worst, -k:TS",1,-1000,1);
 
-bool_param ldups("ldups","log number of eliminated dupslicates",false);
+bool_param ldups("ldups","log number of eliminated duplicates",false);
 
 bool_param ltime("ltime","log time for iterations",true);
 
