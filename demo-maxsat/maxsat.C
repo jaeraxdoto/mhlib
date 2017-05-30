@@ -28,6 +28,7 @@
 #include "mh_advbase.h"
 #include "mh_log.h"
 #include "mh_gvns.h"
+#include "mh_pbig.h"
 
 #include "maxsat_inst.h"
 #include "maxsat_sol.h"
@@ -42,11 +43,6 @@ namespace maxsat {
 	Problem instance file name. A MAXSAT instance in DIMACS CNF format is read from
 	this file. */
 string_param ifile("ifile","problem instance file name","s3v70c800-1.cnf");
-
-/** \ingroup param
-	Name of file to save final solution. If empty, the final solution will
-	not be saved. */
-string_param sfile("sfile","name of file to save final solution to","");
 
 /** \ingroup param
 	Number of construction heuristics. If set to the default value of -1, the number of used
@@ -65,6 +61,10 @@ int_param methsrli("methsrli","number of randomized local improvement methods",0
 /** \ingroup param
 	Number of shaking (VNS) methods (neighborhoods). */
 int_param methssh("methssh","number of shaking methods",5,0,10000);
+
+/** \ingroup param
+ 	Scheduler class to use. */
+ int_param schedalg("schedalg","scheduler algorithm to use: 0:basic, 1:GVNS, 2:PBIG",1,0,2);
 
 } // maxsat namespace
 
@@ -128,7 +128,13 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// create the the Scheduler and register SchedulableMethods
-		GVNS *alg = new GVNS(p,methsch(),methsli()+methsrli(),methssh());
+		Scheduler *alg;
+		switch (schedalg()) {
+		case 0: alg = new Scheduler(p); break;
+		case 1: alg = new GVNS(p,methsch(),methsli()+methsrli(),methssh()); break;
+		case 2: alg = new PBIG(p,methsch()+methsli()+methsrli()+methssh()-1); break;
+		default: mherror("Invalid scheduler algorithm selected",tostring(schedalg()));
+		}
 		/* Add construction heuristic, local improvement and shaking methods to scheduler.
 		 * The following parameters are passed to the constructor of
 		 * SolMemberSchedulerMethod: an abbreviated name of the method as string,
@@ -153,8 +159,8 @@ int main(int argc, char *argv[])
 		mh_solution *bestSol = p.bestSol();	// final solution
 
 	    // p.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if sfile() given
-			bestSol->save(sfile());
+		// save best solution in file when oname!="@"
+		bestSol->save(outStream::getFileName(".sol","NULL"));
 
 		alg->printStatistics(out());	// write result & statistics
 

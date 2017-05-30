@@ -101,7 +101,9 @@ public:
 	/** Calls a crossover method, controlled by the parameter strxop(). */
 	void crossover(const mh_solution &parA,const mh_solution &parB) override;
 	void write(std::ostream &ostr,int detailed=0) override;
+	/** Saves the solution to the given file if fname!="NULL". */
 	void save(const std::string &fname) override;
+	/** Loads the solution from the given file. */
 	void load(const std::string &fname) override;
 	/** Calculates a hash-value out of the binary string. */
 	unsigned long int hashvalue() override;
@@ -333,6 +335,8 @@ template <class T> void stringSol<T>::write(std::ostream &ostr,int detailed)
 
 template <class T> void stringSol<T>::save(const std::string &fname)
 {
+	if (fname == "NULL")
+		return;
 	std::ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);

@@ -1,13 +1,13 @@
 /*! \file mh_gvns.h
- \brief A flexible Generalized Variable Neighborhood Search framework based on the general scheduler
- implemented in mh_scheduler.h. This framework is also suitable for realizing GRASP, VLNS, ILS, IG
+ \brief A flexible Generalized Variable Neighborhood Search framework based on the parallel general scheduler
+ implemented in mh_parscheduler.h. This framework is also suitable for realizing GRASP, VLNS, ILS, IG
  approaches.
  */
 
 #ifndef MH_GVNS_H
 #define MH_GVNS_H
 
-#include "mh_scheduler.h"
+#include "mh_parscheduler.h"
 
 namespace mh {
 
@@ -52,7 +52,7 @@ extern bool_param schlirep;
  * Each worker thread performs an independent VNS, migration is performed at major iterations,
  * the overall best solution is adopted in the main population.
  */
-class GVNS : public Scheduler {
+class GVNS : public ParScheduler {
 
 protected:
 	SchedulerMethodSelector *constheu;	///< Selector for construction heuristic methods
@@ -109,7 +109,7 @@ public:
 	}
 
 	/**
-	 * Schedules the next method according to the general VNS scheme, i.e., with the VND embedded
+	 * Schedules the next method according to the GVNS scheme, i.e., with the VND embedded
 	 * in the VNS. If multiple construction heuristics exist, it is ensured that first all of them are
 	 * applied in the order they are defined. After each construction heuristic has been executed,
 	 * the selection follows the order of the shaking and local improvement methods defined in the VNS
@@ -119,7 +119,7 @@ public:
 	 * This method has to be always called in an exclusive way,
 	 * i.e., mutex.lock() must be done outside.
      */
-	void getNextMethod(SchedulerWorker *worker) override;
+	SchedulerMethodAndContext getNextMethod(int idx) override;
 
 	/**
 	 * Updates the tmpSol, worker->pop and, if updateSchedulerData is set to true, the scheduler's
@@ -130,7 +130,7 @@ public:
 	 * is ignored and no result information is appended to the vector's result list.
 	 * This method is called with mutex locked.
 	 */
-	void updateData(SchedulerWorker *worker, bool updateSchedulerData, bool storeResult) override;
+	void updateData(int idx, bool updateSchedulerData, bool storeResult) override;
 
 	/** Procedure that is called from updateData before a solution obtained from a construction method
 	 * is actually accepted as new incumbent. The default implementation does nothing. Can be used
@@ -177,7 +177,7 @@ public:
 	 * @param worker current worker object
 	 * @param methodTime CPU time used by the method call
 	 */
-	void updateMethodStatistics(SchedulerWorker *worker, double methodTime) override;
+	void updateMethodStatistics(SchedulerWorker *worker, double methodTime);
 
 	/**
 	 * Separate statistics update for shaking methods, which is called after performing

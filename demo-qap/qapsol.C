@@ -160,6 +160,8 @@ void qapSol::write(ostream &ostr,int detailed)
 
 void qapSol::save(const std::string &fname)
 {
+	if (fname == "NULL")
+		return;
 	char s[40];
 	sprintf(s,nformat(pgroup).c_str(),obj());
 

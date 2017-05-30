@@ -36,8 +36,8 @@ mutex logmutex;
 	their values. Never write to cout directly (except
 	when temporarily debugging your program), but use
 	the configurable outStream class. */
-outStream out("out","@","");
-logging logstr("log","@","");
+outStream out(outStream::getFileName(".out","@","@",""));
+logging logstr(outStream::getFileName(".log","@","@",""));
 
 /* A stream buffer for omitting output. */
 class NullBuffer : public std::streambuf
@@ -48,39 +48,44 @@ public:
 
 static NullBuffer null_buffer;
 
-void outStream::init(const string &fext, const string &fname, const string &fdir)
+string outStream::getFileName(const string &ext, const string &atname,
+		const string &name, const string &dir)
 {
-	if (fname==string("@"))
-	{
-		// use cout as stream
-		isCoutFlag=true;
-		str=&cout;
+	string usename = name;
+	if (name == "@") {
+		if (atname == "" || atname == "@")
+			return usename;
+		else
+			usename = atname;
 	}
-	else if (fname==string("NULL"))
-	{
+	if (usename == "NULL")
+		return usename;
+	usename += ext;
+	if (dir != "")
+		usename = dir + "/" + usename;
+	return usename;
+}
+
+
+void outStream::init(const string &fname)
+{
+	if (fname == "@") {
+		// use cout as stream
+		isCoutFlag = true;
+		str = &cout;
+	}
+	else if (fname == "NULL") {
 		// use NullBuffer
 		isCoutFlag=true;
 		str=new std::ostream(&null_buffer);
 		if (!(*str))
 			mherror("Cannot open NULL stream for writing");
 	}
-	else
-	{
-		// compile complete filename and open file stream
-		isCoutFlag=false;
-		char name[400];
-		if (fdir!="")
-			snprintf(name, sizeof(name), "%s/%s%s",
-				fdir.c_str(),
-				fname.c_str(),
-				fext.c_str());
-		else
-			snprintf(name, sizeof(name), "%s%s",
-				fname.c_str(),
-				fext.c_str());
-		str=new ofstream(name);
+	else {
+		// open file stream
+		str = new ofstream(fname);
 		if (!(*str))
-			mherror("Cannot open file for writing",name);
+			mherror("Cannot open file for writing", fname);
 	}
 }
 
@@ -248,8 +253,8 @@ void logging::flush()
 
 void initOutAndLogstr()
 {
-	out.init(outext(),oname(),odir());
-	logstr.st.init(logext(),oname(),odir());
+	out.init(outStream::getFileName(outext(),"@",oname(),odir()));
+	logstr.st.init(outStream::getFileName(logext(),"@",oname(),odir()));
 }
 
 } // end of namespace mh
