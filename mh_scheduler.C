@@ -440,6 +440,8 @@ void SchedulerMethodSelector::doNotReconsiderLastMethod() {
 		lastSeqRep = activeSeqRep.erase(lastSeqRep);
 		if (lastSeqRep != activeSeqRep.begin())
 			--lastSeqRep;
+		else
+			lastSeqRep = activeSeqRep.end();
 		break;
 	}
 	case MSRandomRep: {
