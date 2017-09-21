@@ -159,7 +159,7 @@ public:
 	 * As the exact history of results is irrelevant to the GVNS and no results are ever stored,
 	 * the value of clearResults is ignored and the results vectors are not cleared.
 	 */
-	void updateDataFromResultsVectors(bool clearResults);
+	virtual void updateDataFromResultsVectors(bool clearResults);
 
 
 	/** Procedure that is called from updateDataFromResultsVectors before a solution obtained from a shaking method
