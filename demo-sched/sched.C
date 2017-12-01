@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 {
 	try 
 	{
-		// Probably set some parameters to new default values
+		// Set some parameters to new default values
 		maxi.setDefault(1);
 		popsize.setDefault(1);
 		titer.setDefault(1000);

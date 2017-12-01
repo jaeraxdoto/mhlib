@@ -249,7 +249,7 @@ public:
 	 * If storeResult is true, a new MethodApplicationResult object storing the result of the last
 	 * method application is appended to the SchedulerWorker's result list.
 	 * This method is called with mutex locked.
-	 * TODO: When worse solutions are actively set to be accepted via result.accept,
+	 * When worse solutions are actively set to be accepted via result.accept,
 	 * a so far best solution is currently not yet stored and gets lost!
 	 */
 	virtual void updateData(int idx, bool updateSchedulerData, bool storeResult) = 0;
