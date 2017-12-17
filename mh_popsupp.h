@@ -28,7 +28,7 @@ struct worstcompare : public std::binary_function<double,double,bool>
 
 /** \ingroup param
 	Should the worstheap data structure be maintained?
-	This is only meaningful when #repl==1 (i.e. replace the worst)
+	This is e.g. meaningful when #repl==1 (i.e. replace the worst)
 	in a steady-state evolutionary algorithm.
 	In this case it will speed up the EA, in particular on large populations. */
 extern bool_param wheap;
@@ -48,15 +48,16 @@ struct pophashtable_elem
 };
 
 
-/** A hash-table for the members of the population. 
+/** A hashtable for the members of the population.
 	This includes a heap of the solutions so that the worst solution
 	can efficiently be retrieved, if #wheap is set. */
 class pophashtable
 {
 protected:
-	/// Parametergroup
+	/// Parameter group
 	std::string pgroup;
 
+	/** Hashtable for population members. */
 	std::unordered_map<unsigned long int,std::list<pophashtable_elem> > table;
 	/** heap to obtain worst solution efficiently.
 		Only maintained if wheap is set. 

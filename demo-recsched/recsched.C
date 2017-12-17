@@ -44,11 +44,6 @@ int_param vars("vars","number of variables",20,1,100000);
 string_param ifile("ifile","problem instance file name","");
 
 /** \ingroup param
-	Name of file to save best solution. If empty, the final solution will
-	not be saved. */
-string_param sfile("sfile","name of file to save solution to","");
-
-/** \ingroup param
 	Number of construction heuristics. If set to the default value of -1, the number of used
 	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
@@ -179,8 +174,9 @@ public:
 		initialize(k);
 		// Values in result are kept at default, i.e., are automatically determined
 	}
-	/** A simple local improvement function: Here we just call the
-	 * mutate function from the base class.
+	/** The local improvement function: Here we call the embedded scheduler
+	 *  solving the ONEMAX problem just for demo purposes and then the mutate
+	 *  function from the base class for the current solution.
 	 */
 	void localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result) {
 		// Call the embedded Scheduler:
@@ -347,8 +343,8 @@ int main(int argc, char *argv[])
 		mh_solution *bestSol = pOnePerm.bestSol();	// final solution
 
 	    // pOnePerm.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if #sfile given
-			bestSol->save(sfile());
+		// save best solution in oname!="@"
+		bestSol->save(outStream::getFileName(".sol","NULL"));
 
 		// write result & statistics and delete algorithms and populations
 		algOnePerm->printStatistics(out());

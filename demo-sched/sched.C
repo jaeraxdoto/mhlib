@@ -27,7 +27,7 @@
 #include "mh_binstringsol.h"
 #include "mh_permsol.h"
 #include "mh_gvns.h"
-#include "mh_c11threads.h"
+#include "mh_pbig.h"
 
 using namespace std;
 using namespace mh;
@@ -54,11 +54,6 @@ int_param vars("vars","number of variables",20,1,100000);
 string_param ifile("ifile","problem instance file name","");
 
 /** \ingroup param
-	Name of file to save best solution. If empty, the final solution will
-	not be saved. */
-string_param sfile("sfile","name of file to save solution to","");
-
-/** \ingroup param
 	Number of construction heuristics. If set to the default value of -1, the number of used
 	threads #schthreads will be used. This parameter is just to demonstrate
 	that multiple construction heuristics can be used. */
@@ -76,6 +71,10 @@ int_param methssh("methssh","number of shaking methods",5,0,10000);
 	A value in seconds (wall clock time) by which each method is delayed by active waiting
 	for testing multithreading. */
 double_param methdel("methdel","delay all methods by this number of sec",0,0,100);
+
+/** \ingroup param
+ 	Scheduler class to use. */
+ int_param schedalg("schedalg","scheduler algorithm to use: 0:basic, 1:GVNS, 2:PBIG",1,0,2);
 
 
 /* Just spending some time, used by spendTime. */
@@ -314,7 +313,7 @@ using namespace sched;
  * the method, and the arity of the method, which is either 0 in case of a method that
  * determines a new solution from scratch or 1 in case of a method that starts from the current
  * solution as initial solution. */
-template <class SolClass> void registerSchedulerMethods(GVNS *alg) {
+template <class SolClass> void registerSchedulerMethods(Scheduler *alg) {
 	for (int i=1;i<=methsch();i++)
 		alg->addSchedulerMethod(new SolMemberSchedulerMethod<SolClass>("conh"+tostring(i),
 			&SolClass::construct,i,0));
@@ -337,7 +336,7 @@ int main(int argc, char *argv[])
 {
 	try 
 	{
-		// Probably set some parameters to new default values
+		// Set some parameters to new default values
 		maxi.setDefault(1);
 		popsize.setDefault(1);
 		titer.setDefault(1000);
@@ -404,7 +403,13 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
-		GVNS *alg = new GVNS(p,methsch(),methsli(),methssh());
+		Scheduler *alg;
+		switch (schedalg()) {
+		case 0: alg = new Scheduler(p); break;
+		case 1: alg = new GVNS(p,methsch(),methsli(),methssh()); break;
+		case 2: alg = new PBIG(p,methsch()+methsli()+methssh()-1); break;
+		default: mherror("Invalid scheduler algorithm selected",tostring(schedalg()));
+		}
 		switch (prob()) {
 		case 0: registerSchedulerMethods<oneMaxSol>(alg); break;
 		case 1: registerSchedulerMethods<onePermSol>(alg); break;
@@ -416,8 +421,8 @@ int main(int argc, char *argv[])
 		mh_solution *bestSol = p.bestSol();	// final solution
 
 	    // p.write(out(),1);	// write out final population in detailed form
-		if (sfile()!="")	// save best solution in file if sfile() given
-			bestSol->save(sfile());
+		// save best solution in file if oname()!="@"
+		bestSol->save(outStream::getFileName(".sol","NULL"));
 
 		alg->printStatistics(out());	// write result & statistics
 

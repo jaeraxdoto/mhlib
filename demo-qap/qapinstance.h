@@ -22,7 +22,7 @@ extern mh::string_param ifile;
 class qapInstance
 {
 private:
-	/// Parametergroup.
+	/// Parameter group.
 	std::string pgroup;
 	
 	static qapInstance *qi;

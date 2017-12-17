@@ -1,5 +1,5 @@
-# makefile for building the mh library
-# written by Guenther Raidl, Daniel Wagner and others
+# Main makefile for building the mh library
+# vim: filetype=make
 
 include makefile.common
 
