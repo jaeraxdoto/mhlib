@@ -105,6 +105,11 @@ Besides the actual C++ library, mhlib also contains
 
 ## Changelog: major changes over major releases ##
 
+### Version 4.6 ###
+
+- Scheduler classes refactored, sequential scheduler with support for
+  Population Based Iterated Greedy added.
+  
 ### Version 4.5 ###
 
 - The GVNSScheduler class has been moved to an own module mh_gvns.h/C and 
