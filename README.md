@@ -87,11 +87,12 @@ Besides the actual C++ library, mhlib also contains
 - **summary.py**: A Python script used to summarize key result values of
   many runs over many instances.
 
-- **aggregate.R**: An R (https://www.r-project.org/) script used to
+- **agg.py**: A Python script used to
   further aggregate the results obtained by summary.pl and in particular
   to make statistical tests for showing the significance of different
   configurations. Furthermore, this script also contains some exemplary
-  functions for drawing graphs.
+  functions for drawing graphs. **aggregate.R** provides a former
+  version of this script in R.
 
 - **irace** and **irace2**: Exemplary configurations for applying irace
   (http://iridia.ulb.ac.be/irace/files/README.html) to systematically

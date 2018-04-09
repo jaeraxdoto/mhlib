@@ -18,25 +18,30 @@ import scipy.stats
 import sys
 import re
 import warnings
+import argparse
+import math
 
 
 #--------------------------------------------------------------------------------
 # determine the category name to aggregate over from the given file name
 
 # for aggregating a single table of raw data: 
-# return category name for a given filen name
+# return category name for a given file name
 def categ(x):
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\1/\2-\3",x)
-    return re.sub(r".*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
-           r"\1/\2-\3",x)
-
+    return re.sub(r".*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", 
+        r"\1/\2-\3",x)
+    #return re.sub(r"([^/#_]*)(_.*_)?([^/#_]*)(__\d+)?([^/#_]*)\.out",
+    #    r"\1\3\5",x)
 # for aggregating two tables corresponding to two different
 # configurations that shall be compared:
-# return category name for a given filen name
+# return category name for a given file name
 def categ2(x):
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\2-\3")
     return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
            r"\1/\2-\3",x)
+    #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\d+)?([^/#_]*)\.out",
+    #       r"\1\2\3\4\5",x)
 
 # for aggregating two tables corresponding to two different configurations that shall be compared
 # return detailed name of run (basename) that should match a corresponding one
@@ -45,6 +50,8 @@ def categbase(x):
     #re.sub(r"^.*/(T.*)-(.*)_(.*).res",r"\1-\2-\3",x)
     return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
            r"\1_\2_\3.\4\5",x)
+    #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\\d+)?([^/#_]*)\\.out",
+    #       r"\1_\2_\3.\4\5",x)
         
 pd.options.display.width = 10000
 pd.options.display.max_rows = None
@@ -53,6 +60,10 @@ pd.options.display.precision = 8
 
 #--------------------------------------------------------------------------------
 # General helper functions
+
+#geometric mean with shift parameter
+def geometric_mean(x,shift=0):
+  return math.exp(math.mean(math.log(x+shift)))-shift
 
 # read raw CSV-file, i.e. summarized out-files
 def readraw(f):
@@ -63,6 +74,13 @@ def readraw(f):
 def printagg_exact(a):
     a.to_csv(sep="\t")
 
+
+def calculateObj(rawdata,args):
+    if args.times:
+        return (rawdata["obj"] == rawdata["UB"]) * rawdata["ttot"] + (
+                rawdata["obj"] != rawdata["UB"]) * 100000000
+    else:
+        return rawdata["obj"]
 
 #-------------------------------------------------------------------------
 # Aggregation of one CSV-file obtained from summary.pl
@@ -107,7 +125,19 @@ def aggregatemip(rawdata,categfactor=0):
 
 # calculate total values over aggregate data
 def totalagg(agg):
-    pass
+    total = pd.DataFrame({"total":[""],
+               "runs":[agg["runs"].sum()],
+               "obj_mean":[agg["obj_mean"].mean()],
+               #"obj_sd":agg["obj_sd"].mean(),
+               "ittot_med":[agg["ittot_med"].median()],
+               "ttot_med":[agg["ttot_med"].median()],
+               "tbest_med":[agg["tbest_med"].median()],
+               #"tbest_sd":agg["tbest"].std(),
+            })
+    total = total[["total","runs","obj_mean","ittot_med","ttot_med","ttot_med","tbest_med"]]
+    total = total.set_index("total")
+    total.index.name = None
+    return total
 
 # reasonably round aggregated results
 def roundagg(a):
@@ -123,9 +153,9 @@ def roundaggmip(a):
 def agg_print(rawdata):
     aggregated = aggregate(rawdata)
     aggtotal = totalagg(aggregated)
-    printagg(roundagg(aggregated))
-    print("")
-    printagg(aggtotal)
+    print(roundagg(aggregated))
+    print("\nTotals:")
+    print(roundagg(aggtotal))
 
 
 #-------------------------------------------------------------------------
@@ -225,14 +255,27 @@ def agg2_print(rawdata1,rawdata2):
 
 # if called as script read csv-file or stdin, aggregate, and print
 if __name__ == "__main__":
-    if len(sys.argv) <= 2:
+    parser = argparse.ArgumentParser(
+        description="Calculate aggregated statistics for one or two summary files obtained from summary.py")
+    parser.add_argument('-t', '--times', action="store_true", default=False,
+        help='Consider total times for proven optimal solutions (10000000 if no opt prove)')
+    parser.add_argument("file", nargs="?", help="File from summary.py to be aggregated")
+    parser.add_argument("file2", nargs="?", help="Second file from summary.py to be aggregated and compared to")
+    args = parser.parse_args()
+    
+    print(args.file2);
+    
+    if not args.file2:
         # process one CSV-file
-        f = sys.argv[1] if len(sys.argv) > 1 else sys.stdin 
+        f = args.file if args.file else sys.stdin 
         rawdata = readraw(f)
+        rawdata["obj"] = calculateObj(rawdata,args)
         agg_print(rawdata)
     else:
         # process and compare two CSV-files
-        rawdata1 = readraw(sys.argv[1])
-        rawdata2 = readraw(sys.argv[2])
+        rawdata1 = readraw(args.file)
+        rawdata1["obj"] = calculateObj(rawdata1,args)
+        rawdata2 = readraw(args.file2)
+        rawdata2["obj"] = calculateObj(rawdata2,args)
         agg2_print(rawdata1,rawdata2) 
 
