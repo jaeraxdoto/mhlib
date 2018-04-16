@@ -4,17 +4,16 @@ https://bitbucket.org/ads-tuwien/mhlib
 
 *mhlib* is a collection of modules supporting the efficient and simple implementation of metaheuristics in C++11.
 
-![ ](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
+![ ](https://bitbucket.org/ads-tuwien/mhlib/mh.png =10x)
 
-Copyright 1999-2016 Guenther Raidl <raidl@ac.tuwien.ac.at>,
+Copyright 1999-2018 Guenther Raidl <raidl@ac.tuwien.ac.at>,
 Algorithms and Complexity Group, TU Wien,
 http://www.ac.tuwien.ac.at 
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
