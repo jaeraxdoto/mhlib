@@ -1,16 +1,18 @@
 #!/usr/bin/python3
+"""Calculate grouped basic statistics for one or two tsv-files obtained e.g. by
+mhlib's summary.py.
 
-# Calculate grouped basic statistics for detailed csv results,
-# which are either given by stdin or in a file provided as parameter
-# If two csv files are given as parameter, they are assumed to be results
-# from two different algorithms on the same instances, and they are compared
-# including a Wilcoxon rank sum test
-#
-# Important: For the aggregation to work correctly, adapt in particular
-# below definitions of categ, categ2 and categbase according to your
-# conventions for the filenames encoding instance and run information.
-#
-# Consider this script more as an example or template. 
+The input data are either given via stdin or in one or two files provided 
+as parameters. If two tsv files are given, they are assumed to be results
+from two different algorithms on the same instances, and they are compared
+including a Wilcoxon rank sum test.
+
+Important: For the aggregation to work correctly, adapt in particular
+below definitions of categ, categ2 and categbase according to your
+conventions for the filenames encoding instance and run information.
+
+Consider this script more as an example or template. 
+"""
 
 import pandas as pd
 # import numpy as np
@@ -23,36 +25,40 @@ import math
 
 
 #--------------------------------------------------------------------------------
-# determine the category name to aggregate over from the given file name
-
-# for aggregating a single table of raw data: 
-# return category name for a given file name
 def categ(x):
+    """Determine the category name to aggregate over from the given file name.
+    
+    For aggregating a single table of raw data,  
+    return category name for a given file name.
+    """
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\1/\2-\3",x)
     return re.sub(r".*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", 
         r"\1/\2-\3",x)
     #return re.sub(r"([^/#_]*)(_.*_)?([^/#_]*)(__\d+)?([^/#_]*)\.out",
     #    r"\1\3\5",x)
-# for aggregating two tables corresponding to two different
-# configurations that shall be compared:
-# return category name for a given file name
+
 def categ2(x):
+    """For aggregating two tables corresponding to two different summary files,
+    extract category name from the given file names that shall be compared.
+    """
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\2-\3")
     return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
            r"\1/\2-\3",x)
     #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\d+)?([^/#_]*)\.out",
     #       r"\1\2\3\4\5",x)
 
-# for aggregating two tables corresponding to two different configurations that shall be compared
-# return detailed name of run (basename) that should match a corresponding one
-# of the other configuration
 def categbase(x):
+    """For aggregating two tables corresponding to two different 
+    configurations that shall be compared, return detailed name of run 
+    (basename) that should match a corresponding one of the other configuration.
+    """
     #re.sub(r"^.*/(T.*)-(.*)_(.*).res",r"\1-\2-\3",x)
     return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
            r"\1_\2_\3.\4\5",x)
     #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\\d+)?([^/#_]*)\\.out",
     #       r"\1_\2_\3.\4\5",x)
-        
+       
+# Set display options for output
 pd.options.display.width = 10000
 pd.options.display.max_rows = None
 pd.options.display.precision = 8
@@ -61,14 +67,10 @@ pd.options.display.precision = 8
 #--------------------------------------------------------------------------------
 # General helper functions
 
-#geometric mean with shift parameter
 def geometric_mean(x,shift=0):
-  return math.exp(math.mean(math.log(x+shift)))-shift
-
-# read raw CSV-file, i.e. summarized out-files
-def readraw(f):
-    return pd.read_csv(f,sep="\t")
-
+    """Calculates geometric mean with shift parameter
+    """
+    return math.exp(math.mean(math.log(x+shift)))-shift
 
 # print results table in more precise machine readable format
 def printagg_exact(a):
@@ -83,14 +85,14 @@ def calculateObj(rawdata,args):
         return rawdata["obj"]
 
 #-------------------------------------------------------------------------
-# Aggregation of one CSV-file obtained from summary.pl
+# Aggregation of one summary data frame
 
-# determine aggregated results for one raw table
 def aggregate(rawdata,categfactor=categ):
+    """Determine aggregated results for one summary data frame.
+    """
     rawdata["cat"]=rawdata.apply(lambda row: categfactor(row["file"]),axis=1)
     rawdata["gap"]=rawdata.apply(lambda row: (row["ub"]-row["obj"])/row["ub"],axis=1)
     grp = rawdata.groupby("cat")
-    # =factor(sapply(as.vector(rawdata$file),categ))
     aggregated = pd.DataFrame({"runs":grp["obj"].size(),
                                "obj_mean":grp["obj"].mean(),
                                "obj_sd":grp["obj"].std(),
@@ -104,13 +106,13 @@ def aggregate(rawdata,categfactor=categ):
     return aggregated[["runs","obj_mean","obj_sd","ittot_med","ttot_med",
                        "ub_mean","gap_mean","tbest_med"]]
     
-def aggregatemip(rawdata,categfactor=0):
-    #=factor(sapply(as.vector(rawdata$File),categ))
+def aggregatemip(rawdata,categfactor=categ):
+    """Determine aggregated results for one summary data frame for MIP results.
+    """
     rawdata["cat"]=rawdata.apply(lambda row: categfactor(row["file"]),axis=1)
     rawdata["gap"]=rawdata.apply(lambda row: (row["Upper_bound"]-
            row["Lower_bound"])/row["Upper_bound"],axis=1)
     grp = rawdata.groupby("cat")
-    # =factor(sapply(as.vector(rawdata$file),categ))
     aggregated = pd.DataFrame({"runs":grp["obj"].size(),
                                "ub_mean":grp["Upper_bound"].mean(),
                                "ub_sd":grp["Upper_bound"].std(),
@@ -123,8 +125,9 @@ def aggregatemip(rawdata,categfactor=0):
                                })
     return aggregated[["runs","ub_mean","ub_sd","lb_mean","ttot_med","gap_mean"]]
 
-# calculate total values over aggregate data
 def totalagg(agg):
+    """Calculate total values over aggregate data.
+    """
     total = pd.DataFrame({"total":[""],
                "runs":[agg["runs"].sum()],
                "obj_mean":[agg["obj_mean"].mean()],
@@ -139,18 +142,21 @@ def totalagg(agg):
     total.index.name = None
     return total
 
-# reasonably round aggregated results
 def roundagg(a):
+    """Reasonably round aggregated results for printing.
+    """
     return a.round({'obj_mean':6, 'obj_sd':6, 'ittot_med':1, 'itbest_med':1,
         'ttot_med':1, 'tbest_med':1, 'obj0_mean':6, 'obj1_mean':6})
 
-# reasonably round aggregated results
 def roundaggmip(a):
+    """Reasonably round aggregated MIP results for printing.
+    """
     return a.round({'ub_mean':6, 'ub_sd':6, 'lb_mean':6, 'lb_sd':6, 'ttot_med':1,
                     'gap_mean':1})
 
-# perform aggregation and print results for one raw data
 def agg_print(rawdata):
+    """Perform aggregation and print results for one summary data frame.
+    """
     aggregated = aggregate(rawdata)
     aggtotal = totalagg(aggregated)
     print(roundagg(aggregated))
@@ -159,11 +165,12 @@ def agg_print(rawdata):
 
 
 #-------------------------------------------------------------------------
-# Aggregation and comparison of two CSV-files obtained from summary.pl
+# Aggregation and comparison of two summary data frames
 
 
-# perform statistical test (Wilcoxon signed ranktest) on col1[x] and col2[x]
 def stattest(col1,col2):
+    """Perform statistical test (Wilcoxon signed ranktest) on col1[x] and col2[x]
+    """
     dif = col1-col2
     noties = len(dif[dif!=0])
     lessass = dif.sum()<0
@@ -180,8 +187,9 @@ def stattest(col1,col2):
         p = 1-p
     return p
 
-# aggregate results of two merged inputs
 def doaggregate2(raw,fact):
+    """Aggregate results of two merged summary data frames.
+    """
     raw["obj_diff"]=raw.apply(lambda row: row["obj_x"]-row["obj_y"],axis=1)
     raw["AlessB"]=raw.apply(lambda row: row["obj_x"]<row["obj_y"],axis=1)
     raw["BlessA"]=raw.apply(lambda row: row["obj_x"]>row["obj_y"],axis=1)
@@ -193,7 +201,6 @@ def doaggregate2(raw,fact):
     for g,d in grp:
         p_AlessB[g] = stattest(d["obj_x"],d["obj_y"])
         p_BlessA[g] = stattest(d["obj_y"],d["obj_x"])
-    # =factor(sapply(as.vector(rawdata$file),categ))
     aggregated = pd.DataFrame({"runs":grp["obj_x"].size(),
                                "A_obj_mean":grp["obj_x"].mean(),
                                "B_obj_mean":grp["obj_y"].mean(),
@@ -207,8 +214,9 @@ def doaggregate2(raw,fact):
     return aggregated[["runs","A_obj_mean","B_obj_mean","AlessB","BlessA",
                       "AeqB","p_AlessB","p_BlessA"]]
     
-# determine aggregated results for two inputs including comparison of results
 def aggregate2(rawdata1,rawdata2):
+    """Determine aggregated results for two summarry data frames including comparison of results.
+    """
     rawdata1["base"]=rawdata1.apply(lambda row: categbase(row["file"]),axis=1)
     rawdata2["base"]=rawdata2.apply(lambda row: categbase(row["file"]),axis=1)
     raw = pd.merge(rawdata1,rawdata2,on="base",how="outer")
@@ -219,6 +227,8 @@ def aggregate2(rawdata1,rawdata2):
     return {"grouped":aggregated,"total":aggtotal}
 
 def roundagg2(a):
+    """Rounds aggregated data for two summary data frames for printing.
+    """
     a["AlessB"] = a["AlessB"].map(lambda x: int(x))
     a["BlessA"] = a["BlessA"].map(lambda x: int(x))
     a["AeqB"] = a["AeqB"].map(lambda x: int(x))
@@ -227,6 +237,9 @@ def roundagg2(a):
     return a
     
 def printsigdiffs(agg2):
+    """Print signifficant differences in aggregated data for two summary 
+    data frames.
+    """
     Awinner = sum(agg2["AlessB"]>agg2["BlessA"])
     Bwinner = sum(agg2["AlessB"]<agg2["BlessA"])
     gr = agg2["AlessB"].size
@@ -242,8 +255,10 @@ def printsigdiffs(agg2):
     if not sigBlessA.empty:
         print("\np_BlessA<=0.05\n",sigBlessA)         
 
-# perform aggregation and print comparative results for two raw data
 def agg2_print(rawdata1,rawdata2):
+    """Perform aggregation and print comparative results for two summary 
+    data frames.
+    """
     aggregated = aggregate2(rawdata1,rawdata2)
     print(roundagg2(pd.concat([aggregated["grouped"],aggregated["total"]])))
     #print(roundagg2(aggregated["total"]))
@@ -253,7 +268,8 @@ def agg2_print(rawdata1,rawdata2):
 #-------------------------------------------------------------------------
 # main part
 
-# if called as script read csv-file or stdin, aggregate, and print
+# If called as script read one or two summary files or summary data from
+# stdin, aggregate, and print.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Calculate aggregated statistics for one or two summary files obtained from summary.py")
@@ -266,16 +282,16 @@ if __name__ == "__main__":
     print(args.file2);
     
     if not args.file2:
-        # process one CSV-file
+        # process one summary file
         f = args.file if args.file else sys.stdin 
-        rawdata = readraw(f)
+        rawdata = pd.read_csv(f, sep='\t')
         rawdata["obj"] = calculateObj(rawdata,args)
         agg_print(rawdata)
     else:
-        # process and compare two CSV-files
-        rawdata1 = readraw(args.file)
+        # process and compare two summary files
+        rawdata1 = pd.read_csv(args.file, sep='\t')
         rawdata1["obj"] = calculateObj(rawdata1,args)
-        rawdata2 = readraw(args.file2)
+        rawdata2 = pd.read_csv(args.file2, sep='\t')
         rawdata2["obj"] = calculateObj(rawdata2,args)
         agg2_print(rawdata1,rawdata2) 
 
