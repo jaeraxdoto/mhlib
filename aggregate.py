@@ -70,12 +70,7 @@ pd.options.display.precision = 8
 def geometric_mean(x,shift=0):
     """Calculates geometric mean with shift parameter
     """
-    return math.exp(math.mean(math.log(x+shift)))-shift
-
-# print results table in more precise machine readable format
-def printagg_exact(a):
-    a.to_csv(sep="\t")
-
+    return math.exp(math.mean(math.log(x+shift)))-shift   
 
 def calculateObj(rawdata,args):
     if args.times:
@@ -93,18 +88,22 @@ def aggregate(rawdata,categfactor=categ):
     rawdata["cat"]=rawdata.apply(lambda row: categfactor(row["file"]),axis=1)
     rawdata["gap"]=rawdata.apply(lambda row: (row["ub"]-row["obj"])/row["ub"],axis=1)
     grp = rawdata.groupby("cat")
-    aggregated = pd.DataFrame({"runs":grp["obj"].size(),
-                               "obj_mean":grp["obj"].mean(),
-                               "obj_sd":grp["obj"].std(),
-                               "ittot_med":grp["ittot"].median(),
-                               "ttot_med":grp["ttot"].median(),
-                               "ub_mean":grp["ub"].mean(),
-                               "gap_mean":grp["gap"].mean(),
-                               "tbest_med":grp["tbest"].median(),
-                               # "tbest_sd":grp["tbest"].std(),
-                               })
-    return aggregated[["runs","obj_mean","obj_sd","ittot_med","ttot_med",
-                       "ub_mean","gap_mean","tbest_med"]]
+    aggregated = grp.agg({"obj":[size,mean,std],
+                          "ittot":median, "ttot":median, "ub":mean,
+                          "gap":mean, "tbest":median})[["obj","ittot","ttot","ub"]]
+    return aggregated
+    #aggregated = pd.DataFrame({"runs":grp["obj"].size(),
+    #                           "obj_mean":grp["obj"].mean(),
+    #                           "obj_sd":grp["obj"].std(),
+    #                           "ittot_med":grp["ittot"].median(),
+    #                           "ttot_med":grp["ttot"].median(),
+    #                           "ub_mean":grp["ub"].mean(),
+    #                           "gap_mean":grp["gap"].mean(),
+    #                           "tbest_med":grp["tbest"].median(),
+    #                           # "tbest_sd":grp["tbest"].std(),
+    #                           })
+    #return aggregated[["runs","obj_mean","obj_sd","ittot_med","ttot_med",
+    #                   "ub_mean","gap_mean","tbest_med"]]
     
 def aggregatemip(rawdata,categfactor=categ):
     """Determine aggregated results for one summary data frame for MIP results.

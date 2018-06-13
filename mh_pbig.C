@@ -100,13 +100,15 @@ void PBIG::run() {
 			else if (nIteration > psize && nIteration % psize == 0) {
 				// new population completed with D&R, merge into main population
 				for (int i=0;i<psize;i++) {
-					int r = pop->worstIndex();	// index of solution to be replaced
-					if (pop->at(r)->isWorse(*pop2[i])) {
-						// actually replace
-						saveBest();
-						pop2[i] = pop->replace(r,pop2[i]);
-						checkBest();
-						destrec[r]->reset(false);
+					if (dupelim(pgroup) && pop->findDuplicate(pop2[i]) == -1) {
+						int r = pop->worstIndex();	// index of solution to be replaced
+						if (pop->at(r)->isWorse(*pop2[i])) {
+							// actually replace
+							saveBest();
+							pop2[i] = pop->replace(r,pop2[i]);
+							checkBest();
+							destrec[r]->reset(false);
+						}
 					}
 				}
 				// out() << "Updated pop:" << endl;	pop->write(out());
