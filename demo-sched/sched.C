@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
 		// p.write(out()); 	// write out initial population
 
 		// generate the Scheduler and add SchedulableMethods
-		Scheduler *alg;
+		Scheduler *alg = nullptr;
 		switch (schedalg()) {
 		case 0: alg = new Scheduler(p); break;
 		case 1: alg = new GVNS(p,methsch(),methsli(),methssh()); break;
