@@ -149,7 +149,9 @@ void GVNS::updateData(int idx, bool updateSchedulerData, bool storeResult) {
 
 	if (worker->method->idx < locimpnh[0]->size() + constheu->size()) {
 		// local improvement neighborhood has been applied
-		if (worker->tmpSolResult.reconsider==0 || (!worker->tmpSolResult.changed && worker->tmpSolResult.reconsider==-1))
+		//if (worker->tmpSolResult.reconsider==0 || (!worker->tmpSolResult.changed && worker->tmpSolResult.reconsider==-1))
+		if (worker->tmpSolResult.reconsider==0 || ((!worker->tmpSolResult.changed ||
+				!worker->tmpSolResult.better) && worker->tmpSolResult.reconsider==-1))
 			locimpnh[worker->id]->doNotReconsiderLastMethod();	// switch off this neighborhood for this solution
 		if (worker->tmpSolResult.accept) {
 			// solution to be accepted: save solution and possibly restart with first local improvement method
@@ -181,7 +183,7 @@ void GVNS::updateData(int idx, bool updateSchedulerData, bool storeResult) {
 			worker->tmpSol->copy(*worker->pop[0]); // restore worker's incumbent
 		}
 		else {
-			// Go back to best solution before last shaking
+			// Shaking was not successful, go back to best solution before last shaking
 			updateShakingMethodStatistics(worker,false);
 			worker->tmpSol->copy(*worker->pop[1]);
 			worker->pop.update(0,worker->tmpSol);

@@ -37,12 +37,15 @@ void MAXSATSol::construct(int k, SchedulerMethodContext &context, SchedulerMetho
 void MAXSATSol::localimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {
 	// invalidate();	// call if you provide your own method and reevaluation needed
+	// result.reconsider=0;
+	// out() << "LS: " << obj();
+	//while (k_flip_localsearch(k))
+	//	;
 	if (!k_flip_localsearch(k))
 		result.changed = false; // solution is not changed, hint this to the further processing
 	// Otherwise, result is kept at its default, i.e., is automatically derived
+	//  out() << " -> " << obj() << std::endl ;
 }
-
-#include<iostream>
 
 void MAXSATSol::randlocalimp(int k, SchedulerMethodContext &context, SchedulerMethodResult &result)
 {

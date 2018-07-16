@@ -136,7 +136,7 @@ public:
 	/** Returns the SchedulerMethodContext object
 	 * for the last selected method, to be passed when calling the method. */
 	SchedulerMethodContext *getMethodContext() {
-		assert(lastMethod != -1);
+		assert(lastMethod >= 0);
 		return &methodContextList[lastMethod];
 	}
 };
@@ -285,7 +285,7 @@ public:
 	 * methods that include actions one may consider as auxiliary,
 	 * like in shaking neighborhoods the automatically applied VND, the total netto time
 	 * reports the total times excluding these further actions. It is the responsibility of a
-	 * derived class (like GVNSScheduler below) to set the total netto time to other values
+	 * derived class (like GVNSScheduler) to set the total netto time to other values
 	 * than the total time.
 	 */
 	virtual void printMethodStatistics(std::ostream &ostr);
