@@ -12,6 +12,8 @@ demo-qap/qap
 demo-sched/sched
 demo-maxsat/maxsat
 demo-recsched/recsched
+.idea
+cmake-build-debug
 .Rproj.user
 .Rhistory
 irace2/exec/
