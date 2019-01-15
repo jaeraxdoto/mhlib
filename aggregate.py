@@ -15,7 +15,7 @@ Consider this script more as an example or template.
 """
 
 import pandas as pd
-# import numpy as np
+import numpy as np
 import scipy.stats
 import sys
 import re
@@ -168,11 +168,12 @@ def agg_print(rawdata):
 
 
 def stattest(col1,col2):
-    """Perform statistical test (Wilcoxon signed ranktest) on col1[x] and col2[x]
+    """Perform one-sided statistical test (Wilcoxon signed rank-test)
+for the assumption col1<col2.
     """
-    dif = col1-col2
-    noties = len(dif[dif!=0])
-    lessass = dif.sum()<0
+    dif = col1 - col2
+    noties = len(dif[dif != 0])
+    med_is_less = np.median(dif) < 0
     if noties<1:
         return float(1)
     # if (col1==col2).all():
@@ -182,8 +183,8 @@ def stattest(col1,col2):
         msr,p = scipy.stats.wilcoxon(col1,col2,correction=True,zero_method="wilcox")
     #s,p = scipy.stats.mannwhitneyu(col1,col2,alternative="less")
     p = p/2
-    if not lessass:
-        p = 1-p
+    if not med_is_less:
+        p = 1 - p
     return p
 
 def doaggregate2(raw,fact):
