@@ -62,11 +62,6 @@ extern int_param lchonly;
 	The log is actually flushed to the file every lbuffer iterations. */
 extern int_param lbuffer;
 
-/** \ingroup param
-	Number format.
-	Format for printing out double values (e.g. the fitness). */
-extern string_param nformat;
-
 /** Mutex to be used in multithreading applications for ensuring atomic writing of log entries. */
 extern std::mutex logmutex;
 
@@ -180,10 +175,10 @@ public:
 	virtual bool shouldWrite(int gen,double bestobj,bool inAnyCase=false);
 	/** Write an int value to the log.
 		A separator is inserted in the front of it. */ 
-	void write(int val); 
-	/** Write a double value to the log.
+	void write(int val, int w);
+	/** Write a double value to the log with a given width and precision.
 		A separator is inserted in the front of it. */ 
-	void write(double val);
+	void write(double val, int w, int p);
 	/** Write a string to the log.
 		A separator is inserted in the front of it. */ 
 	void write(const std::string &val);
@@ -198,8 +193,6 @@ public:
 	/** Write an empty entry (i.e., an empty line)
 	 */
 	void emptyEntry();
-	/// delimiter for data in a log entry
-	static const char delimiter='\t';
 	/** Return iteration number from the last log entry started. */
 	int lastIter() {
 		return curIter;

@@ -145,7 +145,8 @@ bool Scheduler::terminateMethod() {
 
 void Scheduler::updateMethodStatistics(mh_solution *origsol, mh_solution *tmpsol, int methodIdx,
 		double methodTime, SchedulerMethodResult &tmpSolResult) {
-	totNetTime[methodIdx] = (totTime[methodIdx] += methodTime);
+	totTime[methodIdx] += methodTime;
+	totNetTime[methodIdx] += methodTime;
 	nIter[methodIdx]++;
 	nIteration++;
 	// if the applied method was successful, i.e., is accepted, update the success-counter and the total obj-gain
@@ -165,13 +166,13 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 		sumIter+=nIter[k];
 		sumTime+=totNetTime[k];
 	}
-	ostr << "total num of completed iterations:\t" << sumIter << endl;
-	ostr << "total num of successful iterations:\t" << sumSuccess << endl;
-	ostr << "total netto time:\t" << sumTime << "\ttotal scheduler time:\t" << totSchedulerTime << endl;
-	ostr << "method\t   iter\t   succ\tsucc-rate%\ttotal-obj-gain\tavg-obj-gain\trel-succ%\ttotal-time\trel-time%\ttot-net-time\trel-net-time%" << endl;
+	ostr << "total num of completed iterations: " << sumIter << endl;
+	ostr << "total num of successful iterations: " << sumSuccess << endl;
+	ostr << "total netto time: " << sumTime << "  total scheduler time: " << totSchedulerTime << endl;
+	ostr << " method      iter   succ succ-rate%  tot-obj-gain  avg-obj-gain  rel-succ%   tot-time  rel-time%  tot-net-time  rel-net-time%" << endl;
 	for (int k = 0; k < int(methodPool.size()); k++) {
 		char tmp[250];
-		snprintf(tmp,sizeof(tmp),"%7s\t%7d\t%6d\t%9.4f\t%10.5f\t%10.5f\t%9.4f\t%9.4f\t%9.4f\t%9.4f\t%9.4f",
+		snprintf(tmp,sizeof(tmp),"%7s %8d %7d %10.4f %13.5f %13.5f %10.4f %10.4f %10.4f %13.4f %14.4f",
 			methodPool[k]->name.c_str(),nIter[k],nSuccess[k],
 			double(nSuccess[k])/double(nIter[k])*100.0,
 			sumGain[k],
@@ -189,24 +190,20 @@ void Scheduler::printMethodStatistics(ostream &ostr) {
 void Scheduler::printStatistics(ostream &ostr) {
 	checkPopulation();
 
-	char s[60];
-
 	double wctime = mhwctime();
 	double cputime = mhcputime();
 
 	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
-	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in iteration:\t" << iterBest << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
-	ostr << "solution time for best:\t" << timIterBest << endl;
-	ostr << "best solution:\t";
+	ostr << "best objective value: " << pop->bestObj() << endl;
+	ostr << "best obtained in iteration: " << iterBest << endl;
+	ostr << "solution time for best: " << timIterBest << endl;
+	ostr << "best solution: ";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << "CPU time:\t" << cputime << "\t\twall clock time:\t" << wctime << endl;
-	ostr << "iterations:\t" << nIteration << endl;
-	//ostr << "local improvements:\t"  << nLocalImprovements << endl;
+	ostr << "CPU time: " << cputime << "  wall clock time: " << wctime << endl;
+	ostr << "iterations: " << nIteration << endl;
+	//ostr << "local improvements: "  << nLocalImprovements << endl;
 	printMethodStatistics(ostr);
 }
 
@@ -223,7 +220,7 @@ void Scheduler::writeLogHeader(bool finishEntry) {
 	logmutex.lock();
 	logstr.headerEntry();
 	if (ltime(pgroup))
-		logstr.write(_wctime ? "wctime" : "cputime");
+		logstr.write( (_wctime ? "   wctime " : "      cputime "));
 	if (lmethod(pgroup)==2)
 		logstr.write("method");
 	if (finishEntry)
@@ -249,9 +246,9 @@ bool Scheduler::writeLogEntry(bool inAnyCase, bool finishEntry, const std::strin
 	{
 		logmutex.lock();
 		if (ltime(pgroup))
-			logstr.write(mhtime(_wctime));
+			logstr.write(mhtime(_wctime), 13,3);
 		if (lmethod(pgroup)==2)
-			logstr.write(method);
+			logstr.write(" "+method);
 		if (finishEntry)
 			logstr.finishEntry();
 		logmutex.unlock();

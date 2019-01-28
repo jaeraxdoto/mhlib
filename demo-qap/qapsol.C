@@ -162,13 +162,11 @@ void qapSol::save(const std::string &fname)
 {
 	if (fname == "NULL")
 		return;
-	char s[40];
-	sprintf(s,nformat(pgroup).c_str(),obj());
 
 	ofstream of(fname);
 	if (!of)
 		mherror("Cannot open file",fname);
-	of << length << ' ' << s << endl;
+	of << length << ' ' << obj() << endl;
 	for (int i=0;i<length;i++) 
 		of << data[i]+1 << ' ';
 	of << endl;

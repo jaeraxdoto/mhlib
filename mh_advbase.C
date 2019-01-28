@@ -210,24 +210,20 @@ void mh_advbase::update(int index, mh_solution *sol) {
 void mh_advbase::printStatistics(ostream &ostr)
 {
 	checkPopulation();
-	
-	char s[40];
-	
+
 	double tim = (_wctime ? (mhwctime() - timStart) : mhcputime());
 	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
-	ostr << "best objective value:\t" << s << endl;
-	ostr << "best obtained in iteration:\t" << iterBest << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
-	ostr << "solution time for best:\t" << timIterBest << endl;
-	ostr << "best solution:\t";
+	ostr << "best objective value: " << std::fixed << std::setw(16) << std::setprecision(6) << pop->bestObj() << endl;
+	ostr << "best obtained in iteration: " << iterBest << endl;
+	ostr << "solution time for best: " << timIterBest << endl;
+	ostr << "best solution: ";
 	best->write(ostr,0);
 	ostr << endl;
-	ostr << (_wctime ? "wall clock time:\t" : "CPU-time:\t") << tim << endl;
-	ostr << "iterations:\t" << nIteration << endl;
-	ostr << "subiterations:\t" << nSubIterations << endl;
-	ostr << "selections:\t" << nSelections << endl;
+	ostr << (_wctime ? "wall clock time: " : "CPU-time: ") << tim << endl;
+	ostr << "iterations: " << nIteration << endl;
+	ostr << "subiterations: " << nSubIterations << endl;
+	ostr << "selections: " << nSelections << endl;
 }
 
 bool mh_advbase::writeLogEntry(bool inAnyCase, bool finishEntry)
@@ -236,13 +232,13 @@ bool mh_advbase::writeLogEntry(bool inAnyCase, bool finishEntry)
 	
 	if (logstr.startEntry(nIteration,pop->bestObj(),inAnyCase))
 	{
-		logstr.write(pop->getWorst());
-		logstr.write(pop->getMean());
-		logstr.write(pop->getDev());
+		logstr.write(pop->getWorst(), 16, 6);
+		logstr.write(pop->getMean(), 16, 6);
+		logstr.write(pop->getDev(), 16, 6);
 		if (ldups(pgroup))
-			logstr.write(nDupEliminations);
+			logstr.write(nDupEliminations,8);
 		if (ltime(pgroup))
-			logstr.write((_wctime ? (mhwctime() - timStart) : mhcputime()));
+			logstr.write((_wctime ? (mhwctime() - timStart) : mhcputime()),12,3);
 		if (finishEntry)
 			logstr.finishEntry();
 		return true;
