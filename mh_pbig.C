@@ -77,7 +77,7 @@ void PBIG::run() {
 			// augment missing information in tmpSolResult except tmpSOlResult.reconsider
 			if (tmpSolResult.changed) {
 				if (tmpSolResult.better == -1)
-					tmpSolResult.better = pop2[s]->isBetter(*pop->at(0));
+					tmpSolResult.better = pop2[s]->isBetter(*pop->at(s));
 				if (tmpSolResult.accept == -1)
 					tmpSolResult.accept = tmpSolResult.better;
 			}
@@ -90,6 +90,15 @@ void PBIG::run() {
 			// update statistics and scheduler data
 			updateMethodStatistics(pop->at(s),pop2[s],method->idx,methodTime,tmpSolResult);
 			// updateData(tmpSolResult, 0, true, false);
+
+			// ensures that best solution is immediately added to the population
+			if (nIteration > psize && pop->at(0)->isWorse(*pop2[s]) && pop->findDuplicate(pop2[s]) == -1) {
+							// actually replace
+							saveBest();
+							pop2[s] = pop->replace(0,pop2[s]);
+							checkBest();
+							destrec[0]->reset(false);
+					}
 
 			if (nIteration == psize) {
 				// just copy first generation of constructed solutions
