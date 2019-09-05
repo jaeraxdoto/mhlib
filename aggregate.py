@@ -172,19 +172,13 @@ def stattest(col1,col2):
 for the assumption col1<col2.
     """
     dif = col1 - col2
-    noties = len(dif[dif != 0])
-    med_is_less = np.median(dif) < 0
+    no_ties = len(dif[dif != 0])
     if noties<1:
         return float(1)
-    # if (col1==col2).all():
-    #     return 3
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        msr,p = scipy.stats.wilcoxon(col1,col2,correction=True,zero_method="wilcox")
-    #s,p = scipy.stats.mannwhitneyu(col1,col2,alternative="less")
-    p = p/2
-    if not med_is_less:
-        p = 1 - p
+        msr,p = scipy.stats.wilcoxon(col1, col2, correction=True, zero_method="wilcox", alternative="less")
+    # s,p = scipy.stats.mannwhitneyu(col1,col2,alternative="less")
     return p
 
 def doaggregate2(raw,fact):
