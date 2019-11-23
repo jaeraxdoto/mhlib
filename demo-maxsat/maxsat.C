@@ -87,6 +87,8 @@ int main(int argc, char *argv[])
 		maxi.setDefault(1);			// we maximize here
 		popsize.setDefault(1);		// other values make no sense with the Scheduler
 		titer.setDefault(1000);	// the maximum number of performed iterations
+		// lchonly.setDefault(0);
+		// seed.setDefault(1);
 		
 		// parse arguments and initialize random number generator
 		param::parseArgs(argc,argv);

@@ -89,7 +89,7 @@ public:
 	/** Returns pointer to best solution of population. */
 	mh_solution *bestSol() const
 		{ return chroms[indexBest]; }
-	/** Checks wheter the given solution has a duplicate in
+	/** Checks whether the given solution has a duplicate in
 		the population.	Returns the index in the population in this
 		case; otherwise, -1 is returned. */
 	int findDuplicate(mh_solution *p);

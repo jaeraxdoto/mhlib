@@ -4,17 +4,16 @@ https://bitbucket.org/ads-tuwien/mhlib
 
 *mhlib* is a collection of modules supporting the efficient and simple implementation of metaheuristics in C++11.
 
-![ ](https://bitbucket.org/ads-tuwien/mhlib/wiki/img/mh.png =10x)
+![ ](https://bitbucket.org/ads-tuwien/mhlib/mh.png =10x)
 
-Copyright 1999-2016 Guenther Raidl <raidl@ac.tuwien.ac.at>,
+Copyright 1999-2018 Guenther Raidl <raidl@ac.tuwien.ac.at>,
 Algorithms and Complexity Group, TU Wien,
 http://www.ac.tuwien.ac.at 
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,11 +86,12 @@ Besides the actual C++ library, mhlib also contains
 - **summary.py**: A Python script used to summarize key result values of
   many runs over many instances.
 
-- **aggregate.R**: An R (https://www.r-project.org/) script used to
+- **aggregate.py**: A Python script used to
   further aggregate the results obtained by summary.pl and in particular
   to make statistical tests for showing the significance of different
   configurations. Furthermore, this script also contains some exemplary
-  functions for drawing graphs.
+  functions for drawing graphs. **old-aggregate.R** provides a former
+  version of this script in R.
 
 - **irace** and **irace2**: Exemplary configurations for applying irace
   (http://iridia.ulb.ac.be/irace/files/README.html) to systematically

@@ -77,7 +77,7 @@ void PBIG::run() {
 			// augment missing information in tmpSolResult except tmpSOlResult.reconsider
 			if (tmpSolResult.changed) {
 				if (tmpSolResult.better == -1)
-					tmpSolResult.better = pop2[s]->isBetter(*pop->at(0));
+					tmpSolResult.better = pop2[s]->isBetter(*pop->at(s));
 				if (tmpSolResult.accept == -1)
 					tmpSolResult.accept = tmpSolResult.better;
 			}
@@ -91,6 +91,15 @@ void PBIG::run() {
 			updateMethodStatistics(pop->at(s),pop2[s],method->idx,methodTime,tmpSolResult);
 			// updateData(tmpSolResult, 0, true, false);
 
+			// ensures that best solution is immediately added to the population
+			if (nIteration > psize && pop->at(0)->isWorse(*pop2[s]) && pop->findDuplicate(pop2[s]) == -1) {
+							// actually replace
+							saveBest();
+							pop2[s] = pop->replace(0,pop2[s]);
+							checkBest();
+							destrec[0]->reset(false);
+					}
+
 			if (nIteration == psize) {
 				// just copy first generation of constructed solutions
 				for (int i=0;i<psize;i++)
@@ -100,13 +109,15 @@ void PBIG::run() {
 			else if (nIteration > psize && nIteration % psize == 0) {
 				// new population completed with D&R, merge into main population
 				for (int i=0;i<psize;i++) {
-					int r = pop->worstIndex();	// index of solution to be replaced
-					if (pop->at(r)->isWorse(*pop2[i])) {
-						// actually replace
-						saveBest();
-						pop2[i] = pop->replace(r,pop2[i]);
-						checkBest();
-						destrec[r]->reset(false);
+					if (dupelim(pgroup) && pop->findDuplicate(pop2[i]) == -1) {
+						int r = pop->worstIndex();	// index of solution to be replaced
+						if (pop->at(r)->isWorse(*pop2[i])) {
+							// actually replace
+							saveBest();
+							pop2[i] = pop->replace(r,pop2[i]);
+							checkBest();
+							destrec[r]->reset(false);
+						}
 					}
 				}
 				// out() << "Updated pop:" << endl;	pop->write(out());

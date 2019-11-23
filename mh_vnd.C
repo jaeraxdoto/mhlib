@@ -141,7 +141,7 @@ bool VND::writeLogEntry(bool inAnyCase,bool finishEntry) {
 		//if (logdups(pgroup))
 		//	logstr.write(nDupEliminations);
 		if (ltime(pgroup))
-			logstr.write(mhcputime());
+			logstr.write(mhcputime(),13,3);
 		if (finishEntry)
 			logstr.finishEntry();
 		return true;
@@ -194,16 +194,12 @@ void VND::printStatisticsVND(ostream &ostr)
 void VND::printStatistics(ostream &ostr)
 {
 	checkPopulation();
-	
-	char s[60];
-	
+
 	double tim=mhcputime();
 	mh_solution *best=pop->bestSol();
 	ostr << "# best solution:" << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), pop->bestObj() );
-	ostr << "best objective value:\t" << s << endl;
+	ostr << "best objective value:\t" << pop->bestObj() << endl;
 	ostr << "best obtained in generation:\t" << iterBest << endl;
-	snprintf( s, sizeof(s), nformat(pgroup).c_str(), timIterBest );
 	ostr << "solution time for best:\t" << timIterBest << endl;
 	ostr << "best chromosome:\t"; 
 	best->write(ostr,0);

@@ -27,8 +27,6 @@ int_param lchonly("lchonly","log in dependence of obj. val.: 0:always, 1:only if
 int_param lbuffer("lbuffer","number of log entries that are buffered",10,1,
 		  10000000);
 
-string_param nformat("nformat","format for writing double values","%f");
-
 mutex logmutex;
 
 /* standard output object, open "stdout" stream (either cout or a file) and
@@ -116,7 +114,7 @@ void logging::headerEntry()
 		// curStream.seekp(long(0),ios_base::beg);
 		curStream.str("");
 		curStream.clear();
-		curStream << "iter" << delimiter << "best";
+		curStream << "    iter             best";
 		curIter=0;
 	}
 }
@@ -131,9 +129,9 @@ bool logging::startEntry(int gen, double bestobj,bool inAnyCase)
 		curStream.clear();
 		curIter=gen;
 		// write out iteration number
-		curStream << setfill('0') << setw(7) << gen;
+		curStream << setw(8) << gen;
 		// write out best objective value
-		write(bestobj);
+		curStream << fixed << setw(17) << bestobj;
 		return true;
 	}
 	return false;
@@ -200,22 +198,21 @@ bool logging::shouldWrite(int gen,double bestobj,bool inAnyCase)
 	return true;
 }
 
-void logging::write(int val)
+void logging::write(int val, int w)
 {
-	curStream << delimiter << val;
-} 
+	curStream << " " << val;
+}
 
-void logging::write(double val)
+void logging::write(double val, int w, int p)
 {
-	char s[40];
-	snprintf(s,sizeof(s),nformat().c_str(),val);
-	curStream << delimiter << s;
+	curStream << " " << fixed << setw(w) << setprecision(p) << val;
 }
 
 void logging::write(const std::string &val)
 {
-	curStream << delimiter << val;
+	curStream << " " << val;
 }
+
 
 void logging::finishEntry()
 {

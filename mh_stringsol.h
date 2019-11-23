@@ -74,8 +74,8 @@ protected:
 	/** Performs reciprocal exchange. */
 	void mutate_exchange(int count);
 
-	/** Helper function: Get two cutpoints a and b, a<b. */
-	void get_cutpoints(int &a, int &b);
+	/** Helper function: Get two cutpoints a and b, with a<b if aLessb=true. */
+	void get_cutpoints(int &a, int &b, bool aLessb = true);
 
 public:
 	stringSol(const mh_solution &c);
@@ -172,13 +172,13 @@ template <class T> void stringSol<T>::initialize(int count)
 	invalidate();
 }
 
-template <class T> void stringSol<T>::get_cutpoints(int &a, int &b)
+template <class T> void stringSol<T>::get_cutpoints(int &a, int &b, bool aLessb)
 {
 	a = random_int(length);
 	do
 		b = random_int(length);
 	while (a==b);
-	if (a>b)
+	if (aLessb and a>b)
 		std::swap(a,b);
 }
 

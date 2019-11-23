@@ -81,11 +81,17 @@ void permSol::mutate_insertion(int count)
 	int cs,ci;
 	for (int i=0;i<count;i++)
 	{
-		get_cutpoints(cs,ci);
+		get_cutpoints(cs,ci,false);
 		permSolVarType t = data[cs];
-		for (int i=cs;i<ci;i++)
-			data[i]=data[i+1];
-		data[ci]=t;
+		if (cs < ci) {
+			for (int i = cs; i < ci; i++)
+				data[i] = data[i + 1];
+			data[ci] = t;
+		} else {
+			for (int i = cs; i > ci; i--)
+				data[i] = data[i - 1];
+			data[ci] = t;
+		}
 	}
 	invalidate();
 }

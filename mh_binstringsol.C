@@ -44,7 +44,7 @@ bool binStringSol::k_flip_localsearch(int k) {
 		} else {
 			if (p[i]==-1) {
 				// this index has not yet been placed
-				p[i]=p[i-1]+1;
+				p[i]=(i>0?p[i-1]:-1) + 1;
 				data[p[i]]=!data[p[i]];
 				i++; 	// continue with next position (if any)
 			} else if (p[i]<length-(k-i)) {
@@ -63,6 +63,7 @@ bool binStringSol::k_flip_localsearch(int k) {
 	}
 	if (better_found)
 		copy(*best_sol);
+	invalidate();
 	return better_found;
 }
 
